@@ -35,11 +35,12 @@ export default function Process() {
             <span className="h-px w-10 bg-[#C9A96E]" />
           </div>
           <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl leading-[1.1] mb-5">
-            Tři kroky k <em className="text-[#3E2723]">vašemu dokonalému místu</em>
+            Tři kroky k <em className="text-[#3E2723]">vašemu místu na míru</em>
           </h2>
           <p className="text-charcoal/60 max-w-2xl mx-auto leading-relaxed font-light">
-            Sami provozujeme svatební místa, takže víme, na co se ptát. Naše analýza
-            vám ušetří desítky hodin hledání.
+            <strong className="text-[#3E2723] font-medium">Jediná služba v ČR</strong>, která vám podle
+            vašich kritérií vyhodnotí to nejlepší svatební místo. Žádné plánování,
+            žádná koordinace — jen ten správný prostor.
           </p>
         </div>
 

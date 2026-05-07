@@ -47,22 +47,22 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex items-center gap-3 mb-8"
+            className="inline-flex items-center gap-2 bg-[#C9A96E]/15 backdrop-blur-md border border-[#C9A96E]/40 px-4 py-2 rounded-full mb-7"
           >
-            <span className="h-px w-10 bg-[#C9A96E]" />
-            <span className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase">
-              Svatební místo na míru
+            <span className="text-[#E8C98A]">✦</span>
+            <span className="text-[#E8C98A] text-[11px] sm:text-xs font-semibold tracking-[.2em] uppercase">
+              Jediná služba v ČR
             </span>
           </motion.div>
 
-          <h1 className="font-serif font-light text-4xl sm:text-5xl md:text-7xl lg:text-[5.5rem] leading-[1.05] tracking-tight mb-6 sm:mb-8">
+          <h1 className="font-serif font-light text-4xl sm:text-5xl md:text-7xl lg:text-[5.5rem] leading-[1.02] tracking-tight mb-6 sm:mb-8">
             <motion.span
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
               className="block"
             >
-              Den, který si
+              Svatební místo
             </motion.span>
             <motion.span
               initial={{ opacity: 0, y: 30 }}
@@ -70,15 +70,7 @@ export default function Hero() {
               transition={{ delay: 0.6, duration: 0.8 }}
               className="block italic text-[#E8C98A]"
             >
-              budete pamatovat
-            </motion.span>
-            <motion.span
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              className="block"
-            >
-              celý život.
+              přesně na míru
             </motion.span>
           </h1>
 
@@ -86,11 +78,10 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1 }}
-            className="text-white/80 text-base sm:text-lg md:text-xl leading-relaxed max-w-xl mb-8 sm:mb-10 font-light"
+            className="text-white/85 text-base sm:text-lg md:text-xl leading-relaxed max-w-xl mb-8 sm:mb-10 font-light"
           >
-            Sami provozujeme svatební místa a víme, jak fungují. Proto vám pomůžeme
-            najít to <strong className="font-medium text-white">vaše místo na míru</strong> —
-            přesně podle vašich představ a rozpočtu.
+            Jediná služba v České republice, která vám podle <strong className="font-medium text-white">vašich kritérií</strong> vyhodnotí to <strong className="font-medium text-white">nejlepší svatební místo</strong>.
+            Žádné koordinace, žádné plánování — jen ten správný prostor.
           </motion.p>
 
           <motion.div
@@ -122,23 +113,23 @@ export default function Hero() {
           <div className="relative h-[480px]">
             {[
               {
-                icon: Heart,
-                title: "500+",
-                subtitle: "svateb organizovaných",
+                icon: Award,
+                title: "Jediná v ČR",
+                subtitle: "služba pro výběr místa na míru",
                 pos: "top-0 right-8",
                 delay: 1.4,
               },
               {
-                icon: Award,
-                title: "4,9 ★",
-                subtitle: "průměrné hodnocení párů",
+                icon: MapPin,
+                title: "200+",
+                subtitle: "prověřených svatebních míst",
                 pos: "top-44 right-32",
                 delay: 1.6,
               },
               {
-                icon: MapPin,
-                title: "200+",
-                subtitle: "prémiových míst",
+                icon: Heart,
+                title: "Do 24 hodin",
+                subtitle: "návrh 3 míst přímo do mailu",
                 pos: "bottom-12 right-4",
                 delay: 1.8,
               },

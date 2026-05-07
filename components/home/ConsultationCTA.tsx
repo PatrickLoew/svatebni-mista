@@ -29,17 +29,18 @@ export default function ConsultationCTA() {
           <div className="flex items-center justify-center gap-3 mb-6">
             <span className="h-px w-10 bg-[#C9A96E]" />
             <span className="text-[#E8C98A] text-xs font-semibold tracking-[.3em] uppercase">
-              Dvě cesty, jak začít
+              Začněte hledat své místo
             </span>
             <span className="h-px w-10 bg-[#C9A96E]" />
           </div>
 
           <h2 className="font-serif font-light text-3xl sm:text-4xl md:text-6xl leading-[1.05] mb-5 max-w-3xl mx-auto">
-            Pojďme začít psát <em className="text-[#E8C98A]">váš příběh</em>
+            Najděte své <em className="text-[#E8C98A]">svatební místo na míru</em>
           </h2>
 
           <p className="text-white/70 leading-relaxed max-w-2xl mx-auto mb-12 sm:mb-14 font-light text-base sm:text-lg">
-            Vyberte si, jak chcete začít. Obě cesty jsou zdarma a bez závazku.
+            Jediná služba v ČR, která vám podle vašich kritérií vyhodnotí nejlepší
+            svatební místo. Vyberte si cestu — obě jsou zdarma a bez závazku.
           </p>
         </motion.div>
 

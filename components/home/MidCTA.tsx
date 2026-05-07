@@ -16,18 +16,18 @@ export default function MidCTA() {
         viewport={{ once: true }}
         className="relative max-w-4xl mx-auto text-center"
       >
-        <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-md border border-[#C9A96E]/20 px-4 py-2 rounded-full text-xs font-medium text-[#3E2723] mb-7">
+        <div className="inline-flex items-center gap-2 bg-white/60 backdrop-blur-md border border-[#C9A96E]/30 px-4 py-2 rounded-full text-xs font-semibold tracking-[.15em] uppercase text-[#3E2723] mb-7">
           <Sparkles size={13} className="text-[#C9A96E]" />
-          Návrh do 24 hodin · zcela zdarma
+          Jediná služba v ČR
         </div>
 
         <h2 className="font-serif font-light text-4xl md:text-6xl leading-[1.05] mb-6">
-          Nevíte, kde začít? <em className="text-[#3E2723]">Nechte to na nás.</em>
+          Vyhodnotíme pro vás <em className="text-[#3E2723]">nejlepší místo</em>
         </h2>
         <p className="text-charcoal/70 max-w-2xl mx-auto leading-relaxed text-lg font-light mb-10">
-          Vyplníte 6 jednoduchých otázek a my vám během 24 hodin pošleme
-          osobní výběr 3 míst, která vám sednou nejlépe — včetně rozpočtových
-          rozpadů a doporučení.
+          Šest otázek vám zabere 5 minut. Naše analýza projde stovky míst
+          a podle <strong>vašich kritérií</strong> vyhodnotí <strong>3 nejlepší svatební místa</strong>.
+          Návrh do 24 hodin, zcela zdarma.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -35,7 +35,7 @@ export default function MidCTA() {
             href="/chci-svatbu"
             className="group bg-[#3E2723] text-white font-medium px-9 py-4 rounded-full hover:bg-[#1F1310] transition-all hover:scale-[1.02] inline-flex items-center justify-center gap-2"
           >
-            Spustit dotazník
+            Spustit analýzu na míru
             <span className="transition-transform group-hover:translate-x-1">→</span>
           </Link>
           <Link
