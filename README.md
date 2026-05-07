@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Svatební Místa.cz
 
-## Getting Started
+Prémiová full-stack aplikace pro svatební agenturu — katalog míst, poptávky, admin panel a wedding planning.
 
-First, run the development server:
+## Tech stack
+- **Next.js 16** (App Router) + **TypeScript**
+- **Tailwind CSS 4**
+- **Framer Motion** (animace, scroll reveal, parallax)
+- **Supabase** (PostgreSQL databáze)
+- **Resend** (e-mailové notifikace, volitelné)
+- **Lucide React** (ikony)
+- Cormorant Garamond + Geist (editorial typografie)
 
+## Spuštění (krok za krokem)
+
+### 1. Závislosti jsou již nainstalované
+Pokud potřebuješ reinstall:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd svatebni-mista
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Nastav environment proměnné
+```bash
+cp .env.example .env.local
+```
+A vyplň hodnoty z tvého Supabase a Resend účtu.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Vytvoř databázi v Supabase
+1. Jdi na [supabase.com](https://supabase.com) → vytvoř nový projekt
+2. V projektu otevři **SQL Editor**
+3. Vlož a spusť celý obsah souboru `supabase/schema.sql`
+4. Tabulky `venues` a `inquiries` budou vytvořeny + 4 ukázková místa
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Spusť dev server
+```bash
+npm run dev
+```
+Otevři [http://localhost:3000](http://localhost:3000)
 
-## Learn More
+### 5. Admin přístup
+- URL: `/admin`
+- Default heslo: `admin123` (změň v `.env.local` přes `NEXT_PUBLIC_ADMIN_PASSWORD`)
 
-To learn more about Next.js, take a look at the following resources:
+### 6. Deploy na Vercel
+```bash
+npx vercel
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Struktura projektu
+```
+app/
+├── page.tsx                    # Homepage
+├── layout.tsx                  # Root layout + fonty
+├── venues/
+│   ├── page.tsx               # Katalog s filtry
+│   └── [slug]/page.tsx        # Detail místa + sticky form
+├── admin/                     # Heslem chráněná administrace
+└── api/                       # REST endpoints
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+components/
+├── layout/        Navbar, Footer
+├── home/          Hero, FeaturedVenues, Process, Catering,
+│                  Gallery, Testimonials, ConsultationCTA, FAQ
+├── venues/        VenueCard, VenueFilters, InquiryForm
+└── admin/         VenueForm
 
-## Deploy on Vercel
+lib/               supabase.ts, types.ts, utils.ts
+supabase/          schema.sql
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Sekce homepage
+1. **Cinematic Hero** — parallax pozadí, animované nadpisy, glass trust karty
+2. **Featured Venues** — 3 doporučená místa s editorial layoutem
+3. **Jak fungujeme** — 3 kroky s ikonami, animovaný timeline
+4. **Catering & Full Service** — split layout s feature listem
+5. **Gallery** — masonry grid + lightbox modální
+6. **Testimonials** — animované staty + recenze párů
+7. **Consultation CTA** — forest green sekce s konzultačním formulářem
+8. **FAQ** — accordion s reálnými dotazy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Designový systém
+- Ivory `#F9F6F0` · Champagne Gold `#C9A96E` · Forest Green `#1F3A2C` · Beige `#E8DDD0`
+- Cormorant Garamond — display nadpisy (italic akcenty)
+- Geist — body text
+
+## Příkazy
+```bash
+npm run dev      # Vývoj na :3000
+npm run build    # Produkční build
+npm run start    # Spuštění produkční verze
+npm run lint     # ESLint kontrola
+```

@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Citlivá data — exporty z formulářů
+/data/venues.csv
+/data/venues.sql
