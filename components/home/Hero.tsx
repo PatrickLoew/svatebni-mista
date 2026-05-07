@@ -63,13 +63,13 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9 }}
           >
-            <Link
-              href="/chci-svatbu"
+            <a
+              href="#hlavni-cta"
               className="inline-flex items-center gap-3 bg-[#C9A96E] text-white font-medium px-8 py-5 rounded-full hover:bg-[#A88240] transition-all hover:scale-[1.02] text-base shadow-lg shadow-[#C9A96E]/30"
             >
               Vyplň náš formulář a získej svatební místo na míru zdarma
               <span className="text-lg">→</span>
-            </Link>
+            </a>
           </motion.div>
         </div>
 

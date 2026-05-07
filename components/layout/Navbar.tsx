@@ -59,12 +59,12 @@ export default function Navbar() {
               </Link>
             )
           })}
-          <Link
-            href="/chci-svatbu"
+          <a
+            href="/#hlavni-cta"
             className="bg-[#C9A96E] text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-[#A88240] transition-colors"
           >
             Získat místo na míru
-          </Link>
+          </a>
         </div>
 
         <button
@@ -97,13 +97,13 @@ export default function Navbar() {
                   </Link>
                 )
               })}
-              <Link
-                href="/chci-svatbu"
+              <a
+                href="/#hlavni-cta"
                 className="bg-[#C9A96E] text-white text-sm font-medium px-6 py-3 rounded-full text-center mt-3"
                 onClick={() => setOpen(false)}
               >
                 Získat místo na míru
-              </Link>
+              </a>
             </div>
           </motion.div>
         )}
