@@ -1,40 +1,62 @@
-import type { Venue, Region, VenueType, NearestCity } from "./types"
+import type { Venue, Region, NearestCity } from "./types"
+
+/* ─────────── ENUMY pro otázky ─────────── */
+
+export type Season = "leto" | "podzim" | "jaro" | "jedno" | "jine"
+export type WeddingYear = 2026 | 2027 | 2028 | 0
+export type VenueArchType =
+  | "priroda" | "unikat" | "hotelovy" | "mlyn" | "industrial"
+  | "hrad" | "zamek" | "jedno"
+export type AccommodationType = "primo" | "okoli" | "neni" | "jine"
+export type WeddingMode = "komplet" | "obrad-hostina" | "obrad-party" | "obrad" | "jine"
+export type CateringPref = "vlastni-vse" | "vse-od-mista" | "vlastni-piti" | "jedno"
+export type PartyPref = "velka-bez-klidu" | "pohoda" | "do-22" | "jedno"
+export type RentalBudget = 50000 | 70000 | 100000 | 150000 | 200000 | 300000 | 0
+export type WeddingBudget = 100000 | 200000 | 300000 | 500000 | 800000 | 0
+export type ServiceHelp = "mista" | "dodavatele" | "vse"
+export type YesNoMaybe = "ano" | "ne" | "uz-mam"
+
+/* ─────────── WIZARD ANSWERS ─────────── */
 
 export interface WizardAnswers {
-  // Step 1: Termín & rozpočet
-  weddingYear: number
-  weddingMonth: number  // 0 = ještě nevíme
-  flexibility: "presny-mesic" | "ten-rok" | "flexibilni"
+  // Krok 1 — Termín
+  season: Season
+  weddingYear: WeddingYear
   guests: number
-  budget: number
 
-  // Step 2: Lokalita
+  // Krok 2 — Lokalita
   regions: Region[]
-  nearestCity?: NearestCity   // hlavně odkud přijedu
+  nearestCity?: NearestCity | "jedno"
 
-  // Step 3: Typ & atmosféra
-  types: VenueType[]
-  atmosphere: ("intimni" | "velkolepa" | "moderni" | "klasicka" | "rustikalni" | "luxusni")[]
-  setting: "indoor" | "outdoor" | "both"
+  // Krok 3 — Typ místa
+  archType: VenueArchType
+  accommodation: AccommodationType
+  weddingMode: WeddingMode
 
-  // Step 4: Musí mít
-  mustHave: string[]
-  // možné hodnoty:
-  //   catering, ubytovani, fotograf, parkovani, bezbarierovy,
-  //   venkovni, deti, wellness,
-  //   vlastni-piti     – vlastní pití bez poplatků
-  //   bez-nocniho-klidu – party do rána
-  //   ubytovani-na-miste – ubytování přímo na místě
+  // Krok 4 — Servis
+  catering: CateringPref
+  party: PartyPref
 
-  // Step 5: Volný text
-  vision: string
-  concerns: string
+  // Krok 5 — Rozpočet
+  rentalBudget: RentalBudget
+  weddingBudget: WeddingBudget
 
-  // Step 6: Kontakt
+  // Krok 6 — Speciální požadavky + dodavatelé
+  specialRequests: string
+  serviceHelp: ServiceHelp[]
+  needCoordinator: YesNoMaybe
+  needDjModerator: YesNoMaybe
+  needPhotographer: YesNoMaybe
+  wantOnlineConsultation: boolean
+
+  // Krok 7 — Kontakt + souhlasy
   name: string
   email: string
   phone: string
+  consentGdpr: boolean
+  consentNewsletter: boolean
 
+  // Anti-bot
   notRobot?: boolean
   honeypot?: string
 }
@@ -46,144 +68,151 @@ export interface Match {
   warnings: string[]
 }
 
+/* ─────────── MATCHING ALGORITMUS ─────────── */
+
+/**
+ * Skóre se počítá z 8 kritérií:
+ *  - VIP bonus (0–15) — featured místa mají automaticky preferenci
+ *  - Region (0–18)
+ *  - Nearest city (0–10)
+ *  - Architektonický typ (0–15)
+ *  - Kapacita (0–18)
+ *  - Catering policy (0–10)
+ *  - Party policy (0–10)
+ *  - Pronájem rozpočet (0–14)
+ *  - Ubytování (0–10)
+ */
 export function scoreVenue(v: Venue, a: WizardAnswers): Match {
   const reasons: string[] = []
   const warnings: string[] = []
   let score = 0
 
-  // 1) Region match (max 20)
+  // 0) VIP bonus — featured místa mají preferenci
+  if (v.isFeatured) {
+    score += 15
+    reasons.push("Toto je VIP místo z naší prémiové selekce.")
+  }
+
+  // 1) Region (0–18)
   if (a.regions.length === 0) {
     score += 12
   } else if (a.regions.includes(v.region)) {
-    score += 20
+    score += 18
     reasons.push(`Místo se nachází v preferovaném kraji ${v.region}.`)
   } else {
     score += 4
     warnings.push(`Místo není v preferovaném kraji (${v.region}).`)
   }
 
-  // 1b) Nejbližší město (max 10) — silný signál pro Pražany apod.
-  if (a.nearestCity) {
-    if (v.nearestCity === a.nearestCity) {
-      score += 10
-      reasons.push(`Snadná dostupnost z města ${a.nearestCity}.`)
-    } else {
-      score += 3
-    }
-  } else {
+  // 2) Nejbližší město (0–10)
+  if (!a.nearestCity || a.nearestCity === "jedno") {
     score += 6
-  }
-
-  // 2) Typ (max 15)
-  if (a.types.length === 0) {
+  } else if (v.nearestCity === a.nearestCity) {
     score += 10
-  } else if (a.types.includes(v.type)) {
-    score += 15
-    reasons.push(`Typ "${v.type}" odpovídá vašemu vkusu.`)
+    reasons.push(`Snadno dostupné z města ${a.nearestCity}.`)
   } else {
     score += 3
   }
 
-  // 3) Kapacita (max 15)
+  // 3) Architektonický typ (0–15) — mapování na náš venue type
+  const typeMap: Record<VenueArchType, string[]> = {
+    priroda: ["Pláž / Příroda", "Zahrada"],
+    unikat: ["Moderní prostor", "Historická budova"],
+    hotelovy: ["Hotel"],
+    mlyn: ["Venkovský statek"],
+    industrial: ["Moderní prostor"],
+    hrad: ["Zámek", "Historická budova"],
+    zamek: ["Zámek"],
+    jedno: [],
+  }
+  if (a.archType === "jedno") {
+    score += 10
+  } else if (typeMap[a.archType]?.includes(v.type)) {
+    score += 15
+    reasons.push(`Typ "${v.type}" odpovídá vašemu vkusu.`)
+  } else {
+    score += 4
+  }
+
+  // 4) Kapacita (0–18)
   const ratio = a.guests / v.capacity
   if (ratio <= 0.5) {
-    score += 6
+    score += 8
     warnings.push(`Místo je velké pro ${a.guests} hostů (kapacita ${v.capacity}).`)
   } else if (ratio <= 0.85) {
-    score += 15
-    reasons.push(`Kapacita ${v.capacity} hostů vám sedne s rezervou.`)
+    score += 18
+    reasons.push(`Kapacita ${v.capacity} hostů sedí s rezervou.`)
   } else if (ratio <= 1.0) {
-    score += 12
+    score += 14
     reasons.push(`Kapacita ${v.capacity} hostů přesně odpovídá.`)
   } else {
     warnings.push(`Kapacita ${v.capacity} je nedostatečná pro ${a.guests} hostů.`)
   }
 
-  // 4) Rozpočet (max 15)
-  // Porovnáváme s avgWeddingCost (pokud je k dispozici), jinak s priceFrom*3
-  const expectedCost = v.avgWeddingCost && v.avgWeddingCost > 0
-    ? v.avgWeddingCost
-    : v.priceFrom * 3
-  const budgetRatio = expectedCost / a.budget
-  if (budgetRatio <= 0.85) {
-    score += 15
-    reasons.push("Místo zapadá do rozpočtu s rezervou.")
-  } else if (budgetRatio <= 1.05) {
-    score += 12
-    reasons.push("Místo přesně odpovídá rozpočtu.")
-  } else if (budgetRatio <= 1.3) {
-    score += 6
-    warnings.push("Cena je o trochu vyšší než váš rozpočet.")
+  // 5) Catering policy (0–10)
+  const cateringMap: Record<CateringPref, string[]> = {
+    "vlastni-vse": ["own_free"],
+    "vse-od-mista": ["only_venue"],
+    "vlastni-piti": ["own_drinks_free", "own_free"],
+    "jedno": ["own_free", "own_drinks_free", "only_venue", "negotiable"],
+  }
+  if (cateringMap[a.catering]?.includes(v.cateringPolicy ?? "")) {
+    score += 10
+    if (a.catering === "vlastni-vse") reasons.push("Vlastní jídlo i pití bez poplatků.")
+    if (a.catering === "vlastni-piti") reasons.push("Vlastní pití povoleno bez poplatků.")
   } else {
-    score += 1
-    warnings.push("Cena výrazně překračuje rozpočet.")
+    score += 3
   }
 
-  // 5) Musí mít (max 25) — hlavní kritéria
-  let mustScore = 0
-  const matchedMusts: string[] = []
-
-  for (const must of a.mustHave) {
-    let hit = false
-
-    switch (must) {
-      case "catering":
-        hit = v.cateringPolicy !== undefined
-        break
-      case "ubytovani":
-      case "ubytovani-na-miste":
-        hit = (v.accommodationCapacity ?? 0) >= a.guests * 0.4
-        if (hit) matchedMusts.push(`ubytování pro ${v.accommodationCapacity} hostů na místě`)
-        break
-      case "vlastni-piti":
-        hit = v.cateringPolicy === "own_free" || v.cateringPolicy === "own_drinks_free"
-        if (hit) matchedMusts.push("vlastní pití bez poplatků")
-        break
-      case "bez-nocniho-klidu":
-        hit = v.nightPartyPolicy === "no_curfew"
-        if (hit) matchedMusts.push("party bez nočního klidu")
-        break
-      case "wellness":
-        hit = (v.features ?? []).some((f) => f.toLowerCase().includes("wellness"))
-          || (v.services ?? []).some((s) => s.toLowerCase().includes("wellness"))
-          || (v.features ?? []).some((f) => f.toLowerCase().includes("sauna"))
-        break
-      case "parkovani":
-        hit = (v.features ?? []).some((f) =>
-          f.toLowerCase().includes("parkov") ||
-          f.toLowerCase().includes("valet"))
-        break
-      case "deti":
-        hit = (v.features ?? []).some((f) => f.toLowerCase().includes("dět"))
-        break
-      case "venkovni":
-        hit = (v.features ?? []).some((f) =>
-          f.toLowerCase().includes("zahrad") ||
-          f.toLowerCase().includes("venku") ||
-          f.toLowerCase().includes("obřad"))
-          || v.type === "Pláž / Příroda" || v.type === "Zahrada"
-        break
-      case "fotograf":
-        hit = (v.services ?? []).some((s) => s.toLowerCase().includes("fotograf"))
-        break
-      case "bezbarierovy":
-        hit = (v.features ?? []).some((f) => f.toLowerCase().includes("bezbar"))
-        break
-    }
-
-    if (hit) {
-      mustScore += 25 / Math.max(a.mustHave.length, 1)
+  // 6) Party policy (0–10)
+  const partyMap: Record<PartyPref, string[]> = {
+    "velka-bez-klidu": ["no_curfew"],
+    "pohoda": ["no_curfew", "indoor_after_22"],
+    "do-22": ["indoor_after_22", "quiet_hours"],
+    "jedno": ["no_curfew", "indoor_after_22", "quiet_hours"],
+  }
+  if (partyMap[a.party]?.includes(v.nightPartyPolicy ?? "")) {
+    score += 10
+    if (a.party === "velka-bez-klidu" && v.nightPartyPolicy === "no_curfew")
+      reasons.push("Žádný noční klid — party může jít do rána.")
+  } else {
+    score += 3
+    if (a.party === "velka-bez-klidu" && v.nightPartyPolicy !== "no_curfew") {
+      warnings.push("Toto místo má omezení nočního klidu.")
     }
   }
 
-  score += Math.min(mustScore, 25)
-  if (matchedMusts.length > 0) {
-    reasons.push("Splněno: " + matchedMusts.join(", ") + ".")
+  // 7) Rozpočet pronájmu (0–14)
+  if (a.rentalBudget === 0) {
+    score += 9
+  } else if (v.priceFrom <= a.rentalBudget) {
+    score += 14
+    reasons.push(`Pronájem (od ${v.priceFrom.toLocaleString("cs-CZ")} Kč) zapadá do rozpočtu.`)
+  } else if (v.priceFrom <= a.rentalBudget * 1.2) {
+    score += 7
+    warnings.push("Pronájem je o trochu vyšší než váš rozpočet.")
+  } else {
+    score += 0
+    warnings.push(`Pronájem je výrazně nad rozpočtem (od ${v.priceFrom.toLocaleString("cs-CZ")} Kč).`)
   }
 
-  // 6) Bonusy
-  if (v.isFeatured) score += 3
-  if (v.accommodationCapacity && v.accommodationCapacity >= a.guests * 0.6) score += 2
+  // 8) Ubytování (0–10)
+  const accomCap = v.accommodationCapacity ?? 0
+  if (a.accommodation === "primo") {
+    if (accomCap >= a.guests * 0.4) {
+      score += 10
+      reasons.push(`Ubytování přímo na místě pro ${accomCap} hostů.`)
+    } else if (accomCap > 0) {
+      score += 5
+      warnings.push(`Ubytování je k dispozici jen pro ${accomCap} hostů.`)
+    } else {
+      warnings.push("Místo nenabízí ubytování přímo na místě.")
+    }
+  } else if (a.accommodation === "okoli") {
+    score += 8
+  } else {
+    score += 5
+  }
 
   return {
     venue: v,
@@ -195,5 +224,12 @@ export function scoreVenue(v: Venue, a: WizardAnswers): Match {
 
 export function findBestMatches(venues: Venue[], answers: WizardAnswers, top = 3): Match[] {
   const scored = venues.map((v) => scoreVenue(v, answers))
-  return scored.sort((a, b) => b.score - a.score).slice(0, top)
+  return scored
+    .sort((a, b) => {
+      // VIP první
+      if (a.venue.isFeatured && !b.venue.isFeatured) return -1
+      if (!a.venue.isFeatured && b.venue.isFeatured) return 1
+      return b.score - a.score
+    })
+    .slice(0, top)
 }

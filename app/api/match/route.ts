@@ -59,15 +59,17 @@ export async function POST(req: Request) {
   // Matching
   const matches = findBestMatches(venues, answers, 3)
 
-  // Uložení poptávky do DB (jen pokud Supabase funguje)
+  // Uložení poptávky do DB
   try {
+    const seasonMonth: Record<string, number> = { leto: 7, podzim: 10, jaro: 4, jedno: 0, jine: 0 }
+    const month = seasonMonth[answers.season] ?? 0
     await supabaseAdmin.from("inquiries").insert([{
-      venue_id: matches[0]?.venue.id?.startsWith("chateau") ? null : (matches[0]?.venue.id ?? null),
+      venue_id: matches[0]?.venue.id ?? null,
       name: answers.name,
       email: answers.email,
       phone: answers.phone || "—",
-      wedding_date: answers.weddingYear
-        ? `${answers.weddingYear}-${String(answers.weddingMonth || 1).padStart(2, "0")}-01`
+      wedding_date: answers.weddingYear && month
+        ? `${answers.weddingYear}-${String(month).padStart(2, "0")}-01`
         : null,
       guests: answers.guests,
       message: buildMessage(answers, matches),
@@ -108,22 +110,32 @@ export async function POST(req: Request) {
 }
 
 function termLabel(a: WizardAnswers): string {
-  if (!a.weddingYear) return "termín ještě neupřesněn"
-  if (a.weddingMonth === 0) return `${a.weddingYear}, měsíc nespecifikován`
-  return `${MONTHS[a.weddingMonth]} ${a.weddingYear}`
+  const seasonLabels: Record<string, string> = {
+    leto: "léto", podzim: "podzim", jaro: "jaro", jedno: "kdykoliv", jine: "jiný termín",
+  }
+  return `${seasonLabels[a.season] ?? "—"} ${a.weddingYear || ""}`.trim()
 }
 
 function buildMessage(a: WizardAnswers, matches: Match[]): string {
   return [
-    `Termín: ${termLabel(a)} (${a.flexibility})`,
+    `Termín: ${termLabel(a)}`,
     `Hostů: ${a.guests}`,
-    `Rozpočet: ${a.budget.toLocaleString("cs-CZ")} Kč`,
+    `Lokalita do 90 min od: ${a.nearestCity ?? "neuvedeno"}`,
     `Kraje: ${a.regions.join(", ") || "—"}`,
-    `Typy: ${a.types.join(", ") || "—"}`,
-    `Atmosféra: ${a.atmosphere.join(", ") || "—"}`,
-    `Musí mít: ${a.mustHave.join(", ") || "—"}`,
-    a.vision ? `Vize: ${a.vision}` : "",
-    a.concerns ? `Priority: ${a.concerns}` : "",
+    `Typ místa: ${a.archType}`,
+    `Způsob svatby: ${a.weddingMode}`,
+    `Ubytování: ${a.accommodation}`,
+    `Catering: ${a.catering}`,
+    `Party: ${a.party}`,
+    `Pronájem: ${a.rentalBudget ? "do " + a.rentalBudget.toLocaleString("cs-CZ") + " Kč" : "—"}`,
+    `Rozpočet svatby: ${a.weddingBudget ? "do " + a.weddingBudget.toLocaleString("cs-CZ") + " Kč" : "—"}`,
+    a.specialRequests ? `Speciální: ${a.specialRequests}` : "",
+    `Pomoc s: ${a.serviceHelp.join(", ")}`,
+    `Koordinátor: ${a.needCoordinator}`,
+    `DJ: ${a.needDjModerator}`,
+    `Foto: ${a.needPhotographer}`,
+    a.wantOnlineConsultation ? "★ CHCE ONLINE KONZULTACI" : "",
+    `Newsletter: ${a.consentNewsletter ? "ANO" : "NE"}`,
     "",
     `TOP MATCH: ${matches[0]?.venue.title ?? "—"} (${matches[0]?.score ?? 0} %)`,
   ].filter(Boolean).join("\n")
@@ -165,7 +177,7 @@ function clientEmail(a: WizardAnswers, matches: Match[]): string {
       </div>
       <div style="padding:40px">
         <p style="margin:0 0 24px;color:#444;line-height:1.7;font-size:15px">
-          Na základě vašich odpovědí (${term}, ${a.guests} hostů, rozpočet ${fmt(a.budget)} Kč) jsme prošli stovky míst v našem katalogu.
+          Na základě vašich odpovědí (${term}, ${a.guests} hostů, rozpočet pronájmu do ${fmt(a.rentalBudget)} Kč) jsme prošli stovky míst v našem katalogu.
         </p>
         ${venueBlocks}
         <div style="background:#F9F2E6;padding:24px;border-radius:12px;text-align:center;margin-top:32px">
@@ -188,18 +200,27 @@ function companyEmail(a: WizardAnswers, matches: Match[]): string {
   <div style="font-family:Helvetica,Arial,sans-serif;background:#F9F6F0;padding:32px;color:#222">
     <h2 style="margin:0 0 16px">Nová poptávka z wizardu</h2>
     <table cellpadding="8" style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;border:1px solid #ddd">
-      <tr><td><strong>Jméno:</strong></td><td>${a.name}</td></tr>
+      <tr><td><strong>Jméno:</strong></td><td>${a.name || "—"}</td></tr>
       <tr><td><strong>E-mail:</strong></td><td><a href="mailto:${a.email}">${a.email}</a></td></tr>
       <tr><td><strong>Telefon:</strong></td><td>${a.phone || "neuveden"}</td></tr>
-      <tr><td><strong>Termín:</strong></td><td>${termLabel(a)} · ${a.flexibility}</td></tr>
+      <tr><td><strong>Termín:</strong></td><td>${termLabel(a)}</td></tr>
       <tr><td><strong>Hostů:</strong></td><td>${a.guests}</td></tr>
-      <tr><td><strong>Rozpočet:</strong></td><td>${fmt(a.budget)} Kč</td></tr>
+      <tr><td><strong>Lokalita 90 min od:</strong></td><td>${a.nearestCity ?? "—"}</td></tr>
       <tr><td><strong>Kraje:</strong></td><td>${a.regions.join(", ") || "—"}</td></tr>
-      <tr><td><strong>Typy:</strong></td><td>${a.types.join(", ") || "—"}</td></tr>
-      <tr><td><strong>Atmosféra:</strong></td><td>${a.atmosphere.join(", ") || "—"}</td></tr>
-      <tr><td><strong>Musí mít:</strong></td><td>${a.mustHave.join(", ") || "—"}</td></tr>
-      <tr><td><strong>Vize:</strong></td><td>${a.vision || "—"}</td></tr>
-      <tr><td><strong>Priority:</strong></td><td>${a.concerns || "—"}</td></tr>
+      <tr><td><strong>Typ místa:</strong></td><td>${a.archType}</td></tr>
+      <tr><td><strong>Způsob svatby:</strong></td><td>${a.weddingMode}</td></tr>
+      <tr><td><strong>Ubytování:</strong></td><td>${a.accommodation}</td></tr>
+      <tr><td><strong>Catering:</strong></td><td>${a.catering}</td></tr>
+      <tr><td><strong>Party:</strong></td><td>${a.party}</td></tr>
+      <tr><td><strong>Pronájem:</strong></td><td>${a.rentalBudget ? "do " + fmt(a.rentalBudget) + " Kč" : "—"}</td></tr>
+      <tr><td><strong>Rozpočet svatby:</strong></td><td>${a.weddingBudget ? "do " + fmt(a.weddingBudget) + " Kč" : "—"}</td></tr>
+      <tr><td><strong>Speciální:</strong></td><td>${a.specialRequests || "—"}</td></tr>
+      <tr><td><strong>Pomoc s:</strong></td><td>${a.serviceHelp.join(", ")}</td></tr>
+      <tr><td><strong>Koordinátor:</strong></td><td>${a.needCoordinator}</td></tr>
+      <tr><td><strong>DJ:</strong></td><td>${a.needDjModerator}</td></tr>
+      <tr><td><strong>Foto:</strong></td><td>${a.needPhotographer}</td></tr>
+      <tr><td><strong>Online konzultace:</strong></td><td>${a.wantOnlineConsultation ? "★ ANO" : "ne"}</td></tr>
+      <tr><td><strong>Newsletter:</strong></td><td>${a.consentNewsletter ? "ANO" : "NE"}</td></tr>
     </table>
     <h3 style="margin:24px 0 12px">Doporučená místa</h3>
     <ol>

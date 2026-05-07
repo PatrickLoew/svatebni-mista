@@ -4,68 +4,40 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowLeft, ArrowRight, CheckCircle, Send, Sparkles, Heart } from "lucide-react"
 import type { WizardAnswers, Match } from "@/lib/matching"
-import { REGIONS, VENUE_TYPES, NEAREST_CITIES } from "@/lib/utils"
-import type { NearestCity } from "@/lib/types"
+import { REGIONS } from "@/lib/utils"
+import type { Region, NearestCity } from "@/lib/types"
 import VenueCard from "@/components/venues/VenueCard"
 import WizardLoading from "./WizardLoading"
 import ConsultationButton from "@/components/consultation/ConsultationButton"
 import { validateEmail, validatePhone, validateName } from "@/lib/validation"
 
-const currentYear = new Date().getFullYear()
-const YEARS = [currentYear, currentYear + 1, currentYear + 2, currentYear + 3]
-const MONTHS = [
-  { id: 1, label: "Leden", season: "zima" },
-  { id: 2, label: "Únor", season: "zima" },
-  { id: 3, label: "Březen", season: "jaro" },
-  { id: 4, label: "Duben", season: "jaro" },
-  { id: 5, label: "Květen", season: "jaro" },
-  { id: 6, label: "Červen", season: "léto", popular: true },
-  { id: 7, label: "Červenec", season: "léto", popular: true },
-  { id: 8, label: "Srpen", season: "léto", popular: true },
-  { id: 9, label: "Září", season: "podzim", popular: true },
-  { id: 10, label: "Říjen", season: "podzim" },
-  { id: 11, label: "Listopad", season: "podzim" },
-  { id: 12, label: "Prosinec", season: "zima" },
-]
-
 const empty: WizardAnswers = {
-  weddingYear: currentYear + 1,
-  weddingMonth: 6,
-  flexibility: "ten-rok",
+  season: "leto",
+  weddingYear: 2027,
   guests: 80,
-  budget: 500000,
   regions: [],
   nearestCity: undefined,
-  types: [],
-  atmosphere: [],
-  setting: "both",
-  mustHave: [],
-  vision: "",
-  concerns: "",
+  archType: "jedno",
+  accommodation: "primo",
+  weddingMode: "komplet",
+  catering: "jedno",
+  party: "pohoda",
+  rentalBudget: 100000,
+  weddingBudget: 300000,
+  specialRequests: "",
+  serviceHelp: ["mista"],
+  needCoordinator: "uz-mam",
+  needDjModerator: "uz-mam",
+  needPhotographer: "uz-mam",
+  wantOnlineConsultation: false,
   name: "",
   email: "",
   phone: "",
+  consentGdpr: false,
+  consentNewsletter: false,
 }
 
-const ATMOSPHERES = [
-  { id: "intimni", label: "Intimní", desc: "30–60 hostů" },
-  { id: "velkolepa", label: "Velkolepá", desc: "100+ hostů" },
-  { id: "moderni", label: "Moderní", desc: "Čisté linie" },
-  { id: "klasicka", label: "Klasická", desc: "Tradice a elegance" },
-  { id: "rustikalni", label: "Rustikální", desc: "Statek, příroda" },
-  { id: "luxusni", label: "Luxusní", desc: "Bez kompromisů" },
-] as const
-
-const MUST_HAVE = [
-  { id: "ubytovani-na-miste", label: "Ubytování přímo na místě" },
-  { id: "vlastni-piti", label: "Vlastní pití bez poplatků" },
-  { id: "bez-nocniho-klidu", label: "Party bez nočního klidu (do rána)" },
-  { id: "venkovni", label: "Venkovní obřad" },
-  { id: "wellness", label: "Wellness / sauna" },
-  { id: "deti", label: "Místo vhodné s dětmi" },
-  { id: "parkovani", label: "Dostatek parkování" },
-  { id: "bezbarierovy", label: "Bezbariérový přístup" },
-]
+const TOTAL_STEPS = 7
 
 export default function Wizard() {
   const [step, setStep] = useState(0)
@@ -74,7 +46,6 @@ export default function Wizard() {
   const [done, setDone] = useState<{ matches: Match[] } | null>(null)
   const [error, setError] = useState("")
 
-  const total = 6
   const update = <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) =>
     setA((p) => ({ ...p, [k]: v }))
 
@@ -86,15 +57,11 @@ export default function Wizard() {
   }
 
   function canContinue(s: number): boolean {
-    if (s === 0) return Boolean(a.weddingYear && a.guests > 0 && a.budget > 0)
-    if (s === 5) {
-      // Email povinný a v platném formátu
+    if (s === 6) {
       if (validateEmail(a.email) !== "") return false
-      // Pokud zadáno jméno, musí být platné
       if (a.name && validateName(a.name) !== "") return false
-      // Pokud zadán telefon, musí být platný
       if (a.phone && validatePhone(a.phone, false) !== "") return false
-      // Captcha musí být zaškrtnutá
+      if (!a.consentGdpr) return false
       return Boolean(a.notRobot)
     }
     return true
@@ -129,18 +96,17 @@ export default function Wizard() {
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
-      {/* Progress */}
       <div className="mb-10">
         <div className="flex items-center justify-between text-xs text-charcoal/50 mb-3 uppercase tracking-[.2em]">
-          <span>Krok {step + 1} / {total}</span>
-          <span className={step >= 4 ? "text-[#C9A96E] font-semibold" : ""}>
-            {step >= 4 ? "Skoro hotovo!" : `${Math.round(((step + 1) / total) * 100)} %`}
+          <span>Krok {step + 1} / {TOTAL_STEPS}</span>
+          <span className={step >= 5 ? "text-[#C9A96E] font-semibold" : ""}>
+            {step >= 5 ? "Skoro hotovo!" : `${Math.round(((step + 1) / TOTAL_STEPS) * 100)} %`}
           </span>
         </div>
         <div className="h-1.5 bg-[#E8DDD0] rounded-full overflow-hidden">
           <motion.div
             initial={false}
-            animate={{ width: `${((step + 1) / total) * 100}%` }}
+            animate={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
             className="h-full bg-gradient-to-r from-[#C9A96E] to-[#E8C98A]"
           />
@@ -157,10 +123,11 @@ export default function Wizard() {
         >
           {step === 0 && <Step1 a={a} update={update} />}
           {step === 1 && <Step2 a={a} toggle={toggle} update={update} />}
-          {step === 2 && <Step3 a={a} toggle={toggle} update={update} />}
-          {step === 3 && <Step4 a={a} toggle={toggle} />}
+          {step === 2 && <Step3 a={a} update={update} />}
+          {step === 3 && <Step4 a={a} update={update} />}
           {step === 4 && <Step5 a={a} update={update} />}
-          {step === 5 && <Step6 a={a} update={update} />}
+          {step === 5 && <Step6 a={a} update={update} toggle={toggle} />}
+          {step === 6 && <Step7 a={a} update={update} />}
         </motion.div>
       </AnimatePresence>
 
@@ -179,7 +146,7 @@ export default function Wizard() {
           <ArrowLeft size={16} /> Zpět
         </button>
 
-        {step < total - 1 ? (
+        {step < TOTAL_STEPS - 1 ? (
           <button
             onClick={() => setStep((s) => s + 1)}
             disabled={!canContinue(step)}
@@ -191,137 +158,102 @@ export default function Wizard() {
           <button
             onClick={submit}
             disabled={!canContinue(step)}
-            className="bg-[#3E2723] text-white font-medium px-9 py-3.5 rounded-full hover:bg-[#1F1310] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg shadow-[#3E2723]/30"
+            className="bg-[#3E2723] text-white font-medium px-9 py-3.5 rounded-full hover:bg-[#1F1310] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg"
           >
             <Send size={16} />
             Získat můj návrh
           </button>
         )}
       </div>
-
-      {/* Trust signals (jen na pozdějších krocích) */}
-      {step >= 3 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="mt-8 flex items-center justify-center gap-6 text-xs text-charcoal/40"
-        >
-          <div className="flex items-center gap-1"><span className="text-[#C9A96E]">✓</span> Bez závazku</div>
-          <div className="flex items-center gap-1"><span className="text-[#C9A96E]">✓</span> Žádný spam</div>
-          <div className="flex items-center gap-1"><span className="text-[#C9A96E]">✓</span> Návrh do 24 hod</div>
-        </motion.div>
-      )}
     </div>
   )
 }
-
-/* ---------- STEPS ---------- */
 
 const stepHead = (eyebrow: string, title: React.ReactNode, desc?: string) => (
   <div className="mb-8">
     <p className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase mb-3">{eyebrow}</p>
     <h2 className="font-serif text-3xl md:text-4xl font-light leading-tight mb-3">{title}</h2>
-    {desc && <p className="text-charcoal/60 leading-relaxed">{desc}</p>}
+    {desc && <p className="text-charcoal/70 leading-relaxed">{desc}</p>}
   </div>
 )
 
-const inputCl = "w-full bg-white border border-[#E8DDD0] rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 transition"
+const inputCl = "w-full bg-white border-2 border-[#E8DDD0] rounded-xl px-4 py-3.5 text-base text-[#2C2C2C] focus:outline-none focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 transition"
+const labelCl = "block text-sm font-semibold text-[#2C2C2C] mb-3"
+
+function RadioGrid<T extends string | number>({
+  value, onChange, options, columns = 1,
+}: {
+  value: T
+  onChange: (v: T) => void
+  options: { id: T; label: string; sub?: string }[]
+  columns?: 1 | 2 | 3
+}) {
+  const cols = columns === 1 ? "grid-cols-1" : columns === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3"
+  return (
+    <div className={`grid ${cols} gap-2`}>
+      {options.map((o) => {
+        const on = value === o.id
+        return (
+          <button
+            key={String(o.id)}
+            type="button"
+            onClick={() => onChange(o.id)}
+            className={`text-left px-4 py-3.5 rounded-xl border-2 transition-all ${
+              on ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-[#2C2C2C] border-[#E8DDD0] hover:border-[#C9A96E]"
+            }`}
+          >
+            <div className="font-medium text-sm">{o.label}</div>
+            {o.sub && <div className={`text-xs mt-0.5 ${on ? "text-white/70" : "text-[#2C2C2C]/50"}`}>{o.sub}</div>}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ───────── STEPS ───────── */
 
 function Step1({ a, update }: { a: WizardAnswers; update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void }) {
   return (
     <>
-      {stepHead(
-        "Začneme základem",
-        <>Kdy se chcete <em className="text-[#3E2723]">vdávat?</em></>,
-        "Konkrétní den řešit nemusíte — flexibilita pomáhá najít víc volných míst."
-      )}
+      {stepHead("Termín svatby", <>Kdy se chcete <em className="text-[#3E2723]">vdávat?</em></>,
+        "Stačí roční období — konkrétní den řešit nemusíte.")}
 
-      {/* Year */}
-      <p className="text-sm font-medium text-charcoal/70 mb-3">Rok svatby</p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
-        {YEARS.map((y) => {
-          const on = a.weddingYear === y
-          return (
-            <button
-              key={y}
-              onClick={() => update("weddingYear", y)}
-              className={`py-3.5 rounded-xl text-sm font-medium border transition-all ${
-                on ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-              }`}
-            >
-              {y}
-            </button>
-          )
-        })}
+      <div className="mb-7">
+        <label className={labelCl}>Termín svatby *</label>
+        <RadioGrid
+          value={a.season}
+          onChange={(v) => update("season", v)}
+          columns={2}
+          options={[
+            { id: "leto", label: "Léto", sub: "červen – srpen" },
+            { id: "podzim", label: "Podzim", sub: "září – listopad" },
+            { id: "jaro", label: "Jaro", sub: "duben – květen" },
+            { id: "jedno", label: "Je nám to jedno", sub: "hlavně místo" },
+          ]}
+        />
       </div>
 
-      {/* Month */}
-      <p className="text-sm font-medium text-charcoal/70 mb-3 flex items-center gap-2">
-        Měsíc
-        <span className="text-xs font-normal text-charcoal/40">(volitelné)</span>
-      </p>
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
-        <button
-          onClick={() => update("weddingMonth", 0)}
-          className={`py-3 rounded-xl text-sm font-medium border transition-all ${
-            a.weddingMonth === 0 ? "bg-[#C9A96E] text-white border-[#C9A96E]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-          }`}
-        >
-          Ještě nevím
-        </button>
-        {MONTHS.map((m) => {
-          const on = a.weddingMonth === m.id
-          return (
-            <button
-              key={m.id}
-              onClick={() => update("weddingMonth", m.id)}
-              className={`relative py-3 rounded-xl text-sm font-medium border transition-all ${
-                on ? "bg-[#C9A96E] text-white border-[#C9A96E]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-              }`}
-            >
-              {m.label}
-              {m.popular && !on && (
-                <span className="absolute -top-1.5 -right-1.5 bg-[#3E2723] text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full">
-                  ★
-                </span>
-              )}
-            </button>
-          )
-        })}
-      </div>
-      <p className="text-xs text-charcoal/40 mb-7">★ = sezónní oblíbené měsíce, plánujte 12+ měsíců dopředu</p>
-
-      {/* Flexibility */}
-      <p className="text-sm font-medium text-charcoal/70 mb-3">Jak jste flexibilní s termínem?</p>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-7">
-        {[
-          { id: "presny-mesic", label: "Pevný měsíc", desc: "Trvám na vybraném" },
-          { id: "ten-rok", label: "Záleží na roku", desc: "Měsíc můžu posunout" },
-          { id: "flexibilni", label: "Plně flexibilní", desc: "Nejdůležitější je místo" },
-        ].map((o) => (
-          <button
-            key={o.id}
-            onClick={() => update("flexibility", o.id as "presny-mesic" | "ten-rok" | "flexibilni")}
-            className={`px-4 py-3 rounded-xl text-sm font-medium border text-left transition-all ${
-              a.flexibility === o.id ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-            }`}
-          >
-            <div>{o.label}</div>
-            <div className={`text-[10px] mt-0.5 ${a.flexibility === o.id ? "text-white/70" : "text-charcoal/40"}`}>{o.desc}</div>
-          </button>
-        ))}
+      <div className="mb-7">
+        <label className={labelCl}>Jaký rok? *</label>
+        <RadioGrid
+          value={a.weddingYear}
+          onChange={(v) => update("weddingYear", v)}
+          columns={3}
+          options={[
+            { id: 2026, label: "2026" },
+            { id: 2027, label: "2027" },
+            { id: 2028, label: "2028" },
+          ]}
+        />
       </div>
 
-      {/* Guests slider */}
-      <label className="block mb-6">
-        <span className="text-sm font-medium text-charcoal/70 mb-2 block">
+      <div>
+        <label className={labelCl}>
           Počet hostů: <strong className="text-[#3E2723]">{a.guests}</strong>
-        </span>
+        </label>
         <input
-          type="range"
-          min={20}
-          max={300}
-          step={10}
+          type="range" min={20} max={300} step={10}
           value={a.guests}
           onChange={(e) => update("guests", Number(e.target.value))}
           className="w-full accent-[#C9A96E] h-2"
@@ -329,182 +261,142 @@ function Step1({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
         <div className="flex justify-between text-xs text-charcoal/40 mt-1">
           <span>20</span><span>150</span><span>300+</span>
         </div>
-      </label>
+      </div>
+    </>
+  )
+}
 
-      {/* Budget slider */}
-      <label className="block">
-        <span className="text-sm font-medium text-charcoal/70 mb-2 block">
-          Celkový rozpočet: <strong className="text-[#3E2723]">{new Intl.NumberFormat("cs-CZ").format(a.budget)} Kč</strong>
-        </span>
-        <input
-          type="range"
-          min={100000}
-          max={2000000}
-          step={50000}
-          value={a.budget}
-          onChange={(e) => update("budget", Number(e.target.value))}
-          className="w-full accent-[#C9A96E] h-2"
+function Step2({ a, toggle, update }: {
+  a: WizardAnswers
+  toggle: <K extends keyof WizardAnswers>(k: K, item: string) => void
+  update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void
+}) {
+  return (
+    <>
+      {stepHead("Lokalita", <>Kde si svatbu <em className="text-[#3E2723]">představujete?</em></>,
+        "Pomůže nám to najít místa s nejlepší dostupností.")}
+
+      <div className="mb-7">
+        <label className={labelCl}>Lokalita do 90 minut *</label>
+        <RadioGrid
+          value={a.nearestCity ?? "jedno"}
+          onChange={(v) => update("nearestCity", v as NearestCity | "jedno")}
+          columns={3}
+          options={[
+            { id: "Praha", label: "od Prahy" },
+            { id: "Brno", label: "od Brna" },
+            { id: "Ostrava", label: "od Ostravy" },
+            { id: "Plzeň", label: "od Plzně" },
+            { id: "Hradec Králové", label: "od Hradce Králové" },
+            { id: "Liberec", label: "od Liberce" },
+            { id: "Olomouc", label: "od Olomouce" },
+            { id: "České Budějovice", label: "od Č. Budějovic" },
+            { id: "jedno", label: "Je nám to jedno" },
+          ]}
         />
-        <div className="flex justify-between text-xs text-charcoal/40 mt-1">
-          <span>100 tis.</span><span>1 mil.</span><span>2 mil. +</span>
+      </div>
+
+      <div>
+        <label className={labelCl}>
+          Preferovaný kraj <span className="font-normal text-charcoal/40">(volitelné, multi-výběr)</span>
+        </label>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {REGIONS.map((r) => {
+            const on = a.regions.includes(r as Region)
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => toggle("regions", r)}
+                className={`px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium border-2 transition-all ${
+                  on ? "bg-[#C9A96E] text-white border-[#C9A96E]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
+                }`}
+              >
+                {r}
+              </button>
+            )
+          })}
         </div>
-      </label>
-    </>
-  )
-}
-
-function Step2({ a, toggle, update }: { a: WizardAnswers; toggle: <K extends keyof WizardAnswers>(k: K, item: string) => void; update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void }) {
-  return (
-    <>
-      {stepHead(
-        "Lokalita",
-        <>Kde si svatbu <em className="text-[#3E2723]">představujete?</em></>,
-        "Pomůže nám to vybrat místa s nejlepší dostupností pro vás i hosty."
-      )}
-
-      <p className="text-sm font-medium text-charcoal/70 mb-3">Odkud převážně přijedete vy a hosté?</p>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-7">
-        <button
-          onClick={() => update("nearestCity", undefined)}
-          className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-            !a.nearestCity ? "bg-[#C9A96E] text-white border-[#C9A96E]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-          }`}
-        >
-          Jedno mi to
-        </button>
-        {NEAREST_CITIES.map((c) => {
-          const on = a.nearestCity === c
-          return (
-            <button
-              key={c}
-              onClick={() => update("nearestCity", c as NearestCity)}
-              className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-                on ? "bg-[#C9A96E] text-white border-[#C9A96E]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-              }`}
-            >
-              {c}
-            </button>
-          )
-        })}
-      </div>
-
-      <p className="text-sm font-medium text-charcoal/70 mb-3 flex items-center gap-2">
-        Preferovaný kraj
-        <span className="text-xs font-normal text-charcoal/40">(volitelné, multi-výběr)</span>
-      </p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {REGIONS.map((r) => {
-          const on = a.regions.includes(r)
-          return (
-            <button
-              key={r}
-              onClick={() => toggle("regions", r)}
-              className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-                on ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-              }`}
-            >
-              {r}
-            </button>
-          )
-        })}
       </div>
     </>
   )
 }
 
-function Step3({ a, toggle, update }: { a: WizardAnswers; toggle: <K extends keyof WizardAnswers>(k: K, item: string) => void; update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void }) {
+function Step3({ a, update }: { a: WizardAnswers; update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void }) {
   return (
     <>
-      {stepHead(
-        "Typ & atmosféra",
-        <>Jaké místo k vám <em className="text-[#3E2723]">promluví?</em></>
-      )}
+      {stepHead("Typ místa", <>Jaký <em className="text-[#3E2723]">prostor</em> hledáte?</>,
+        "Vyberte ten, který nejvíc odpovídá vaší vizi.")}
 
-      <p className="text-sm font-medium text-charcoal/70 mb-3">Typ místa</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-7">
-        {VENUE_TYPES.map((t) => {
-          const on = a.types.includes(t)
-          return (
-            <button
-              key={t}
-              onClick={() => toggle("types", t)}
-              className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-                on ? "bg-[#C9A96E] text-white border-[#C9A96E]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-              }`}
-            >
-              {t}
-            </button>
-          )
-        })}
+      <div className="mb-7">
+        <label className={labelCl}>Architektonický typ místa *</label>
+        <RadioGrid
+          value={a.archType}
+          onChange={(v) => update("archType", v)}
+          columns={2}
+          options={[
+            { id: "priroda", label: "Příroda", sub: "louka, les, u vody" },
+            { id: "unikat", label: "Zajímavé místo", sub: "unikát, originál" },
+            { id: "hotelovy", label: "Hotelový styl", sub: "komfort a servis" },
+            { id: "mlyn", label: "Mlýn / stodola / statek", sub: "rustikální" },
+            { id: "industrial", label: "Industriál", sub: "hala, továrna, loft" },
+            { id: "hrad", label: "Hrad", sub: "historické zdi" },
+            { id: "zamek", label: "Zámek", sub: "elegance, tradice" },
+            { id: "jedno", label: "Je nám to jedno", sub: "hlavně atmosféra" },
+          ]}
+        />
       </div>
 
-      <p className="text-sm font-medium text-charcoal/70 mb-3">Atmosféra</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-7">
-        {ATMOSPHERES.map((at) => {
-          const on = a.atmosphere.includes(at.id)
-          return (
-            <button
-              key={at.id}
-              onClick={() => toggle("atmosphere", at.id)}
-              className={`px-4 py-3 rounded-xl text-sm font-medium border text-left transition-all ${
-                on ? "bg-[#C9A96E] text-white border-[#C9A96E]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-              }`}
-            >
-              <div>{at.label}</div>
-              <div className={`text-[10px] mt-0.5 ${on ? "text-white/70" : "text-charcoal/40"}`}>{at.desc}</div>
-            </button>
-          )
-        })}
-      </div>
-
-      <p className="text-sm font-medium text-charcoal/70 mb-3">Obřad</p>
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          { id: "indoor", label: "Uvnitř" },
-          { id: "outdoor", label: "Venku" },
-          { id: "both", label: "Obojí mi sedne" },
-        ].map((o) => (
-          <button
-            key={o.id}
-            onClick={() => update("setting", o.id as "indoor" | "outdoor" | "both")}
-            className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-              a.setting === o.id ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-            }`}
-          >
-            {o.label}
-          </button>
-        ))}
+      <div>
+        <label className={labelCl}>Způsob svatby *</label>
+        <RadioGrid
+          value={a.weddingMode}
+          onChange={(v) => update("weddingMode", v)}
+          columns={1}
+          options={[
+            { id: "komplet", label: "Komplet vše na jednom místě", sub: "obřad, hostina, ubytování, party" },
+            { id: "obrad-hostina", label: "Pouze obřad a hostina" },
+            { id: "obrad-party", label: "Místo jen na hostinu a party" },
+            { id: "obrad", label: "Pouze obřad" },
+          ]}
+        />
       </div>
     </>
   )
 }
 
-function Step4({ a, toggle }: { a: WizardAnswers; toggle: <K extends keyof WizardAnswers>(k: K, item: string) => void }) {
+function Step4({ a, update }: { a: WizardAnswers; update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void }) {
   return (
     <>
-      {stepHead(
-        "Co musí mít?",
-        <>Vyberte co je pro vás <em className="text-[#3E2723]">nezbytné</em></>,
-        "Tyto požadavky budou prioritizovány při výběru. Můžete vynechat."
-      )}
-      <div className="grid grid-cols-2 gap-2">
-        {MUST_HAVE.map((m) => {
-          const on = a.mustHave.includes(m.id)
-          return (
-            <button
-              key={m.id}
-              onClick={() => toggle("mustHave", m.id)}
-              className={`px-4 py-3.5 rounded-xl text-sm font-medium border flex items-center gap-2 transition-all ${
-                on ? "bg-[#C9A96E] text-white border-[#C9A96E]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
-              }`}
-            >
-              <span className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${on ? "bg-white border-white" : "border-[#C9A96E]"}`}>
-                {on && <CheckCircle size={12} className="text-[#C9A96E]" />}
-              </span>
-              <span className="text-left">{m.label}</span>
-            </button>
-          )
-        })}
+      {stepHead("Ubytování & catering", <>Co od místa <em className="text-[#3E2723]">potřebujete?</em></>)}
+
+      <div className="mb-7">
+        <label className={labelCl}>Ubytování *</label>
+        <RadioGrid
+          value={a.accommodation}
+          onChange={(v) => update("accommodation", v)}
+          columns={1}
+          options={[
+            { id: "primo", label: "Ano — přímo v místě" },
+            { id: "okoli", label: "Ano — stačí v okolí do 10 minut" },
+            { id: "neni", label: "Ubytování nepotřebujeme" },
+          ]}
+        />
+      </div>
+
+      <div>
+        <label className={labelCl}>Catering a pití *</label>
+        <RadioGrid
+          value={a.catering}
+          onChange={(v) => update("catering", v)}
+          columns={1}
+          options={[
+            { id: "vlastni-vse", label: "Vlastní jídlo i pití bez poplatků" },
+            { id: "vse-od-mista", label: "Vše chceme zajistit od místa" },
+            { id: "vlastni-piti", label: "Chceme jen vlastní pití bez poplatků" },
+            { id: "jedno", label: "Je nám to jedno" },
+          ]}
+        />
       </div>
     </>
   )
@@ -513,134 +405,277 @@ function Step4({ a, toggle }: { a: WizardAnswers; toggle: <K extends keyof Wizar
 function Step5({ a, update }: { a: WizardAnswers; update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void }) {
   return (
     <>
-      {stepHead(
-        "Vaše vize",
-        <>Povězte nám <em className="text-[#3E2723]">víc</em></>,
-        "Volitelné, ale čím konkrétnější, tím přesnější návrh dostanete."
-      )}
+      {stepHead("Party & rozpočet", <>Jak silnou <em className="text-[#3E2723]">párty</em> plánujete?</>)}
+
+      <div className="mb-7">
+        <label className={labelCl}>Večerní party *</label>
+        <RadioGrid
+          value={a.party}
+          onChange={(v) => update("party", v)}
+          columns={1}
+          options={[
+            { id: "velka-bez-klidu", label: "Velká party bez nočního klidu", sub: "tancujeme až do rána" },
+            { id: "pohoda", label: "Pohodová party", sub: "nejsme pařící typy" },
+            { id: "do-22", label: "Do 22:00 a pak spát" },
+            { id: "jedno", label: "Je nám to jedno" },
+          ]}
+        />
+      </div>
+
+      <div className="mb-7">
+        <label className={labelCl}>Rozpočet na pronájem místa *</label>
+        <RadioGrid
+          value={a.rentalBudget}
+          onChange={(v) => update("rentalBudget", v)}
+          columns={2}
+          options={[
+            { id: 50000, label: "do 50 000 Kč" },
+            { id: 70000, label: "do 70 000 Kč" },
+            { id: 100000, label: "do 100 000 Kč" },
+            { id: 150000, label: "do 150 000 Kč" },
+            { id: 200000, label: "do 200 000 Kč" },
+            { id: 300000, label: "nad 200 000 Kč" },
+            { id: 0, label: "Je nám to jedno" },
+          ]}
+        />
+      </div>
+
+      <div>
+        <label className={labelCl}>Rozpočet na celou svatbu</label>
+        <RadioGrid
+          value={a.weddingBudget}
+          onChange={(v) => update("weddingBudget", v)}
+          columns={2}
+          options={[
+            { id: 100000, label: "do 100 000 Kč" },
+            { id: 200000, label: "do 200 000 Kč" },
+            { id: 300000, label: "do 300 000 Kč" },
+            { id: 500000, label: "do 500 000 Kč" },
+            { id: 800000, label: "nad 500 000 Kč" },
+            { id: 0, label: "Je nám to jedno" },
+          ]}
+        />
+      </div>
+    </>
+  )
+}
+
+function Step6({ a, update, toggle }: {
+  a: WizardAnswers
+  update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void
+  toggle: <K extends keyof WizardAnswers>(k: K, item: string) => void
+}) {
+  return (
+    <>
+      {stepHead("Speciální požadavky", <>Co vám <em className="text-[#3E2723]">leží na srdci?</em></>)}
+
+      <div className="mb-7">
+        <label className={labelCl}>Speciální požadavky <span className="font-normal text-charcoal/40">(volitelné)</span></label>
+        <textarea
+          rows={3}
+          className={`${inputCl} resize-none`}
+          placeholder="Např.: psi, děti, wellness, bezlepkové menu, bezbariérovost, zákaz hlučné hudby…"
+          value={a.specialRequests}
+          onChange={(e) => update("specialRequests", e.target.value)}
+        />
+      </div>
+
+      <div className="mb-7">
+        <label className={labelCl}>S čím vám můžeme pomoci? <span className="font-normal text-charcoal/40">(více možností)</span></label>
+        <div className="space-y-2">
+          {[
+            { id: "mista", label: "Doporučit svatební místa" },
+            { id: "dodavatele", label: "Doporučit dodavatele (catering, květiny…)" },
+            { id: "vse", label: "Pomoc s celým plánováním" },
+          ].map((o) => {
+            const on = a.serviceHelp.includes(o.id as "mista" | "dodavatele" | "vse")
+            return (
+              <button
+                key={o.id}
+                type="button"
+                onClick={() => toggle("serviceHelp", o.id)}
+                className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                  on ? "bg-[#C9A96E] text-white border-[#C9A96E]" : "bg-white text-[#2C2C2C] border-[#E8DDD0] hover:border-[#C9A96E]"
+                }`}
+              >
+                <span className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${on ? "bg-white border-white" : "border-[#C9A96E]"}`}>
+                  {on && <CheckCircle size={11} className="text-[#C9A96E]" />}
+                </span>
+                <span className="text-sm font-medium">{o.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       <div className="space-y-5">
-        <label className="block">
-          <span className="text-sm font-medium text-charcoal/70 mb-2 block">Jak by měla svatba vypadat?</span>
-          <textarea
-            rows={4}
-            placeholder="Např. Letní zahradní svatba s dlouhým stolem, BBQ a živou kapelou. Hosté se cítí jako doma."
-            className={`${inputCl} resize-none`}
-            value={a.vision}
-            onChange={(e) => update("vision", e.target.value)}
+        <div>
+          <label className={labelCl}>Hledáte koordinátorku? *</label>
+          <RadioGrid
+            value={a.needCoordinator}
+            onChange={(v) => update("needCoordinator", v)}
+            columns={3}
+            options={[
+              { id: "ano", label: "Ano, potřebujeme" },
+              { id: "uz-mam", label: "Už máme" },
+              { id: "ne", label: "Nechceme" },
+            ]}
           />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium text-charcoal/70 mb-2 block">Co je pro vás priorita?</span>
-          <textarea
-            rows={3}
-            placeholder="Např. Pohodlí starších hostů, parkování, doprava z Prahy."
-            className={`${inputCl} resize-none`}
-            value={a.concerns}
-            onChange={(e) => update("concerns", e.target.value)}
+        </div>
+
+        <div>
+          <label className={labelCl}>Hledáte DJ a moderátora? *</label>
+          <RadioGrid
+            value={a.needDjModerator}
+            onChange={(v) => update("needDjModerator", v)}
+            columns={3}
+            options={[
+              { id: "ano", label: "Ano, top za top cenu" },
+              { id: "uz-mam", label: "Už máme" },
+              { id: "ne", label: "Zatím ne" },
+            ]}
           />
+        </div>
+
+        <div>
+          <label className={labelCl}>Hledáte fotografa nebo kameramana? *</label>
+          <RadioGrid
+            value={a.needPhotographer}
+            onChange={(v) => update("needPhotographer", v)}
+            columns={3}
+            options={[
+              { id: "ano", label: "Ano, top za top cenu" },
+              { id: "uz-mam", label: "Už máme" },
+              { id: "ne", label: "Nechceme" },
+            ]}
+          />
+        </div>
+      </div>
+
+      <div className="mt-7 bg-[#F9F2E6] border-2 border-[#C9A96E]/30 rounded-2xl p-5">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={a.wantOnlineConsultation}
+            onChange={(e) => update("wantOnlineConsultation", e.target.checked)}
+            className="mt-1 w-5 h-5 accent-[#C9A96E] cursor-pointer flex-shrink-0"
+          />
+          <div>
+            <div className="font-semibold text-[#2C2C2C] text-sm mb-1">
+              Chci online konzultaci ZDARMA
+            </div>
+            <div className="text-xs text-[#2C2C2C]/70 leading-relaxed">
+              Nevíte si rady s výběrem místa? V rámci věrnostního programu se vám
+              osobně ozveme a pomůžeme vám projít vše krok za krokem.
+            </div>
+          </div>
         </label>
       </div>
     </>
   )
 }
 
-function Step6({ a, update }: { a: WizardAnswers; update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void }) {
-  // Inline validace — chyba se zobrazí jen pokud uživatel pole opustil/začal psát
+function Step7({ a, update }: { a: WizardAnswers; update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void }) {
   const emailErr = a.email ? validateEmail(a.email) : ""
   const nameErr = a.name ? validateName(a.name) : ""
   const phoneErr = a.phone ? validatePhone(a.phone, false) : ""
-
   const errInputCl = "w-full bg-white border-2 rounded-xl px-4 py-3.5 text-base focus:outline-none focus:ring-2 transition"
 
   return (
     <>
-      {stepHead(
-        "Poslední krok",
-        <>Kam vám máme <em className="text-[#3E2723]">poslat návrh?</em></>,
-        "Stačí jen e-mail. Do 24 hodin obdržíte 3 nejvíce hodící se místa s odůvodněním a rozpočty. Zdarma."
-      )}
+      {stepHead("Poslední krok", <>Kam máme <em className="text-[#3E2723]">poslat návrh?</em></>,
+        "Stačí jen e-mail. Do 24 hodin obdržíte tři místa s odůvodněním.")}
 
-      {/* Honeypot — invisible, traps bots */}
       <input
         type="text" tabIndex={-1} autoComplete="off"
         value={a.honeypot ?? ""}
         onChange={(e) => update("honeypot", e.target.value)}
-        style={{ position: "absolute", left: "-9999px", opacity: 0, pointerEvents: "none" }}
+        style={{ position: "absolute", left: "-9999px", opacity: 0 }}
         aria-hidden="true"
       />
 
-      <div className="space-y-4">
-        {/* E-mail */}
+      <div className="space-y-4 mb-6">
         <div>
-          <label className="block text-sm font-semibold text-[#2C2C2C] mb-2">
-            Váš e-mail <span className="text-[#C9A96E]">*</span>
-          </label>
+          <label className={labelCl}>E-mail *</label>
           <input
             className={`${errInputCl} ${emailErr ? "border-red-400 focus:border-red-500 focus:ring-red-500/20" : "border-[#E8DDD0] focus:border-[#C9A96E] focus:ring-[#C9A96E]/20"}`}
-            type="email"
-            placeholder="napr. jana@email.cz"
-            value={a.email}
-            onChange={(e) => update("email", e.target.value)}
-            autoFocus
+            type="email" placeholder="vase@email.cz"
+            value={a.email} onChange={(e) => update("email", e.target.value)} autoFocus
           />
           {emailErr && <p className="mt-1.5 text-xs text-red-600">{emailErr}</p>}
         </div>
 
-        {/* Jméno */}
         <div>
-          <label className="block text-sm font-semibold text-[#2C2C2C] mb-2">
-            Jméno <span className="text-[#2C2C2C]/40 font-normal">(volitelné, pro osobnější oslovení)</span>
-          </label>
+          <label className={labelCl}>Jméno a příjmení <span className="font-normal text-charcoal/40">(volitelné)</span></label>
           <input
             className={`${errInputCl} ${nameErr ? "border-red-400 focus:border-red-500 focus:ring-red-500/20" : "border-[#E8DDD0] focus:border-[#C9A96E] focus:ring-[#C9A96E]/20"}`}
             placeholder="Jana Nováková"
-            value={a.name}
-            onChange={(e) => update("name", e.target.value)}
+            value={a.name} onChange={(e) => update("name", e.target.value)}
           />
           {nameErr && <p className="mt-1.5 text-xs text-red-600">{nameErr}</p>}
         </div>
 
-        {/* Telefon */}
         <div>
-          <label className="block text-sm font-semibold text-[#2C2C2C] mb-2">
-            Telefon <span className="text-[#2C2C2C]/40 font-normal">(volitelné, pro rychlejší kontakt)</span>
-          </label>
+          <label className={labelCl}>Telefon <span className="font-normal text-charcoal/40">(volitelné)</span></label>
           <input
             className={`${errInputCl} ${phoneErr ? "border-red-400 focus:border-red-500 focus:ring-red-500/20" : "border-[#E8DDD0] focus:border-[#C9A96E] focus:ring-[#C9A96E]/20"}`}
-            type="tel"
-            placeholder="+420 722 123 456"
-            value={a.phone}
-            onChange={(e) => update("phone", e.target.value)}
+            type="tel" placeholder="+420 722 123 456"
+            value={a.phone} onChange={(e) => update("phone", e.target.value)}
           />
           {phoneErr && <p className="mt-1.5 text-xs text-red-600">{phoneErr}</p>}
         </div>
       </div>
 
-      {/* Captcha — Nejsem robot */}
-      <label className="mt-5 flex items-start gap-3 p-4 bg-[#F9F2E6] border-2 border-[#C9A96E]/30 rounded-xl cursor-pointer hover:border-[#C9A96E] transition-colors">
+      <label className="flex items-start gap-3 mb-3 p-4 bg-[#F9F2E6] rounded-xl border-2 border-[#C9A96E]/30 cursor-pointer hover:border-[#C9A96E] transition-colors">
         <input
-          type="checkbox"
-          checked={a.notRobot ?? false}
-          onChange={(e) => update("notRobot", e.target.checked)}
+          type="checkbox" checked={a.consentGdpr}
+          onChange={(e) => update("consentGdpr", e.target.checked)}
           className="mt-0.5 w-5 h-5 accent-[#C9A96E] cursor-pointer flex-shrink-0"
         />
-        <div className="flex-1">
-          <span className="block text-sm font-semibold text-[#2C2C2C]">Nejsem robot</span>
-          <span className="block text-xs text-[#2C2C2C]/70 mt-0.5">Potvrzuji, že jsem člověk a chci osobní návrh.</span>
+        <div>
+          <span className="block text-sm font-semibold text-[#2C2C2C]">Souhlas se zpracováním údajů *</span>
+          <span className="block text-xs text-[#2C2C2C]/70 mt-0.5">
+            Souhlasím se zpracováním osobních údajů za účelem zaslání návrhu míst.
+          </span>
         </div>
       </label>
 
-      {/* Trust block */}
-      <div className="mt-5 bg-[#F9F2E6] rounded-2xl p-5 flex items-start gap-4">
-        <div className="w-10 h-10 rounded-full bg-[#C9A96E]/20 flex items-center justify-center flex-shrink-0">
-          <Heart size={16} className="text-[#C9A96E]" fill="#C9A96E" />
+      <label className="flex items-start gap-3 mb-3 p-4 bg-white rounded-xl border-2 border-[#E8DDD0] cursor-pointer hover:border-[#C9A96E] transition-colors">
+        <input
+          type="checkbox" checked={a.consentNewsletter}
+          onChange={(e) => update("consentNewsletter", e.target.checked)}
+          className="mt-0.5 w-5 h-5 accent-[#C9A96E] cursor-pointer flex-shrink-0"
+        />
+        <div>
+          <span className="block text-sm font-semibold text-[#2C2C2C]">Odebírat novinky a slevy</span>
+          <span className="block text-xs text-[#2C2C2C]/70 mt-0.5">
+            Slevy na svatby, tipy a inspirace. Odhlásit se můžete kdykoliv.
+          </span>
+        </div>
+      </label>
+
+      <label className="flex items-start gap-3 mb-3 p-4 bg-white rounded-xl border-2 border-[#E8DDD0] cursor-pointer hover:border-[#C9A96E] transition-colors">
+        <input
+          type="checkbox" checked={a.notRobot ?? false}
+          onChange={(e) => update("notRobot", e.target.checked)}
+          className="mt-0.5 w-5 h-5 accent-[#C9A96E] cursor-pointer flex-shrink-0"
+        />
+        <div>
+          <span className="block text-sm font-semibold text-[#2C2C2C]">Nejsem robot *</span>
+          <span className="block text-xs text-[#2C2C2C]/70 mt-0.5">Potvrzuji, že jsem člověk.</span>
+        </div>
+      </label>
+
+      <div className="mt-6 bg-gradient-to-r from-[#3E2723] to-[#1F1310] text-white rounded-2xl p-5 flex items-start gap-4">
+        <div className="w-10 h-10 rounded-full bg-[#C9A96E]/30 flex items-center justify-center flex-shrink-0">
+          <Heart size={16} className="text-[#E8C98A]" fill="#E8C98A" />
         </div>
         <div>
-          <p className="font-medium text-charcoal text-sm mb-1">
-            Už <strong className="text-[#3E2723]">347 párů</strong> dostalo přes nás osobní návrh
+          <p className="font-medium text-white text-sm mb-1">
+            <strong className="text-[#E8C98A]">Jediná služba v ČR</strong>, která vám podle vašich kritérií vyhodnotí to nejlepší svatební místo
           </p>
-          <p className="text-charcoal/60 text-xs leading-relaxed">
-            E-mail použijeme pouze k zaslání návrhu. Žádný spam, žádné třetí strany.
+          <p className="text-white/70 text-xs leading-relaxed">
+            Žádný spam, jen tři osobní doporučení do 24 hodin.
           </p>
         </div>
       </div>
@@ -648,69 +683,14 @@ function Step6({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
   )
 }
 
-/* ---------- NO MATCH ---------- */
-
-function NoMatchScreen({ name }: { name: string }) {
-  const firstName = name.split(" ")[0]
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative bg-gradient-to-br from-[#3E2723] to-[#1F1310] rounded-3xl p-8 sm:p-12 text-center mb-10 overflow-hidden"
-    >
-      <div className="absolute -top-20 -right-20 w-72 h-72 bg-[#C9A96E]/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-[#C9A96E]/10 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="relative">
-        <div className="inline-flex items-center gap-2 bg-[#E8C98A]/15 border border-[#E8C98A]/30 px-4 py-1.5 rounded-full mb-6">
-          <span className="text-[#E8C98A] text-[11px] font-semibold tracking-[.25em] uppercase">
-            Vaše vize si zaslouží osobní přístup
-          </span>
-        </div>
-
-        <h2 className="font-serif font-light text-3xl sm:text-4xl md:text-5xl text-white leading-tight mb-5">
-          {firstName ? `${firstName}, ` : ""}máme pro vás <em className="text-[#E8C98A]">jedinečný plán</em>
-        </h2>
-
-        <p className="text-white/80 leading-relaxed max-w-2xl mx-auto mb-8 text-base sm:text-lg font-light">
-          Vaše představa je výjimečná a zaslouží si ruční výběr — ne jen algoritmus.
-          Náš specialista s vámi <strong className="text-white">během 30 minut probere detaily</strong> a
-          do 24 hodin vám pošle <strong className="text-white">osobní návrh tří míst</strong>, které přesně sednou.
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center mb-8">
-          <ConsultationButton
-            label="Domluvit konzultaci ihned"
-            variant="primary"
-            size="lg"
-            source="wizard-no-match"
-          />
-          <a
-            href="/venues"
-            className="text-[#E8C98A] font-medium px-6 py-3 hover:text-white transition-colors text-sm"
-          >
-            Nebo si projděte celý katalog →
-          </a>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-white/50 pt-6 border-t border-white/10">
-          <span>Konzultace zdarma</span>
-          <span className="text-[#C9A96E]">•</span>
-          <span>Online, telefon nebo osobně</span>
-          <span className="text-[#C9A96E]">•</span>
-          <span>Odpověď do 24 hodin</span>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-/* ---------- RESULT ---------- */
+/* ───────── RESULT ───────── */
 
 function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardAnswers }) {
-  const monthLabel = answers.weddingMonth === 0
-    ? "termín ještě upřesníme"
-    : `${MONTHS.find((m) => m.id === answers.weddingMonth)?.label} ${answers.weddingYear}`
+  const seasonLabel = ({
+    leto: "léto", podzim: "podzim", jaro: "jaro", jedno: "kdykoliv", jine: "jiný termín",
+  })[answers.season]
+
+  if (matches.length === 0) return <NoMatchScreen name={answers.name} />
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-16">
@@ -720,56 +700,48 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
         className="text-center mb-12"
       >
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0 }} animate={{ scale: 1 }}
           transition={{ delay: 0.2, type: "spring" }}
           className="inline-flex w-16 h-16 rounded-full bg-[#C9A96E]/15 items-center justify-center mb-5"
         >
           <CheckCircle size={32} className="text-[#C9A96E]" />
         </motion.div>
         <h1 className="font-serif font-light text-4xl md:text-5xl mb-4">
-          Děkujeme, {answers.name.split(" ")[0]}!
+          Děkujeme{answers.name ? `, ${answers.name.split(" ")[0]}` : ""}!
         </h1>
         <p className="text-charcoal/70 max-w-2xl mx-auto leading-relaxed">
-          Pro <strong>{monthLabel}</strong>, {answers.guests} hostů a rozpočet{" "}
-          <strong>{new Intl.NumberFormat("cs-CZ").format(answers.budget)} Kč</strong> jsme vybrali tato 3 místa.
-          {" "}Kompletní návrh včetně cenových rozpisů jsme právě poslali na <strong>{answers.email}</strong>.
+          Pro <strong>{seasonLabel} {answers.weddingYear || ""}</strong>, <strong>{answers.guests} hostů</strong>{" "}
+          a rozpočet pronájmu <strong>do {answers.rentalBudget.toLocaleString("cs-CZ")} Kč</strong>{" "}
+          jsme vybrali tato místa. Návrh jsme poslali na <strong>{answers.email}</strong>.
         </p>
       </motion.div>
 
-      {matches.length > 0 ? (
-        <>
-          <h2 className="font-serif text-2xl text-center mb-8">
-            <Sparkles className="inline-block mb-1 text-[#C9A96E] mr-2" size={20} />
-            Náš návrh pro vás
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {matches.map((m, i) => (
-              <motion.div
-                key={m.venue.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.15 }}
-                className="relative"
-              >
-                <div className="absolute -top-3 left-3 z-10 bg-[#3E2723] text-white text-xs px-3 py-1 rounded-full font-medium">
-                  {i === 0 ? "✦ Nejlepší shoda" : `Shoda ${m.score} %`}
-                </div>
-                <VenueCard venue={m.venue} index={i} />
-                {m.reasons[0] && (
-                  <p className="text-xs text-charcoal/60 mt-3 italic px-2 leading-relaxed">
-                    {m.reasons[0]}
-                  </p>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </>
-      ) : (
-        <NoMatchScreen name={answers.name} />
-      )}
+      <h2 className="font-serif text-2xl text-center mb-8">
+        <Sparkles className="inline-block mb-1 text-[#C9A96E] mr-2" size={20} />
+        Náš návrh pro vás
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        {matches.map((m, i) => (
+          <motion.div
+            key={m.venue.id}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.15 }}
+            className="relative"
+          >
+            <div className="absolute -top-3 left-3 z-10 bg-[#3E2723] text-white text-xs px-3 py-1 rounded-full font-medium">
+              {i === 0 ? "✦ Nejlepší shoda" : `Shoda ${m.score} %`}
+            </div>
+            <VenueCard venue={m.venue} index={i} />
+            {m.reasons[0] && (
+              <p className="text-xs text-charcoal/60 mt-3 italic px-2 leading-relaxed">
+                {m.reasons[0]}
+              </p>
+            )}
+          </motion.div>
+        ))}
+      </div>
 
-      {/* Consultation upsell */}
       <div className="bg-gradient-to-br from-[#3E2723] to-[#1F1310] rounded-3xl p-10 text-white text-center mb-6 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#C9A96E]/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative">
@@ -781,8 +753,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
           </p>
           <p className="text-white/70 leading-relaxed max-w-xl mx-auto mb-7">
             Domluvte si <strong>30 minut zdarma</strong> s naším specialistou.
-            Probereme vybraná místa, dostupnost termínů a přesný rozpočet —
-            online, telefonicky nebo osobně.
+            Probereme vybraná místa, dostupnost termínů a přesný rozpočet.
           </p>
           <ConsultationButton
             label="Domluvit individuální konzultaci"
@@ -792,17 +763,41 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
           />
         </div>
       </div>
+    </div>
+  )
+}
 
-      {/* Secondary action */}
-      <div className="text-center bg-[#F9F2E6] rounded-2xl p-7">
-        <p className="text-charcoal/70 mb-4">Nebo nejprve projděte celý katalog</p>
-        <a
-          href="/venues"
-          className="inline-block border-2 border-[#3E2723] text-[#3E2723] font-medium px-7 py-3 rounded-full hover:bg-[#3E2723] hover:text-white transition-colors"
-        >
-          Prohlédnout všechna místa →
-        </a>
-      </div>
+function NoMatchScreen({ name }: { name: string }) {
+  const firstName = name.split(" ")[0]
+  return (
+    <div className="max-w-3xl mx-auto px-6 py-16">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative bg-gradient-to-br from-[#3E2723] to-[#1F1310] rounded-3xl p-8 sm:p-12 text-center mb-10 overflow-hidden"
+      >
+        <div className="absolute -top-20 -right-20 w-72 h-72 bg-[#C9A96E]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 bg-[#E8C98A]/15 border border-[#E8C98A]/30 px-4 py-1.5 rounded-full mb-6">
+            <span className="text-[#E8C98A] text-[11px] font-semibold tracking-[.25em] uppercase">
+              Vaše vize si zaslouží osobní přístup
+            </span>
+          </div>
+          <h2 className="font-serif font-light text-3xl sm:text-4xl text-white leading-tight mb-5">
+            {firstName ? `${firstName}, ` : ""}máme pro vás <em className="text-[#E8C98A]">jedinečný plán</em>
+          </h2>
+          <p className="text-white/80 leading-relaxed max-w-xl mx-auto mb-8 text-base sm:text-lg font-light">
+            Naše analýza ukazuje, že vaše představa je výjimečná a zaslouží si ruční výběr.
+            Náš specialista s vámi probere detaily a do 24 hodin vám pošle osobní návrh.
+          </p>
+          <ConsultationButton
+            label="Domluvit konzultaci"
+            variant="primary"
+            size="lg"
+            source="wizard-no-match"
+          />
+        </div>
+      </motion.div>
     </div>
   )
 }
