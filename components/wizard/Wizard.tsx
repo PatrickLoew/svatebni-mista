@@ -191,7 +191,7 @@ export default function Wizard() {
           <button
             onClick={submit}
             disabled={!canContinue(step)}
-            className="bg-[#1F3A2C] text-white font-medium px-9 py-3.5 rounded-full hover:bg-[#0F1F18] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg shadow-[#1F3A2C]/30"
+            className="bg-[#3E2723] text-white font-medium px-9 py-3.5 rounded-full hover:bg-[#1F1310] disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 shadow-lg shadow-[#3E2723]/30"
           >
             <Send size={16} />
             Získat můj návrh
@@ -232,7 +232,7 @@ function Step1({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
     <>
       {stepHead(
         "Začneme základem",
-        <>Kdy se chcete <em className="text-[#1F3A2C]">vdávat?</em></>,
+        <>Kdy se chcete <em className="text-[#3E2723]">vdávat?</em></>,
         "Konkrétní den řešit nemusíte — flexibilita pomáhá najít víc volných míst."
       )}
 
@@ -246,7 +246,7 @@ function Step1({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
               key={y}
               onClick={() => update("weddingYear", y)}
               className={`py-3.5 rounded-xl text-sm font-medium border transition-all ${
-                on ? "bg-[#1F3A2C] text-white border-[#1F3A2C]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
+                on ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
               }`}
             >
               {y}
@@ -281,7 +281,7 @@ function Step1({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
             >
               {m.label}
               {m.popular && !on && (
-                <span className="absolute -top-1.5 -right-1.5 bg-[#1F3A2C] text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full">
+                <span className="absolute -top-1.5 -right-1.5 bg-[#3E2723] text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full">
                   ★
                 </span>
               )}
@@ -303,7 +303,7 @@ function Step1({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
             key={o.id}
             onClick={() => update("flexibility", o.id as "presny-mesic" | "ten-rok" | "flexibilni")}
             className={`px-4 py-3 rounded-xl text-sm font-medium border text-left transition-all ${
-              a.flexibility === o.id ? "bg-[#1F3A2C] text-white border-[#1F3A2C]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
+              a.flexibility === o.id ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
             }`}
           >
             <div>{o.label}</div>
@@ -315,7 +315,7 @@ function Step1({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
       {/* Guests slider */}
       <label className="block mb-6">
         <span className="text-sm font-medium text-charcoal/70 mb-2 block">
-          Počet hostů: <strong className="text-[#1F3A2C]">{a.guests}</strong>
+          Počet hostů: <strong className="text-[#3E2723]">{a.guests}</strong>
         </span>
         <input
           type="range"
@@ -334,7 +334,7 @@ function Step1({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
       {/* Budget slider */}
       <label className="block">
         <span className="text-sm font-medium text-charcoal/70 mb-2 block">
-          Celkový rozpočet: <strong className="text-[#1F3A2C]">{new Intl.NumberFormat("cs-CZ").format(a.budget)} Kč</strong>
+          Celkový rozpočet: <strong className="text-[#3E2723]">{new Intl.NumberFormat("cs-CZ").format(a.budget)} Kč</strong>
         </span>
         <input
           type="range"
@@ -358,7 +358,7 @@ function Step2({ a, toggle, update }: { a: WizardAnswers; toggle: <K extends key
     <>
       {stepHead(
         "Lokalita",
-        <>Kde si svatbu <em className="text-[#1F3A2C]">představujete?</em></>,
+        <>Kde si svatbu <em className="text-[#3E2723]">představujete?</em></>,
         "Pomůže nám to vybrat místa s nejlepší dostupností pro vás i hosty."
       )}
 
@@ -400,7 +400,7 @@ function Step2({ a, toggle, update }: { a: WizardAnswers; toggle: <K extends key
               key={r}
               onClick={() => toggle("regions", r)}
               className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-                on ? "bg-[#1F3A2C] text-white border-[#1F3A2C]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
+                on ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
               }`}
             >
               {r}
@@ -417,7 +417,7 @@ function Step3({ a, toggle, update }: { a: WizardAnswers; toggle: <K extends key
     <>
       {stepHead(
         "Typ & atmosféra",
-        <>Jaké místo k vám <em className="text-[#1F3A2C]">promluví?</em></>
+        <>Jaké místo k vám <em className="text-[#3E2723]">promluví?</em></>
       )}
 
       <p className="text-sm font-medium text-charcoal/70 mb-3">Typ místa</p>
@@ -468,7 +468,7 @@ function Step3({ a, toggle, update }: { a: WizardAnswers; toggle: <K extends key
             key={o.id}
             onClick={() => update("setting", o.id as "indoor" | "outdoor" | "both")}
             className={`px-4 py-3 rounded-xl text-sm font-medium border transition-all ${
-              a.setting === o.id ? "bg-[#1F3A2C] text-white border-[#1F3A2C]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
+              a.setting === o.id ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-charcoal border-[#E8DDD0] hover:border-[#C9A96E]"
             }`}
           >
             {o.label}
@@ -484,7 +484,7 @@ function Step4({ a, toggle }: { a: WizardAnswers; toggle: <K extends keyof Wizar
     <>
       {stepHead(
         "Co musí mít?",
-        <>Vyberte co je pro vás <em className="text-[#1F3A2C]">nezbytné</em></>,
+        <>Vyberte co je pro vás <em className="text-[#3E2723]">nezbytné</em></>,
         "Tyto požadavky budou prioritizovány při výběru. Můžete vynechat."
       )}
       <div className="grid grid-cols-2 gap-2">
@@ -515,7 +515,7 @@ function Step5({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
     <>
       {stepHead(
         "Vaše vize",
-        <>Povězte nám <em className="text-[#1F3A2C]">víc</em></>,
+        <>Povězte nám <em className="text-[#3E2723]">víc</em></>,
         "Volitelné, ale čím konkrétnější, tím přesnější návrh dostanete."
       )}
       <div className="space-y-5">
@@ -556,7 +556,7 @@ function Step6({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
     <>
       {stepHead(
         "Poslední krok",
-        <>Kam vám máme <em className="text-[#1F3A2C]">poslat návrh?</em></>,
+        <>Kam vám máme <em className="text-[#3E2723]">poslat návrh?</em></>,
         "Stačí jen e-mail. Do 24 hodin obdržíte 3 nejvíce hodící se místa s odůvodněním a rozpočty. Zdarma."
       )}
 
@@ -637,7 +637,7 @@ function Step6({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
         </div>
         <div>
           <p className="font-medium text-charcoal text-sm mb-1">
-            Už <strong className="text-[#1F3A2C]">347 párů</strong> dostalo přes nás osobní návrh
+            Už <strong className="text-[#3E2723]">347 párů</strong> dostalo přes nás osobní návrh
           </p>
           <p className="text-charcoal/60 text-xs leading-relaxed">
             E-mail použijeme pouze k zaslání návrhu. Žádný spam, žádné třetí strany.
@@ -656,7 +656,7 @@ function NoMatchScreen({ name }: { name: string }) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative bg-gradient-to-br from-[#1F3A2C] to-[#0F1F18] rounded-3xl p-8 sm:p-12 text-center mb-10 overflow-hidden"
+      className="relative bg-gradient-to-br from-[#3E2723] to-[#1F1310] rounded-3xl p-8 sm:p-12 text-center mb-10 overflow-hidden"
     >
       <div className="absolute -top-20 -right-20 w-72 h-72 bg-[#C9A96E]/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-[#C9A96E]/10 rounded-full blur-3xl pointer-events-none" />
@@ -674,7 +674,7 @@ function NoMatchScreen({ name }: { name: string }) {
 
         <p className="text-white/80 leading-relaxed max-w-2xl mx-auto mb-8 text-base sm:text-lg font-light">
           Vaše představa je výjimečná a zaslouží si ruční výběr — ne jen algoritmus.
-          Náš wedding planner s vámi <strong className="text-white">během 30 minut probere detaily</strong> a
+          Náš specialista s vámi <strong className="text-white">během 30 minut probere detaily</strong> a
           do 24 hodin vám pošle <strong className="text-white">osobní návrh tří míst</strong>, které přesně sednou.
         </p>
 
@@ -752,7 +752,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                 transition={{ delay: i * 0.15 }}
                 className="relative"
               >
-                <div className="absolute -top-3 left-3 z-10 bg-[#1F3A2C] text-white text-xs px-3 py-1 rounded-full font-medium">
+                <div className="absolute -top-3 left-3 z-10 bg-[#3E2723] text-white text-xs px-3 py-1 rounded-full font-medium">
                   {i === 0 ? "✦ Nejlepší shoda" : `Shoda ${m.score} %`}
                 </div>
                 <VenueCard venue={m.venue} index={i} />
@@ -770,17 +770,17 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
       )}
 
       {/* Consultation upsell */}
-      <div className="bg-gradient-to-br from-[#1F3A2C] to-[#0F1F18] rounded-3xl p-10 text-white text-center mb-6 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#3E2723] to-[#1F1310] rounded-3xl p-10 text-white text-center mb-6 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#C9A96E]/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative">
-          <span className="inline-block bg-[#E8C98A] text-[#1F3A2C] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider mb-5">
+          <span className="inline-block bg-[#E8C98A] text-[#3E2723] text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider mb-5">
             ★ Doporučujeme jako další krok
           </span>
           <p className="font-serif text-3xl md:text-4xl font-light mb-3">
             Chcete jít do <em className="text-[#E8C98A]">hloubky?</em>
           </p>
           <p className="text-white/70 leading-relaxed max-w-xl mx-auto mb-7">
-            Domluvte si <strong>30 minut zdarma</strong> s naším wedding plannerem.
+            Domluvte si <strong>30 minut zdarma</strong> s naším specialistou.
             Probereme vybraná místa, dostupnost termínů a přesný rozpočet —
             online, telefonicky nebo osobně.
           </p>
@@ -798,7 +798,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
         <p className="text-charcoal/70 mb-4">Nebo nejprve projděte celý katalog</p>
         <a
           href="/venues"
-          className="inline-block border-2 border-[#1F3A2C] text-[#1F3A2C] font-medium px-7 py-3 rounded-full hover:bg-[#1F3A2C] hover:text-white transition-colors"
+          className="inline-block border-2 border-[#3E2723] text-[#3E2723] font-medium px-7 py-3 rounded-full hover:bg-[#3E2723] hover:text-white transition-colors"
         >
           Prohlédnout všechna místa →
         </a>

@@ -23,7 +23,7 @@ export default function Footer() {
   const [subscribed, setSubscribed] = useState(false)
 
   return (
-    <footer className="bg-[#0F1F18] text-white/70">
+    <footer className="bg-[#1F1310] text-white/70">
       {/* Top: Newsletter */}
       <div className="border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-16 grid lg:grid-cols-2 gap-10 items-center">
@@ -75,7 +75,7 @@ export default function Footer() {
             </span>
           </div>
           <p className="text-sm leading-relaxed font-light max-w-md">
-            Prémiový svatební planning, catering a vyhledávání míst.
+            Specialisté na výběr svatebních míst. Sami provozujeme prémiová svatební místa a víme, jak fungují — proto nabízíme službu Svatební místo na míru.
             Od první kávy až po poslední přípitek — postaráme se o všechno,
             co musí klapnout, abyste si svůj den jen užívali.
           </p>

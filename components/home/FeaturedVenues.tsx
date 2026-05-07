@@ -66,17 +66,20 @@ export default function FeaturedVenues() {
           <div>
             <div className="flex items-center gap-3 mb-5">
               <span className="h-px w-10 bg-[#C9A96E]" />
-              <span className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase">Vybraná místa</span>
+              <span className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase">VIP výběr</span>
             </div>
             <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl leading-[1.1] max-w-2xl">
-              Místa, která <em className="text-[#1F3A2C]">vyrážejí dech</em>
+              Místa, která <em className="text-[#3E2723]">vyrážejí dech</em>
             </h2>
+            <p className="text-charcoal/60 mt-3 max-w-xl leading-relaxed font-light">
+              Pečlivě vybraná prémiová místa, která zahrnujeme do našich doporučení.
+            </p>
           </div>
           <Link
             href="/venues"
-            className="hidden md:inline-flex items-center gap-2 text-[#1F3A2C] font-medium hover:text-[#C9A96E] transition-colors group"
+            className="hidden md:inline-flex items-center gap-2 text-[#3E2723] font-medium hover:text-[#C9A96E] transition-colors group"
           >
-            Všechna místa
+            Všech 22 VIP míst
             <ArrowUpRight size={18} className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
           </Link>
         </div>
@@ -150,7 +153,7 @@ export default function FeaturedVenues() {
         <div className="md:hidden text-center mt-10">
           <Link
             href="/venues"
-            className="inline-flex items-center gap-2 text-[#1F3A2C] font-medium hover:text-[#C9A96E] transition-colors"
+            className="inline-flex items-center gap-2 text-[#3E2723] font-medium hover:text-[#C9A96E] transition-colors"
           >
             Zobrazit všechna místa <ArrowUpRight size={16} />
           </Link>

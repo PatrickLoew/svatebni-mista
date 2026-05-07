@@ -7,20 +7,20 @@ const steps = [
   {
     num: "01",
     icon: Coffee,
-    title: "Sedneme si na kávu",
-    desc: "Probereme vaši představu, atmosféru, kterou chcete vytvořit, a rozpočet, se kterým pracujeme. Bez závazku, v naprostém klidu.",
+    title: "Vyplníte krátkou analýzu",
+    desc: "Šest jednoduchých otázek o vaší vizi, počtu hostů, rozpočtu a preferencích. Zabere vám to 5 minut a je to zcela zdarma.",
   },
   {
     num: "02",
     icon: MapPinned,
-    title: "Vybereme dokonalé místo",
-    desc: "Připravíme 3–5 míst, která přesně odpovídají vašim přáním. Dohodneme prohlídky a postaráme se o veškerá jednání s majiteli.",
+    title: "Najdeme místo na míru",
+    desc: "Naši specialisté projdou stovky míst v naší databázi a vyberou tři, která přesně odpovídají vašim představám.",
   },
   {
     num: "03",
     icon: Sparkles,
-    title: "Postaráme se o den D",
-    desc: "Catering, dekorace, fotograf, hudba, koordinace timeline. Vy si jen užijete den, na který jste se těšili. My zařídíme zbytek.",
+    title: "Pošleme vám návrh",
+    desc: "Do 24 hodin obdržíte e-mailem detailní návrh tří míst včetně rozpočtových rozpadů a přímých kontaktů.",
   },
 ]
 
@@ -35,11 +35,11 @@ export default function Process() {
             <span className="h-px w-10 bg-[#C9A96E]" />
           </div>
           <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl leading-[1.1] mb-5">
-            Tři kroky k <em className="text-[#1F3A2C]">vaší dokonalé svatbě</em>
+            Tři kroky k <em className="text-[#3E2723]">vašemu dokonalému místu</em>
           </h2>
           <p className="text-charcoal/60 max-w-2xl mx-auto leading-relaxed font-light">
-            Bez stresu, bez improvizace. Přesně promyšlený proces postavený na zkušenosti
-            ze stovek svateb.
+            Sami provozujeme svatební místa, takže víme, na co se ptát. Naše analýza
+            vám ušetří desítky hodin hledání.
           </p>
         </div>
 
@@ -60,7 +60,7 @@ export default function Process() {
               <div className="relative inline-flex items-center justify-center mb-6">
                 <div className="absolute inset-0 bg-[#C9A96E]/15 rounded-full scale-150 group-hover:scale-[1.8] transition-transform duration-500" />
                 <div className="relative w-32 h-32 rounded-full bg-white border border-[#E8DDD0] shadow-lg flex items-center justify-center group-hover:border-[#C9A96E] transition-colors">
-                  <s.icon size={32} className="text-[#1F3A2C] group-hover:text-[#C9A96E] transition-colors" strokeWidth={1.5} />
+                  <s.icon size={32} className="text-[#3E2723] group-hover:text-[#C9A96E] transition-colors" strokeWidth={1.5} />
                 </div>
               </div>
 

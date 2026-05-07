@@ -123,7 +123,7 @@ export default function ConsultationModal({
                 >
                   <CheckCircle size={32} className="text-[#C9A96E]" />
                 </motion.div>
-                <h3 className="font-serif text-2xl sm:text-3xl font-light text-[#1F3A2C] mb-3">Děkujeme!</h3>
+                <h3 className="font-serif text-2xl sm:text-3xl font-light text-[#3E2723] mb-3">Děkujeme!</h3>
                 <p className="text-[#2C2C2C] leading-relaxed mb-7 max-w-sm mx-auto">
                   Ozveme se vám během <strong>24 hodin</strong>.
                 </p>
@@ -137,7 +137,7 @@ export default function ConsultationModal({
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="text-[#2C2C2C]/60 hover:text-[#1F3A2C] text-xs font-medium mb-4 inline-flex items-center gap-1"
+                  className="text-[#2C2C2C]/60 hover:text-[#3E2723] text-xs font-medium mb-4 inline-flex items-center gap-1"
                 >
                   ← Zpět
                 </button>
@@ -187,7 +187,7 @@ export default function ConsultationModal({
                 {error && <p className="text-red-600 text-sm text-center mb-4 p-3 bg-red-50 rounded-xl border border-red-200">{error}</p>}
 
                 <button type="submit" disabled={loading}
-                  className="w-full bg-[#1F3A2C] text-white font-semibold py-4 rounded-full hover:bg-[#0F1F18] disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-base shadow-lg">
+                  className="w-full bg-[#3E2723] text-white font-semibold py-4 rounded-full hover:bg-[#1F1310] disabled:opacity-50 transition-all flex items-center justify-center gap-2 text-base shadow-lg">
                   {loading ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                   {loading ? "Odesílám..." : "Odeslat zprávu"}
                 </button>
@@ -201,7 +201,7 @@ export default function ConsultationModal({
                     Konzultace zdarma
                   </p>
                   <h2 className="font-serif text-2xl sm:text-3xl font-light leading-tight mb-2 text-[#2C2C2C]">
-                    Jsme vám <em className="text-[#1F3A2C]">k dispozici</em>
+                    Jsme vám <em className="text-[#3E2723]">k dispozici</em>
                   </h2>
                   <p className="text-[#2C2C2C]/70 text-sm leading-relaxed">
                     Vyberte si nejrychlejší cestu. Ozveme se osobně.
@@ -262,13 +262,13 @@ export default function ConsultationModal({
                   <a
                     href={emailMailto}
                     onClick={() => trackEvent("consultation_email", source)}
-                    className="group flex items-center gap-4 bg-[#1F3A2C]/5 hover:bg-[#1F3A2C]/10 border-2 border-[#1F3A2C]/20 hover:border-[#1F3A2C]/40 rounded-2xl p-4 sm:p-5 transition-all"
+                    className="group flex items-center gap-4 bg-[#3E2723]/5 hover:bg-[#3E2723]/10 border-2 border-[#3E2723]/20 hover:border-[#3E2723]/40 rounded-2xl p-4 sm:p-5 transition-all"
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#1F3A2C] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 rounded-full bg-[#3E2723] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                       <Mail className="text-white w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[10px] font-semibold tracking-[.2em] uppercase text-[#1F3A2C] mb-0.5">
+                      <div className="text-[10px] font-semibold tracking-[.2em] uppercase text-[#3E2723] mb-0.5">
                         Napište e-mail
                       </div>
                       <div className="font-medium text-[#2C2C2C] text-sm sm:text-base truncate">
@@ -278,7 +278,7 @@ export default function ConsultationModal({
                         Odpovíme do 24 hodin
                       </div>
                     </div>
-                    <span className="text-[#1F3A2C] text-xl font-light flex-shrink-0">→</span>
+                    <span className="text-[#3E2723] text-xl font-light flex-shrink-0">→</span>
                   </a>
                 </div>
 
@@ -287,7 +287,7 @@ export default function ConsultationModal({
                   <button
                     type="button"
                     onClick={() => setShowForm(true)}
-                    className="text-[#2C2C2C]/70 hover:text-[#1F3A2C] text-sm font-medium underline decoration-[#C9A96E] decoration-2 underline-offset-4 transition-colors"
+                    className="text-[#2C2C2C]/70 hover:text-[#3E2723] text-sm font-medium underline decoration-[#C9A96E] decoration-2 underline-offset-4 transition-colors"
                   >
                     Nebo nám pošlete zprávu přes formulář
                   </button>

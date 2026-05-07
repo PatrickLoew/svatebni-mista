@@ -12,17 +12,17 @@ export default function WizardPage() {
       <div className="max-w-3xl mx-auto px-6 text-center mb-12">
         <div className="flex items-center justify-center gap-3 mb-5">
           <span className="h-px w-10 bg-[#C9A96E]" />
-          <span className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase">Osobní návrh</span>
+          <span className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase">Svatební místo na míru</span>
           <span className="h-px w-10 bg-[#C9A96E]" />
         </div>
         <h1 className="font-serif font-light text-4xl md:text-6xl leading-[1.05] mb-5">
-          Najdeme vám místo,<br />
-          <em className="text-[#1F3A2C]">které vám sedne</em>
+          Vaše svatební místo,<br />
+          <em className="text-[#3E2723]">přesně na míru</em>
         </h1>
         <p className="text-charcoal/60 max-w-xl mx-auto leading-relaxed">
-          Odpovězte na 6 jednoduchých otázek. Náš matching algoritmus
-          vyhodnotí stovky míst a do 24 hodin obdržíte e-mailem
-          <strong> 3 osobní doporučení</strong> včetně rozpočtových rozpadů.
+          Odpovězte na 6 jednoduchých otázek. Naše analýza projde stovky míst
+          a do 24 hodin obdržíte e-mailem <strong>3 osobní doporučení</strong> včetně
+          rozpočtových rozpadů a přímých kontaktů.
         </p>
       </div>
 

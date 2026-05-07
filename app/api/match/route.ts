@@ -141,12 +141,12 @@ function clientEmail(a: WizardAnswers, matches: Match[]): string {
       </td></tr>
       <tr><td style="padding:24px">
         <p style="margin:0 0 4px;color:#C9A96E;font-size:11px;letter-spacing:2px;text-transform:uppercase">${i === 0 ? "★ Nejlepší shoda · " : ""}Shoda ${m.score} %</p>
-        <h3 style="margin:0 0 8px;font-family:Georgia,serif;font-weight:300;font-size:22px;color:#1F3A2C">${m.venue.title}</h3>
+        <h3 style="margin:0 0 8px;font-family:Georgia,serif;font-weight:300;font-size:22px;color:#3E2723">${m.venue.title}</h3>
         <p style="margin:0 0 16px;color:#666;font-size:14px">${m.venue.location} · do ${m.venue.capacity} hostů · od ${fmt(m.venue.priceFrom)} Kč</p>
         <p style="margin:0 0 12px;color:#444;line-height:1.6;font-size:14px">${m.venue.description}</p>
         ${m.reasons.length > 0 ? `
         <div style="background:#F9F2E6;padding:12px 16px;border-radius:8px;margin-top:12px">
-          <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#1F3A2C">Proč právě toto místo:</p>
+          <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#3E2723">Proč právě toto místo:</p>
           <ul style="margin:0;padding-left:18px;color:#444;font-size:13px;line-height:1.6">
             ${m.reasons.map((r) => `<li>${r}</li>`).join("")}
           </ul>
@@ -158,7 +158,7 @@ function clientEmail(a: WizardAnswers, matches: Match[]): string {
   return `
   <div style="font-family:Helvetica,Arial,sans-serif;background:#F9F6F0;padding:40px 20px">
     <div style="max-width:620px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden">
-      <div style="background:#1F3A2C;padding:50px 40px;text-align:center;color:#fff">
+      <div style="background:#3E2723;padding:50px 40px;text-align:center;color:#fff">
         <p style="margin:0 0 12px;color:#E8C98A;font-size:11px;letter-spacing:3px;text-transform:uppercase">✦ Váš osobní návrh ✦</p>
         <h1 style="margin:0;font-family:Georgia,serif;font-weight:300;font-size:34px;line-height:1.2">Děkujeme, ${firstName}!</h1>
         <p style="margin:16px 0 0;color:rgba(255,255,255,.7);font-size:15px">Vybrali jsme pro vás 3 místa, která vám sednou nejlépe.</p>
@@ -169,7 +169,7 @@ function clientEmail(a: WizardAnswers, matches: Match[]): string {
         </p>
         ${venueBlocks}
         <div style="background:#F9F2E6;padding:24px;border-radius:12px;text-align:center;margin-top:32px">
-          <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:20px;color:#1F3A2C">Co bude dál?</p>
+          <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:20px;color:#3E2723">Co bude dál?</p>
           <p style="margin:0 0 20px;color:#444;font-size:14px;line-height:1.6">Náš tým se vám ozve <strong>do 24 hodin</strong> s detailním rozpočtem, dostupností termínů a možností prohlídek.</p>
           <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://svatebni-mista.cz"}/venues" style="display:inline-block;background:#C9A96E;color:#fff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:600;font-size:14px">Prohlédnout celý katalog</a>
         </div>
@@ -177,7 +177,7 @@ function clientEmail(a: WizardAnswers, matches: Match[]): string {
           Otázky? Napište na <a href="mailto:info@svatebni-mista.cz" style="color:#C9A96E">info@svatebni-mista.cz</a> nebo zavolejte +420 123 456 789
         </p>
       </div>
-      <div style="background:#0F1F18;padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:11px">© Svatební Místa.cz</div>
+      <div style="background:#1F1310;padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:11px">© Svatební Místa.cz</div>
     </div>
   </div>
   `

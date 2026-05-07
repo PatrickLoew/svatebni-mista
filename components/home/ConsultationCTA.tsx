@@ -11,7 +11,7 @@ export default function ConsultationCTA() {
       id="consultation"
       className="relative py-24 sm:py-32 px-6 overflow-hidden"
       style={{
-        background: "linear-gradient(135deg, #0F1F18 0%, #1F3A2C 50%, #0F1F18 100%)",
+        background: "linear-gradient(135deg, #1F1310 0%, #3E2723 50%, #1F1310 100%)",
       }}
     >
       {/* Decorative blobs — pointer-events-none aby neblokovaly kliky */}
@@ -58,15 +58,15 @@ export default function ConsultationCTA() {
             </div>
 
             <h3 className="font-serif text-2xl md:text-3xl text-white font-light mb-3">
-              Online dotazník
+              Svatební místo na míru
             </h3>
             <p className="text-white/65 leading-relaxed mb-6 text-sm">
-              6 otázek, 5 minut. Náš algoritmus vyhodnotí stovky míst
+              6 otázek, 5 minut. Naše analýza projde stovky míst
               a do 24 hodin dostanete osobní výběr 3 míst přímo na e-mail.
             </p>
 
             <ul className="space-y-2 mb-8 text-sm">
-              {["Okamžitý výběr 3 míst", "Detailní rozpočtové rozpisy", "Bez nutnosti hovoru"].map((b) => (
+              {["Osobní výběr 3 míst přímo pro vás", "Detail rozpočtu a parametry", "Bez nutnosti hovoru"].map((b) => (
                 <li key={b} className="flex items-center gap-2 text-white/85">
                   <CheckCircle size={14} className="text-[#C9A96E] flex-shrink-0" />
                   {b}
@@ -78,7 +78,7 @@ export default function ConsultationCTA() {
               href="/chci-svatbu"
               className="inline-flex items-center justify-center gap-2 w-full bg-[#C9A96E] text-white font-medium py-3.5 rounded-full hover:bg-[#A88240] transition-colors"
             >
-              Spustit dotazník →
+              Spustit analýzu →
             </Link>
           </motion.div>
 
@@ -102,18 +102,18 @@ export default function ConsultationCTA() {
                 <h3 className="font-serif text-2xl md:text-3xl text-white font-light">
                   Individuální konzultace
                 </h3>
-                <span className="bg-[#E8C98A] text-[#1F3A2C] text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
+                <span className="bg-[#E8C98A] text-[#3E2723] text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
                   Doporučeno
                 </span>
               </div>
 
               <p className="text-white/70 leading-relaxed mb-6 text-sm">
-                30 minut s wedding plannerem. Online, telefonicky nebo osobně.
-                Hlubší analýza, konkrétní doporučení, odpovědi na vše.
+                30 minut s naším specialistou na svatební místa. Online,
+                telefonicky nebo osobně. Hlubší analýza, konkrétní doporučení.
               </p>
 
               <ul className="space-y-2 mb-8 text-sm">
-                {["Osobní wedding planner", "Volba: online / telefon / osobně", "Konkrétní termíny do 24 hodin"].map((b) => (
+                {["Osobní specialista", "Volba: online / telefon / osobně", "Konkrétní termíny do 24 hodin"].map((b) => (
                   <li key={b} className="flex items-center gap-2 text-white/85">
                     <CheckCircle size={14} className="text-[#E8C98A] flex-shrink-0" />
                     {b}
@@ -156,7 +156,7 @@ export default function ConsultationCTA() {
               className="group flex items-center justify-center gap-3 bg-[#E8C98A]/10 hover:bg-[#E8C98A]/20 border-2 border-[#E8C98A]/40 hover:border-[#E8C98A] rounded-2xl px-7 py-5 transition-all"
             >
               <div className="w-11 h-11 rounded-full bg-[#E8C98A] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                <Phone size={18} className="text-[#1F3A2C]" />
+                <Phone size={18} className="text-[#3E2723]" />
               </div>
               <div className="text-left">
                 <div className="text-white/60 text-[10px] font-semibold tracking-[.2em] uppercase mb-0.5">Zavolejte nám</div>

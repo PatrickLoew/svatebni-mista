@@ -18,7 +18,7 @@ interface Props {
 
 const variants: Record<Variant, string> = {
   primary:    "bg-[#C9A96E] text-white hover:bg-[#A88240]",
-  secondary:  "bg-[#1F3A2C] text-white hover:bg-[#0F1F18]",
+  secondary:  "bg-[#3E2723] text-white hover:bg-[#1F1310]",
   ghost:      "bg-white/80 backdrop-blur-md border border-[#E8DDD0] text-charcoal hover:bg-white",
   "ghost-light": "border border-white/40 backdrop-blur-md bg-white/5 text-white hover:bg-white/15",
 }

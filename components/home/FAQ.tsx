@@ -6,28 +6,28 @@ import { Plus } from "lucide-react"
 
 const faqs = [
   {
-    q: "Jak brzy bychom měli začít s plánováním svatby?",
-    a: "Pro prémiová místa doporučujeme začít plánovat 12–18 měsíců předem, zejména pokud máte vyhlédnutý konkrétní termín mezi květnem a zářím. U menších svateb si vystačíte s 6–9 měsíci. Bezplatnou konzultaci doporučujeme co nejdříve — pomůžeme vám zorientovat se v možnostech.",
+    q: "Co znamená Svatební místo na míru?",
+    a: "Sami provozujeme svatební místa, takže přesně víme, jak fungují, na co se ptát a co je v praxi důležité. Místo abyste hodiny prohledávali katalogy, vyplníte krátkou analýzu a my vám doporučíme tři místa, která sednou přesně k vaší vizi a rozpočtu.",
   },
   {
-    q: "Co všechno váš tým zařizuje?",
-    a: "Zajišťujeme komplexní servis: výběr a rezervaci místa, catering, dekorace, fotografa a kameramana, hudbu a DJ, ubytování, dopravu, koordinaci v den D, květinovou výzdobu i svatební dort. Vy jen řeknete vizi — my postavíme tým, který ji zrealizuje.",
+    q: "Plánujete nebo koordinujete svatby?",
+    a: "Ne — to není naše služba. My pomáháme najít to správné svatební místo. Samotné plánování (catering, dekorace, koordinace v den D) si pak buď řeší majitel daného místa, nebo si můžete najmout svatebního koordinátora.",
   },
   {
-    q: "Kolik svatba u vás stojí?",
-    a: "Záleží na velikosti, místě a rozsahu služeb. Menší intimní svatba pro 30 hostů začíná okolo 250 000 Kč, prémiová zámecká svatba pro 100 hostů se pohybuje od 800 000 Kč. Po konzultaci dostanete transparentní rozpočet bez skrytých poplatků.",
+    q: "Jak brzy bychom měli začít hledat místo?",
+    a: "Pro prémiová místa v hlavní sezóně (květen–září) doporučujeme začít hledat 12–18 měsíců předem. Mimo sezónu nebo ve všedních dnech si vystačíte s 6–9 měsíci. Naše analýza vám okamžitě ukáže, která místa mají volné termíny.",
+  },
+  {
+    q: "Kolik analýza stojí?",
+    a: "Analýza i následný návrh míst je pro vás zcela zdarma. Naši partneři (svatební místa) nám platí provizi pouze v případě, že si u nich rezervujete termín — vy nic neplatíte. Žádné skryté poplatky.",
   },
   {
     q: "Pracujete po celé České republice?",
-    a: "Ano. Naše portfolio míst pokrývá všech 14 krajů. Sídlíme v Praze, ale pravidelně organizujeme svatby na Moravě, v jižních Čechách i v horských letoviscích. Pro mezinárodní svatby spolupracujeme s partnery v Rakousku a Itálii.",
-  },
-  {
-    q: "Co se stane, když nám místo nesedne po prohlídce?",
-    a: "Žádný problém. V první fázi vám představíme 3–5 míst odpovídajících vašim představám. Doprovodíme vás na osobní prohlídky a teprve po vašem souhlasu pokračujeme s rezervací. Nikdy nic netlačíme.",
+    a: "Ano. Naše databáze obsahuje místa ve všech 14 krajích, plus partnerská místa na Slovensku. Pro každý kraj máme prověřené partnery, se kterými dlouhodobě spolupracujeme.",
   },
   {
     q: "Jaký je první krok?",
-    a: "Nezávazná konzultace — buď u nás v ateliéru v Praze, nebo online přes Zoom. Probereme vaši vizi, představíme přístup a do týdne vám pošleme první návrhy míst a hrubý rozpočet. Konzultace je vždy zdarma.",
+    a: "Vyplňte naši krátkou analýzu — 6 otázek, 5 minut. Do 24 hodin vám e-mailem pošleme tři místa, která se nejvíc hodí k vaší vizi. Dále si můžete domluvit individuální konzultaci pro hlubší probrání.",
   },
 ]
 
@@ -44,7 +44,7 @@ export default function FAQ() {
             <span className="h-px w-10 bg-[#C9A96E]" />
           </div>
           <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl leading-[1.1] mb-5">
-            Odpovědi na to, co <em className="text-[#1F3A2C]">vás zajímá</em>
+            Odpovědi na to, co <em className="text-[#3E2723]">vás zajímá</em>
           </h2>
         </div>
 
@@ -64,7 +64,7 @@ export default function FAQ() {
                   onClick={() => setOpen(isOpen ? null : i)}
                   className="w-full px-7 py-5 flex items-center justify-between gap-6 text-left group"
                 >
-                  <span className="font-serif text-lg md:text-xl font-medium text-charcoal group-hover:text-[#1F3A2C] transition-colors">
+                  <span className="font-serif text-lg md:text-xl font-medium text-charcoal group-hover:text-[#3E2723] transition-colors">
                     {f.q}
                   </span>
                   <motion.div

@@ -43,7 +43,7 @@ export default function AdminSettingsPage() {
   const inputCl = "w-full bg-white border-2 border-[#E8DDD0] rounded-xl px-4 py-3 text-sm text-[#2C2C2C] focus:outline-none focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 transition"
   const labelCl = "block text-xs font-semibold text-[#2C2C2C]/60 uppercase tracking-wider mb-1.5"
   const sectionCl = "bg-white border border-[#E8DDD0] rounded-2xl p-6 space-y-4"
-  const sectionTitleCl = "font-serif text-lg font-medium text-[#1F3A2C] mb-3"
+  const sectionTitleCl = "font-serif text-lg font-medium text-[#3E2723] mb-3"
 
   if (loading) {
     return (
@@ -193,7 +193,7 @@ export default function AdminSettingsPage() {
         <button
           onClick={save}
           disabled={saving}
-          className="bg-[#1F3A2C] text-white font-semibold px-7 py-3 rounded-full hover:bg-[#0F1F18] transition-colors disabled:opacity-60 flex items-center gap-2"
+          className="bg-[#3E2723] text-white font-semibold px-7 py-3 rounded-full hover:bg-[#1F1310] transition-colors disabled:opacity-60 flex items-center gap-2"
         >
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
           {saving ? "Ukládám…" : "Uložit změny"}

@@ -52,7 +52,7 @@ function AnimatedNumber({ value }: { value: number }) {
 
 export default function Testimonials() {
   return (
-    <section className="py-32 px-6 bg-[#1F3A2C] text-white relative overflow-hidden">
+    <section className="py-32 px-6 bg-[#3E2723] text-white relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full opacity-[0.04]"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1519741497674-611481863552?w=2400&q=85')", backgroundSize: "cover" }} />
 

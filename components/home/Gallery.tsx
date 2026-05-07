@@ -29,7 +29,7 @@ export default function Gallery() {
             <span className="h-px w-10 bg-[#C9A96E]" />
           </div>
           <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl leading-[1.1] mb-5">
-            Okamžiky, které <em className="text-[#1F3A2C]">trvají věčně</em>
+            Okamžiky, které <em className="text-[#3E2723]">trvají věčně</em>
           </h2>
           <p className="text-charcoal/60 max-w-2xl mx-auto leading-relaxed font-light">
             Pohled do svateb, které jsme měli tu čest spoluvytvářet.

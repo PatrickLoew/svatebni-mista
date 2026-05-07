@@ -11,7 +11,7 @@ const config: Config = {
       colors: {
         ivory: { 50: "#FEFDFB", 100: "#FDF9F3", 200: "#F9F2E6", DEFAULT: "#F9F6F0" },
         gold:  { light: "#E8C98A", DEFAULT: "#C9A96E", dark: "#A88240" },
-        forest: { light: "#3D5C4A", DEFAULT: "#1F3A2C", dark: "#0F1F18" },
+        forest: { light: "#5D4037", DEFAULT: "#3E2723", dark: "#1F1310" },
         champagne: "#F7E7CE",
         beige: { light: "#F0E8DC", DEFAULT: "#E8DDD0", dark: "#D4C4B0" },
         charcoal: "#2C2C2C",
@@ -23,7 +23,7 @@ const config: Config = {
       },
       backgroundImage: {
         "gold-gradient":   "linear-gradient(135deg, #C9A96E 0%, #E8C98A 50%, #C9A96E 100%)",
-        "forest-gradient": "linear-gradient(180deg, #1F3A2C 0%, #0F1F18 100%)",
+        "forest-gradient": "linear-gradient(180deg, #3E2723 0%, #1F1310 100%)",
         "ivory-gradient":  "linear-gradient(180deg, #FEFDFB 0%, #F9F6F0 100%)",
       },
     },

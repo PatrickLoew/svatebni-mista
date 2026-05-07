@@ -51,7 +51,7 @@ export default function Hero() {
           >
             <span className="h-px w-10 bg-[#C9A96E]" />
             <span className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase">
-              Wedding planning · Est. 2018
+              Svatební místo na míru
             </span>
           </motion.div>
 
@@ -88,8 +88,9 @@ export default function Hero() {
             transition={{ delay: 1 }}
             className="text-white/80 text-base sm:text-lg md:text-xl leading-relaxed max-w-xl mb-8 sm:mb-10 font-light"
           >
-            Pomáháme párům najít dokonalé místo, sestavit catering snů
-            a postarat se o každý detail vaší svatby od A do Z.
+            Sami provozujeme svatební místa a víme, jak fungují. Proto vám pomůžeme
+            najít to <strong className="font-medium text-white">vaše místo na míru</strong> —
+            přesně podle vašich představ a rozpočtu.
           </motion.p>
 
           <motion.div
@@ -102,15 +103,17 @@ export default function Hero() {
               href="/chci-svatbu"
               className="group bg-[#C9A96E] text-white font-medium px-6 sm:px-9 py-4 rounded-full hover:bg-[#A88240] transition-all hover:scale-[1.02] inline-flex items-center justify-center gap-2 text-sm sm:text-base"
             >
-              Chci od vás svatbu
+              Spustit analýzu
               <span className="transition-transform group-hover:translate-x-1">→</span>
             </Link>
-            <Link
-              href="/venues"
+            <a
+              href="https://www.wedding-point.cz"
+              target="_blank"
+              rel="noopener noreferrer"
               className="border border-white/40 backdrop-blur-md bg-white/5 text-white font-medium px-6 sm:px-9 py-4 rounded-full hover:bg-white/15 transition-all inline-flex items-center justify-center text-sm sm:text-base"
             >
-              Prohlédnout místa
-            </Link>
+              Prohlédnout celý katalog
+            </a>
           </motion.div>
         </div>
 

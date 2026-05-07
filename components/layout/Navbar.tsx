@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X } from "lucide-react"
 
 const links = [
-  { href: "/venues", label: "Místa" },
-  { href: "/chci-svatbu", label: "Návrh na míru" },
-  { href: "/#process", label: "Jak fungujeme" },
-  { href: "/#faq", label: "FAQ" },
+  { href: "/chci-svatbu", label: "Místo na míru", external: false },
+  { href: "/venues", label: "VIP místa", external: false },
+  { href: "https://www.wedding-point.cz", label: "Celý katalog", external: true },
+  { href: "/#process", label: "Jak to funguje", external: false },
 ]
 
 export default function Navbar() {
@@ -42,31 +42,32 @@ export default function Navbar() {
             ✦
           </motion.span>
           <span className={`font-serif text-xl font-light tracking-wide transition-colors ${
-            scrolled ? "text-[#1F3A2C]" : "text-white"
+            scrolled ? "text-[#3E2723]" : "text-white"
           }`}>
             Svatební <span className="italic">Místa</span>
           </span>
         </Link>
 
         <div className="hidden md:flex items-center gap-9">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={`text-sm font-medium transition-colors ${
-                scrolled
-                  ? "text-charcoal/70 hover:text-[#1F3A2C]"
-                  : "text-white/80 hover:text-white"
-              }`}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {links.map((l) => {
+            const cn = `text-sm font-medium transition-colors ${
+              scrolled ? "text-charcoal/70 hover:text-[#3E2723]" : "text-white/80 hover:text-white"
+            }`
+            return l.external ? (
+              <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className={cn}>
+                {l.label}
+              </a>
+            ) : (
+              <Link key={l.href} href={l.href} className={cn}>
+                {l.label}
+              </Link>
+            )
+          })}
           <Link
             href="/chci-svatbu"
             className="bg-[#C9A96E] text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-[#A88240] transition-colors"
           >
-            Chci od vás svatbu
+            Spustit analýzu
           </Link>
         </div>
 
@@ -88,22 +89,24 @@ export default function Navbar() {
             className="md:hidden bg-white border-t border-[#E8DDD0]"
           >
             <div className="px-6 py-5 flex flex-col gap-3">
-              {links.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="text-sm font-medium py-2 border-b border-[#F0E8DC]"
-                  onClick={() => setOpen(false)}
-                >
-                  {l.label}
-                </Link>
-              ))}
+              {links.map((l) => {
+                const cn = "text-sm font-medium py-2 border-b border-[#F0E8DC]"
+                return l.external ? (
+                  <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className={cn} onClick={() => setOpen(false)}>
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link key={l.href} href={l.href} className={cn} onClick={() => setOpen(false)}>
+                    {l.label}
+                  </Link>
+                )
+              })}
               <Link
                 href="/chci-svatbu"
                 className="bg-[#C9A96E] text-white text-sm font-medium px-6 py-3 rounded-full text-center mt-3"
                 onClick={() => setOpen(false)}
               >
-                Chci od vás svatbu
+                Spustit analýzu
               </Link>
             </div>
           </motion.div>

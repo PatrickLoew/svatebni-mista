@@ -61,7 +61,7 @@ export default function Catering() {
           </div>
 
           <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl leading-[1.1] mb-6">
-            Gastronomie, která <em className="text-[#1F3A2C]">vypráví příběh</em>
+            Gastronomie, která <em className="text-[#3E2723]">vypráví příběh</em>
           </h2>
 
           <p className="text-charcoal/70 leading-relaxed text-lg mb-10 font-light">
@@ -80,7 +80,7 @@ export default function Catering() {
                 transition={{ delay: i * 0.1 }}
                 className="flex gap-4 group"
               >
-                <div className="w-11 h-11 rounded-xl bg-[#1F3A2C] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C9A96E] transition-colors duration-300">
+                <div className="w-11 h-11 rounded-xl bg-[#3E2723] flex items-center justify-center flex-shrink-0 group-hover:bg-[#C9A96E] transition-colors duration-300">
                   <f.icon size={18} className="text-white" />
                 </div>
                 <div>

@@ -88,7 +88,7 @@ export default function VenueForm({ initial, id }: Props) {
   const inputClass = "w-full bg-white border border-[#E8DDD0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#C9A96E] transition"
   const labelClass = "block text-xs font-semibold text-charcoal/60 uppercase tracking-wider mb-1.5"
   const sectionClass = "bg-white border border-[#E8DDD0] rounded-2xl p-6 space-y-4"
-  const sectionTitleClass = "font-serif text-lg font-medium text-[#1F3A2C] mb-2 flex items-center gap-2"
+  const sectionTitleClass = "font-serif text-lg font-medium text-[#3E2723] mb-2 flex items-center gap-2"
 
   function TagInput({ field, placeholder }: { field: "services" | "images" | "features"; placeholder: string }) {
     const [val, setVal] = useState("")
@@ -288,7 +288,7 @@ export default function VenueForm({ initial, id }: Props) {
       {/* Actions */}
       <div className="flex gap-3 sticky bottom-4 bg-white/80 backdrop-blur-md p-4 -mx-4 rounded-2xl border border-[#E8DDD0]">
         <button type="submit" disabled={loading}
-          className="flex items-center gap-2 bg-[#1F3A2C] text-white font-semibold px-8 py-3.5 rounded-full hover:bg-[#0F1F18] transition-colors disabled:opacity-60">
+          className="flex items-center gap-2 bg-[#3E2723] text-white font-semibold px-8 py-3.5 rounded-full hover:bg-[#1F1310] transition-colors disabled:opacity-60">
           {loading && <Loader2 size={16} className="animate-spin" />}
           {id ? "Uložit změny" : "Přidat místo"}
         </button>
