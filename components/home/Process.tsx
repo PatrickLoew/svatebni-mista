@@ -1,73 +1,101 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Coffee, MapPinned, Sparkles } from "lucide-react"
 
 const steps = [
   {
     num: "01",
-    icon: Coffee,
-    title: "Vyplníte krátkou analýzu",
-    desc: "Šest jednoduchých otázek o vaší vizi, počtu hostů, rozpočtu a preferencích. Zabere vám to 5 minut a je to zcela zdarma.",
+    title: "Vyplníte formulář",
+    desc: "Zadáte termín, lokalitu, počet hostů, styl místa, rozpočet a další praktické požadavky.",
   },
   {
     num: "02",
-    icon: MapPinned,
-    title: "Najdeme místo na míru",
-    desc: "Naši specialisté projdou stovky míst v naší databázi a vyberou tři, která přesně odpovídají vašim představám.",
+    title: "Požadavky ručně vyhodnotíme",
+    desc: "Neprobíhá automatické filtrování. Výběr skládáme ručně podle toho, co pro vás bude opravdu fungovat.",
   },
   {
     num: "03",
-    icon: Sparkles,
-    title: "Pošleme vám návrh",
-    desc: "Do 24 hodin obdržíte e-mailem detailní návrh tří míst včetně rozpočtových rozpadů a přímých kontaktů.",
+    title: "Do 48 hodin dostanete doporučení",
+    desc: "Pošleme výběr vhodných míst a podle potřeby i relevantních dodavatelů pro váš formát svatby.",
   },
+  {
+    num: "04",
+    title: "Šetříte čas i slepé poptávky",
+    desc: "Získáte konkrétní informace včetně orientačních cen a reálných podmínek bez desítek telefonátů a e-mailů.",
+  },
+]
+
+const stats = [
+  { num: "30 000", label: "sledujících napříč kanály" },
+  { num: "1,2 mil.", label: "měsíční dosah značky" },
+  { num: "56", label: "poptávek denně" },
+  { num: "500+", label: "analyzovaných svatebních míst" },
 ]
 
 export default function Process() {
   return (
-    <section id="process" className="py-32 px-6 bg-white">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-20">
-          <div className="flex items-center justify-center gap-3 mb-5">
-            <span className="h-px w-10 bg-[#C9A96E]" />
-            <span className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase">Jak fungujeme</span>
-            <span className="h-px w-10 bg-[#C9A96E]" />
+    <section id="process" className="bg-[#F9F2E6]">
+      {/* Stats grid + dark commentary card */}
+      <div className="max-w-7xl mx-auto px-6 md:px-10 pt-20 md:pt-24 pb-16">
+        <div className="grid lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 grid grid-cols-2 gap-3">
+            {stats.map((s) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="bg-white rounded-2xl p-6 md:p-7"
+              >
+                <div className="font-serif text-3xl md:text-4xl font-light text-[#2C2C2C] mb-2">{s.num}</div>
+                <div className="text-xs sm:text-sm text-[#2C2C2C]/60 leading-snug">{s.label}</div>
+              </motion.div>
+            ))}
           </div>
-          <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl leading-[1.1] mb-5">
-            Tři kroky k <em className="text-[#3E2723]">vašemu místu na míru</em>
-          </h2>
-          <p className="text-charcoal/60 max-w-2xl mx-auto leading-relaxed font-light">
-            <strong className="text-[#3E2723] font-medium">Jediná služba v ČR</strong>, která vám podle
-            vašich kritérií vyhodnotí to nejlepší svatební místo. Žádné plánování,
-            žádná koordinace — jen ten správný prostor.
-          </p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="bg-[#2C2017] text-white rounded-2xl p-7 md:p-8"
+          >
+            <p className="text-white/85 text-sm md:text-base leading-relaxed mb-4">
+              Známe orientační ceny, skrytá omezení i rozdíl mezi místem, které dobře vypadá
+              na internetu, a místem, které opravdu funguje pro konkrétní typ svatby.
+            </p>
+            <p className="text-white/75 text-sm md:text-base leading-relaxed">
+              Proto jsme se rozhodli nejít cestou dalšího katalogu, ale služby, která párům
+              přináší konkrétní doporučení, podmínky a cenovou orientaci.
+            </p>
+          </motion.div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 relative">
-          {/* Connecting line */}
-          <div className="hidden md:block absolute top-16 left-[16%] right-[16%] h-px bg-gradient-to-r from-transparent via-[#C9A96E]/40 to-transparent" />
+      {/* JAK TO FUNGUJE - 4 steps */}
+      <div className="max-w-7xl mx-auto px-6 md:px-10 pt-12 pb-24 md:pb-32">
+        <p className="text-[#C9A96E] text-xs font-semibold tracking-[.3em] uppercase mb-7">
+          Jak to funguje
+        </p>
+        <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl leading-[1.05] mb-14 text-[#2C2C2C] max-w-3xl">
+          Čtyři kroky, které zkrátí týdny hledání na několik minut.
+        </h2>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {steps.map((s, i) => (
             <motion.div
               key={s.num}
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.15, duration: 0.7 }}
-              className="relative text-center group"
+              transition={{ delay: i * 0.1, duration: 0.6 }}
+              className="bg-white rounded-2xl p-6 md:p-7"
             >
-              {/* Icon circle */}
-              <div className="relative inline-flex items-center justify-center mb-6">
-                <div className="absolute inset-0 bg-[#C9A96E]/15 rounded-full scale-150 group-hover:scale-[1.8] transition-transform duration-500" />
-                <div className="relative w-32 h-32 rounded-full bg-white border border-[#E8DDD0] shadow-lg flex items-center justify-center group-hover:border-[#C9A96E] transition-colors">
-                  <s.icon size={32} className="text-[#3E2723] group-hover:text-[#C9A96E] transition-colors" strokeWidth={1.5} />
-                </div>
-              </div>
-
-              <div className="font-serif text-xs tracking-[.3em] text-[#C9A96E] mb-3">{s.num}</div>
-              <h3 className="font-serif text-2xl md:text-3xl font-light text-charcoal mb-4">{s.title}</h3>
-              <p className="text-charcoal/60 leading-relaxed font-light max-w-xs mx-auto">{s.desc}</p>
+              <div className="text-[#C9A96E] text-xs font-semibold tracking-[.3em] mb-5">{s.num}</div>
+              <h3 className="font-serif text-xl md:text-2xl font-light text-[#2C2C2C] leading-tight mb-4">
+                {s.title}
+              </h3>
+              <p className="text-sm text-[#2C2C2C]/65 leading-relaxed">{s.desc}</p>
             </motion.div>
           ))}
         </div>

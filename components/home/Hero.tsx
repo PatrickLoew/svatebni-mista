@@ -1,172 +1,110 @@
 "use client"
 
-import { useRef } from "react"
 import Link from "next/link"
-import { motion, useScroll, useTransform } from "framer-motion"
-import { Heart, Award, MapPin, ChevronDown } from "lucide-react"
+import { motion } from "framer-motion"
+import { Check } from "lucide-react"
 
 export default function Hero() {
-  const ref = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] })
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "40%"])
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15])
-  const opacity = useTransform(scrollYProgress, [0, 0.7], [1, 0])
-
   return (
-    <section ref={ref} className="relative h-[100vh] min-h-[700px] flex items-center overflow-hidden">
-      {/* Cinematic background */}
-      <motion.div style={{ y, scale }} className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=2400&q=85')",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/80" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-transparent" />
-      </motion.div>
+    <section className="relative pt-32 pb-20 px-6 md:px-10 bg-gradient-to-br from-[#FEFDFB] via-[#F9F2E6] to-[#F0E8DC] overflow-hidden">
+      <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-[#C9A96E]/8 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#3E2723]/5 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Decorative ornament */}
-      <motion.div
-        initial={{ opacity: 0, scale: .5 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.3, duration: 1 }}
-        className="absolute top-32 right-12 hidden lg:block"
-      >
-        <div className="w-px h-32 bg-gradient-to-b from-transparent via-[#C9A96E] to-transparent" />
-      </motion.div>
-
-      {/* Content */}
-      <motion.div
-        style={{ opacity }}
-        className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 w-full grid lg:grid-cols-12 gap-10 items-center"
-      >
-        <div className="lg:col-span-7 text-white">
-          <motion.div
+      <div className="relative max-w-7xl mx-auto grid lg:grid-cols-12 gap-10 items-start">
+        {/* LEVÁ STRANA — text */}
+        <div className="lg:col-span-7">
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-2 bg-[#C9A96E]/15 backdrop-blur-md border border-[#C9A96E]/40 px-4 py-2 rounded-full mb-7"
+            transition={{ delay: 0.1 }}
+            className="text-[#C9A96E] text-xs font-semibold tracking-[.3em] uppercase mb-8"
           >
-            <span className="text-[#E8C98A]">✦</span>
-            <span className="text-[#E8C98A] text-[11px] sm:text-xs font-semibold tracking-[.2em] uppercase">
-              Jediná služba v ČR
-            </span>
-          </motion.div>
+            Prémiová služba pro snoubence
+          </motion.p>
 
-          <h1 className="font-serif font-light text-4xl sm:text-5xl md:text-7xl lg:text-[5.5rem] leading-[1.02] tracking-tight mb-6 sm:mb-8">
-            <motion.span
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="block"
-            >
-              Svatební místo
-            </motion.span>
-            <motion.span
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="block italic text-[#E8C98A]"
-            >
-              přesně na míru
-            </motion.span>
-          </h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="font-serif font-light text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[1.02] tracking-tight mb-8 text-[#2C2C2C]"
+          >
+            Svatební místo na míru.
+            <span className="block italic text-[#3E2723] mt-2">
+              Bez obepisování desítek míst.
+            </span>
+          </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-            className="text-white/85 text-base sm:text-lg md:text-xl leading-relaxed max-w-xl mb-8 sm:mb-10 font-light"
+            transition={{ delay: 0.5 }}
+            className="text-[#2C2C2C]/75 text-lg md:text-xl leading-relaxed max-w-2xl mb-8 font-light"
           >
-            Jediná služba v České republice, která vám podle <strong className="font-medium text-white">vašich kritérií</strong> vyhodnotí to <strong className="font-medium text-white">nejlepší svatební místo</strong>.
-            Žádné koordinace, žádné plánování — jen ten správný prostor.
+            Vyplníte jeden formulář a do 48 hodin zdarma dostanete výběr vhodných
+            svatebních míst podle termínu, lokality, kapacity, stylu, rozpočtu
+            a reálných provozních podmínek.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="flex flex-wrap gap-3 mb-10"
+          >
+            {["zdarma", "odpověď do 48 hodin", "reálné ceny a podmínky"].map((p) => (
+              <span key={p} className="bg-white/70 backdrop-blur-md border border-[#E8DDD0] text-[#2C2C2C]/80 text-xs sm:text-sm px-5 py-2 rounded-full font-medium">
+                {p}
+              </span>
+            ))}
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2 }}
-            className="flex flex-col sm:flex-row gap-4"
+            transition={{ delay: 0.9 }}
           >
             <Link
               href="/chci-svatbu"
-              className="group bg-[#C9A96E] text-white font-medium px-6 sm:px-9 py-4 rounded-full hover:bg-[#A88240] transition-all hover:scale-[1.02] inline-flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="inline-flex items-center gap-3 bg-[#C9A96E] text-white font-medium px-8 py-5 rounded-full hover:bg-[#A88240] transition-all hover:scale-[1.02] text-base shadow-lg shadow-[#C9A96E]/30"
             >
-              Spustit analýzu
-              <span className="transition-transform group-hover:translate-x-1">→</span>
+              Vyplň náš formulář a získej svatební místo na míru zdarma
+              <span className="text-lg">→</span>
             </Link>
-            <a
-              href="https://www.wedding-point.cz"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="border border-white/40 backdrop-blur-md bg-white/5 text-white font-medium px-6 sm:px-9 py-4 rounded-full hover:bg-white/15 transition-all inline-flex items-center justify-center text-sm sm:text-base"
-            >
-              Prohlédnout celý katalog
-            </a>
           </motion.div>
         </div>
 
-        {/* Floating glass trust cards */}
-        <div className="lg:col-span-5 hidden lg:block">
-          <div className="relative h-[480px]">
-            {[
-              {
-                icon: Award,
-                title: "Jediná v ČR",
-                subtitle: "služba pro výběr místa na míru",
-                pos: "top-0 right-8",
-                delay: 1.4,
-              },
-              {
-                icon: MapPin,
-                title: "200+",
-                subtitle: "prověřených svatebních míst",
-                pos: "top-44 right-32",
-                delay: 1.6,
-              },
-              {
-                icon: Heart,
-                title: "Do 24 hodin",
-                subtitle: "návrh 3 míst přímo do mailu",
-                pos: "bottom-12 right-4",
-                delay: 1.8,
-              },
-            ].map((c) => (
-              <motion.div
-                key={c.subtitle}
-                initial={{ opacity: 0, y: 40, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: c.delay, duration: 0.8 }}
-                whileHover={{ y: -6, scale: 1.03 }}
-                className={`absolute ${c.pos} w-64 backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-5 shadow-2xl`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-[#C9A96E]/30 flex items-center justify-center backdrop-blur-md">
-                    <c.icon className="text-[#E8C98A]" size={20} />
-                  </div>
-                  <div>
-                    <div className="font-serif text-2xl text-white font-light leading-none">{c.title}</div>
-                    <div className="text-white/70 text-xs mt-1">{c.subtitle}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
+        {/* PRAVÁ STRANA — karta JAK VYPADÁ VÝSTUP */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="lg:col-span-5"
+        >
+          <div className="bg-gradient-to-br from-[#F9F2E6] to-[#F0E8DC] border border-[#C9A96E]/20 rounded-3xl p-8 md:p-10 shadow-lg">
+            <p className="text-[#C9A96E] text-xs font-semibold tracking-[.3em] uppercase mb-5">
+              Jak vypadá výstup
+            </p>
+            <h3 className="font-serif font-light text-3xl md:text-4xl lg:text-5xl text-[#2C2C2C] leading-[1.05] mb-8">
+              Pečlivě vybraný přehled, ne nekonečný katalog
+            </h3>
 
-      {/* Scroll cue */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1, y: [0, 10, 0] }}
-        transition={{ opacity: { delay: 2 }, y: { repeat: Infinity, duration: 2.5, delay: 2 } }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/60 z-10 flex flex-col items-center gap-1"
-      >
-        <span className="text-[10px] tracking-[.3em] uppercase">scroll</span>
-        <ChevronDown size={20} />
-      </motion.div>
+            <div className="space-y-3">
+              {[
+                "4 až 6 vhodných míst podle vašich priorit",
+                "orientační ceny pronájmu a praktické podmínky",
+                "doporučení dodavatelů, pokud dávají smysl",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3 bg-white rounded-2xl px-5 py-4 border border-[#E8DDD0]">
+                  <div className="w-6 h-6 rounded-full bg-[#C9A96E]/20 flex items-center justify-center flex-shrink-0">
+                    <Check size={13} className="text-[#3E2723]" />
+                  </div>
+                  <p className="text-sm text-[#2C2C2C] leading-snug">{item}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </section>
   )
 }

@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X } from "lucide-react"
 
 const links = [
-  { href: "/chci-svatbu", label: "Místo na míru", external: false },
-  { href: "/venues", label: "VIP místa", external: false },
-  { href: "https://www.wedding-point.cz", label: "Celý katalog", external: true },
   { href: "/#process", label: "Jak to funguje", external: false },
+  { href: "/#o-sluzbe", label: "O službě", external: false },
+  { href: "/venues", label: "VIP místa", external: false },
+  { href: "/#faq", label: "FAQ", external: false },
 ]
 
 export default function Navbar() {
@@ -25,34 +25,30 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "backdrop-blur-2xl bg-white/80 border-b border-[#E8DDD0] py-3"
-          : "bg-transparent py-6"
+          ? "backdrop-blur-2xl bg-white/85 border-b border-[#E8DDD0] py-3 shadow-sm"
+          : "backdrop-blur-md bg-white/40 py-5"
       }`}
     >
       <nav className="max-w-7xl mx-auto px-6 md:px-10 flex items-center justify-between">
-        <Link href="/" className="group flex items-center gap-2">
-          <motion.span
-            initial={{ rotate: 0 }}
-            whileHover={{ rotate: 180 }}
-            transition={{ duration: 0.6 }}
-            className={`text-2xl ${scrolled ? "text-[#C9A96E]" : "text-[#E8C98A]"}`}
-          >
-            ✦
-          </motion.span>
-          <span className={`font-serif text-xl font-light tracking-wide transition-colors ${
-            scrolled ? "text-[#3E2723]" : "text-white"
-          }`}>
-            Svatební <span className="italic">Místa</span>
-          </span>
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-white border border-[#E8DDD0] flex items-center justify-center font-serif text-sm font-semibold text-[#2C2C2C] shadow-sm">
+            SM
+          </div>
+          <div className="leading-tight">
+            <div className="font-serif text-base sm:text-lg font-medium text-[#2C2C2C]">
+              svatebnimista.cz
+            </div>
+            <div className="text-[9px] sm:text-[10px] tracking-[.2em] uppercase text-[#2C2C2C]/55 font-semibold">
+              Svatební místo na míru
+            </div>
+          </div>
         </Link>
 
-        <div className="hidden md:flex items-center gap-9">
+        <div className="hidden md:flex items-center gap-8">
           {links.map((l) => {
-            const cn = `text-sm font-medium transition-colors ${
-              scrolled ? "text-charcoal/70 hover:text-[#3E2723]" : "text-white/80 hover:text-white"
-            }`
+            const cn = "text-sm font-medium text-[#2C2C2C]/75 hover:text-[#2C2C2C] transition-colors"
             return l.external ? (
               <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className={cn}>
                 {l.label}
@@ -67,12 +63,12 @@ export default function Navbar() {
             href="/chci-svatbu"
             className="bg-[#C9A96E] text-white text-sm font-medium px-6 py-2.5 rounded-full hover:bg-[#A88240] transition-colors"
           >
-            Spustit analýzu
+            Získat místo na míru
           </Link>
         </div>
 
         <button
-          className={`md:hidden p-2 transition-colors ${scrolled ? "text-charcoal" : "text-white"}`}
+          className="md:hidden p-2 text-[#2C2C2C] transition-colors"
           onClick={() => setOpen(!open)}
           aria-label="Menu"
         >
@@ -106,7 +102,7 @@ export default function Navbar() {
                 className="bg-[#C9A96E] text-white text-sm font-medium px-6 py-3 rounded-full text-center mt-3"
                 onClick={() => setOpen(false)}
               >
-                Spustit analýzu
+                Získat místo na míru
               </Link>
             </div>
           </motion.div>
