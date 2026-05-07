@@ -72,6 +72,10 @@ export default function AdminSettingsPage() {
               <input className={inputCl} value={s.phone} onChange={set("phone")} placeholder="+420 722 123 456" />
             </div>
             <div>
+              <label className={labelCl}>WhatsApp (bez mezer)</label>
+              <input className={inputCl} value={s.whatsapp} onChange={set("whatsapp")} placeholder="+420722123456" />
+            </div>
+            <div>
               <label className={labelCl}>E-mail</label>
               <input className={inputCl} value={s.email} onChange={set("email")} placeholder="info@svatebnimista.cz" />
             </div>
@@ -79,11 +83,14 @@ export default function AdminSettingsPage() {
               <label className={labelCl}>Otevírací doba</label>
               <input className={inputCl} value={s.hours} onChange={set("hours")} />
             </div>
-            <div>
+            <div className="sm:col-span-2">
               <label className={labelCl}>Adresa</label>
               <input className={inputCl} value={s.address} onChange={set("address")} />
             </div>
           </div>
+          <p className="text-xs text-charcoal/50 mt-2">
+            <strong>WhatsApp</strong>: zadej bez mezer s předvolbou (např. <code>+420722123456</code>) — tlačítko otevře přímo chat.
+          </p>
         </div>
 
         {/* Hero texty */}

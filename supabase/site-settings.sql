@@ -6,6 +6,7 @@ create table if not exists site_settings (
 
   -- Kontaktní údaje
   phone text default '+420 123 456 789',
+  whatsapp text default '+420123456789',
   email text default 'info@svatebnimista.cz',
   hours text default 'Po–Pá, 9:00 – 18:00',
   address text default 'Praha 1, Česká republika',

@@ -2,6 +2,7 @@ import { supabaseAdmin } from "./supabase"
 
 export interface SiteSettings {
   phone: string
+  whatsapp: string
   email: string
   hours: string
   address: string
@@ -22,6 +23,7 @@ export interface SiteSettings {
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   phone: "+420 123 456 789",
+  whatsapp: "+420123456789",
   email: "info@svatebnimista.cz",
   hours: "Po–Pá, 9:00 – 18:00",
   address: "Praha 1, Česká republika",
@@ -42,6 +44,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
 
 const dbToObject = (row: Record<string, unknown>): SiteSettings => ({
   phone:            (row.phone as string) ?? DEFAULT_SETTINGS.phone,
+  whatsapp:         (row.whatsapp as string) ?? DEFAULT_SETTINGS.whatsapp,
   email:            (row.email as string) ?? DEFAULT_SETTINGS.email,
   hours:            (row.hours as string) ?? DEFAULT_SETTINGS.hours,
   address:          (row.address as string) ?? DEFAULT_SETTINGS.address,
@@ -61,7 +64,7 @@ const dbToObject = (row: Record<string, unknown>): SiteSettings => ({
 })
 
 const objectToDb = (s: Partial<SiteSettings>): Record<string, unknown> => ({
-  phone: s.phone, email: s.email, hours: s.hours, address: s.address,
+  phone: s.phone, whatsapp: s.whatsapp, email: s.email, hours: s.hours, address: s.address,
   hero_eyebrow: s.heroEyebrow,
   hero_title_line1: s.heroTitleLine1,
   hero_title_line2: s.heroTitleLine2,
