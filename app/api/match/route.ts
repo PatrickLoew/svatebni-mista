@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   }
 
   // Matching
-  const matches = findBestMatches(venues, answers, 8)
+  const matches = findBestMatches(venues, answers, 3)
 
   // Uložení poptávky do DB
   try {

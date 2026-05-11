@@ -223,29 +223,40 @@ export function scoreVenue(v: Venue, a: WizardAnswers): Match {
   }
 }
 
-export function findBestMatches(venues: Venue[], answers: WizardAnswers, top = 8): Match[] {
+export function findBestMatches(venues: Venue[], answers: WizardAnswers, top = 3): Match[] {
   const scored = venues.map((v) => scoreVenue(v, answers))
-
-  // Seřazeno čistě podle skóre (bez VIP preference jako prvním kritériem)
   const sortedByScore = [...scored].sort((a, b) => b.score - a.score)
 
-  // Garantujeme: VIP místa převažují v top doporučeních
-  const vipMatches = sortedByScore.filter((m) => m.venue.isFeatured)
+  // Najdi VIP, které je v preferované lokalitě klienta (kraj nebo nejbližší město).
+  // Když není, vezmi nejlepší VIP podle skóre.
+  const userRegions = answers.regions
+  const userCity = answers.nearestCity
+
+  const vipFromLocation = sortedByScore.find((m) => {
+    if (!m.venue.isFeatured) return false
+    if (userRegions.length > 0 && userRegions.includes(m.venue.region)) return true
+    if (userCity && userCity !== "jedno" && m.venue.nearestCity === userCity) return true
+    return false
+  })
+
+  // Fallback — pokud žádné VIP v lokalitě, vezmi nejlepší VIP obecně
+  const fallbackVip = sortedByScore.find((m) => m.venue.isFeatured)
+
+  const featuredVip = vipFromLocation ?? fallbackVip
   const result: Match[] = []
 
-  // Vezmeme top 2 VIPy (pokud existují) jako "Doporučujeme"
-  for (const m of vipMatches.slice(0, 2)) {
-    result.push(m)
+  if (featuredVip) {
+    result.push(featuredVip)
   }
 
-  // Doplníme nejlepší zbylé místa (mix VIP + non-VIP podle skóre)
+  // Doplň 2 další nejlepší (preferovaně z preferované lokality)
   const remaining = sortedByScore.filter((m) => !result.includes(m))
   for (const m of remaining) {
     if (result.length >= top) break
     result.push(m)
   }
 
-  // Pro každé místo vygeneruj Monca-style personalizovaný popis
+  // Personalizovaný popis pro každé místo
   return result.map((m) => ({
     ...m,
     personalDescription: generatePersonalDescription(m.venue, answers),

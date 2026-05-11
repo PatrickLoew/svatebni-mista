@@ -693,7 +693,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
   if (matches.length === 0) return <NoMatchScreen name={answers.name} />
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
+    <div className="max-w-5xl mx-auto px-6 pt-32 pb-16">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -720,13 +720,13 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
         <Sparkles className="inline-block mb-1 text-[#C9A96E] mr-2" size={20} />
         Náš návrh pro vás
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {matches.map((m, i) => (
           <motion.div
             key={m.venue.id}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ delay: i * 0.15 }}
             className="relative"
           >
             {m.venue.isFeatured && (
@@ -788,7 +788,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
 function NoMatchScreen({ name }: { name: string }) {
   const firstName = name.split(" ")[0]
   return (
-    <div className="max-w-3xl mx-auto px-6 py-16">
+    <div className="max-w-3xl mx-auto px-6 pt-32 pb-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

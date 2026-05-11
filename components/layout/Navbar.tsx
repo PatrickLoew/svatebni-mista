@@ -25,10 +25,8 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "backdrop-blur-2xl bg-white/80 border-b border-[#E8DDD0] py-3"
-          : "bg-transparent py-6"
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 backdrop-blur-2xl bg-white/85 border-b ${
+        scrolled ? "border-[#E8DDD0] py-3 shadow-sm" : "border-transparent py-4"
       }`}
     >
       <nav className="max-w-7xl mx-auto px-6 md:px-10 flex items-center justify-between">
@@ -37,22 +35,18 @@ export default function Navbar() {
             initial={{ rotate: 0 }}
             whileHover={{ rotate: 180 }}
             transition={{ duration: 0.6 }}
-            className={`text-2xl ${scrolled ? "text-[#C9A96E]" : "text-[#E8C98A]"}`}
+            className="text-2xl text-[#C9A96E]"
           >
             ✦
           </motion.span>
-          <span className={`font-serif text-xl font-light tracking-wide transition-colors ${
-            scrolled ? "text-[#3E2723]" : "text-white"
-          }`}>
+          <span className="font-serif text-xl font-light tracking-wide text-[#3E2723]">
             Svatební <span className="italic">Místa</span>
           </span>
         </Link>
 
         <div className="hidden md:flex items-center gap-9">
           {links.map((l) => {
-            const cn = `text-sm font-medium transition-colors ${
-              scrolled ? "text-charcoal/70 hover:text-[#3E2723]" : "text-white/80 hover:text-white"
-            }`
+            const cn = "text-sm font-medium text-charcoal/70 hover:text-[#3E2723] transition-colors"
             return l.external ? (
               <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer" className={cn}>
                 {l.label}
@@ -72,7 +66,7 @@ export default function Navbar() {
         </div>
 
         <button
-          className={`md:hidden p-2 transition-colors ${scrolled ? "text-charcoal" : "text-white"}`}
+          className="md:hidden p-2 text-charcoal transition-colors"
           onClick={() => setOpen(!open)}
           aria-label="Menu"
         >
