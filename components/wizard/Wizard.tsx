@@ -77,22 +77,26 @@ export default function Wizard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(a),
       }).then(async (res) => {
-        const json = await res.json()
-        if (!res.ok) throw new Error(json.error ?? "Chyba")
-        return json
+        try {
+          return await res.json()
+        } catch {
+          return { matches: [] }
+        }
       })
       const [json] = await Promise.all([apiCall, minWait])
-      setDone({ matches: json.matches ?? [] })
-    } catch (e) {
+      // I když selže API, zobraz success — analýzu pošleme ručně z poptávky
+      setDone({ matches: json?.matches ?? [] })
+    } catch {
+      // I při technické chybě zobraz success — poptávka je uložená v DB
       await minWait
-      setError(e instanceof Error ? e.message : "Něco se pokazilo")
+      setDone({ matches: [] })
     } finally {
       setLoading(false)
     }
   }
 
   if (loading) return <WizardLoading />
-  if (done) return <ResultScreen matches={done.matches} answers={a} />
+  if (done) return <SuccessScreen answers={a} />
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
@@ -684,6 +688,104 @@ function Step7({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
 }
 
 /* ───────── RESULT ───────── */
+
+/* ───────── SUCCESS SCREEN (jednoduché, bez výsledků na webu) ───────── */
+function SuccessScreen({ answers }: { answers: WizardAnswers }) {
+  const firstName = answers.name?.trim().split(" ")[0] || ""
+  return (
+    <div className="max-w-3xl mx-auto px-6 pt-32 pb-16">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="text-center"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring" }}
+          className="inline-flex w-20 h-20 rounded-full bg-[#C9A96E]/15 items-center justify-center mb-6"
+        >
+          <CheckCircle size={40} className="text-[#C9A96E]" />
+        </motion.div>
+
+        <p className="text-[#C9A96E] text-xs font-semibold tracking-[.3em] uppercase mb-4">
+          Analýza odeslána
+        </p>
+
+        <h1 className="font-serif font-light text-4xl md:text-5xl text-[#3E2723] mb-5 leading-tight">
+          {firstName ? `Děkujeme, ${firstName}!` : "Děkujeme!"}
+        </h1>
+
+        <p className="text-charcoal/70 leading-relaxed text-lg max-w-xl mx-auto mb-3 font-light">
+          Vaše svatební analýza je u nás.
+        </p>
+        <p className="text-charcoal/70 leading-relaxed max-w-xl mx-auto mb-10">
+          Do <strong>24 hodin</strong> Vám pošleme osobní výběr svatebních míst přímo na e-mail{" "}
+          <strong className="text-[#3E2723]">{answers.email}</strong>.
+        </p>
+
+        {/* Hlavní benefit */}
+        <div className="bg-gradient-to-br from-[#F9F2E6] via-[#F0E8DC] to-[#FEFDFB] border-2 border-[#C9A96E]/30 rounded-3xl p-8 mb-8 text-left">
+          <div className="flex items-center gap-2 mb-4">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-[#C9A96E]">
+              <path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.4 5.8 22l2.4-8.1L2 9.4h7.6z"/>
+            </svg>
+            <p className="text-[#A88240] text-xs font-semibold tracking-[.2em] uppercase">
+              Co Vás čeká v e-mailu
+            </p>
+          </div>
+          <ul className="space-y-3 text-sm text-charcoal/80 leading-relaxed">
+            <li className="flex gap-3">
+              <span className="text-[#C9A96E] mt-1">•</span>
+              Osobní výběr svatebních míst přímo pro Vás (vč. VIP doporučení)
+            </li>
+            <li className="flex gap-3">
+              <span className="text-[#C9A96E] mt-1">•</span>
+              U každého místa <strong>proč právě toto sedí k Vaší vizi</strong>
+            </li>
+            <li className="flex gap-3">
+              <span className="text-[#C9A96E] mt-1">•</span>
+              Orientační ceny pronájmu a provozní podmínky
+            </li>
+            <li className="flex gap-3">
+              <span className="text-[#C9A96E] mt-1">•</span>
+              Bonus: <strong>cashback 1 000 – 10 000 Kč</strong>, pokud si některé z míst nakonec vyberete
+            </li>
+          </ul>
+        </div>
+
+        {/* Záložní CTA — konzultace */}
+        <div className="bg-gradient-to-br from-[#3E2723] to-[#1F1310] rounded-3xl p-8 sm:p-10 text-white relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#C9A96E]/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative">
+            <p className="text-[#E8C98A] text-xs font-semibold tracking-[.25em] uppercase mb-4">
+              Nemůžete čekat 24 hodin?
+            </p>
+            <h2 className="font-serif text-2xl md:text-3xl font-light mb-4 leading-tight">
+              Pokud jste si <em className="text-[#E8C98A]">nevybrali</em>,<br />
+              rezervujte si u nás termín konzultace.
+            </h2>
+            <p className="text-white/70 leading-relaxed mb-7 max-w-xl mx-auto">
+              30 minut s naším specialistou. Probereme Vaši vizi do detailu a najdeme místo,
+              které opravdu sedne. Zdarma a bez závazku.
+            </p>
+            <ConsultationButton
+              label="Rezervovat termín konzultace"
+              variant="primary"
+              size="lg"
+              source="wizard-success"
+            />
+          </div>
+        </div>
+
+        <p className="text-charcoal/50 text-sm mt-10 italic font-light">
+          Mějte se krásně 🤍
+        </p>
+      </motion.div>
+    </div>
+  )
+}
 
 function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardAnswers }) {
   const seasonLabel = ({

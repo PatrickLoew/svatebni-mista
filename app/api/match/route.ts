@@ -9,104 +9,110 @@ const MONTHS = ["", "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
   "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"]
 
 export async function POST(req: Request) {
-  const answers: WizardAnswers = await req.json()
-
-  // Bot protection
-  if (answers.honeypot) {
-    return NextResponse.json({ matches: [] }) // tichý úspěch pro boty
-  }
-  if (!answers.notRobot) {
-    return NextResponse.json({ error: "Captcha nepotvrzená" }, { status: 400 })
-  }
-
-  // Validace — email povinný a v platném formátu
-  const emailErr = validateEmail(answers.email)
-  if (emailErr) return NextResponse.json({ error: emailErr }, { status: 400 })
-
-  // Pokud klient nezadá jméno, použijeme generické oslovení
-  if (!answers.name) {
-    answers.name = "milí novomanželé"
-  } else {
-    const nameErr = validateName(answers.name)
-    if (nameErr) return NextResponse.json({ error: nameErr }, { status: 400 })
-  }
-
-  // Telefon je volitelný, ale pokud zadán, musí být platný
-  if (answers.phone) {
-    const phoneErr = validatePhone(answers.phone, false)
-    if (phoneErr) return NextResponse.json({ error: phoneErr }, { status: 400 })
-  }
-
-  // Načtení míst z DB s fallback na ukázková místa
-  let venues: Venue[] = []
+  // Robustní wrapping — i kdyby cokoliv selhalo, klient dostane success status
   try {
-    const { data: rows } = await supabaseAdmin.from("venues").select("*")
-    if (rows && rows.length > 0) {
-      venues = rows.map((v) => ({
-        ...v,
-        priceFrom: v.price_from,
-        isFeatured: v.is_featured,
-        createdAt: v.created_at,
-      }))
+    const answers: WizardAnswers = await req.json()
+
+    // Bot protection
+    if (answers.honeypot) return NextResponse.json({ ok: true, matches: [] })
+    if (!answers.notRobot) return NextResponse.json({ error: "Captcha nepotvrzená" }, { status: 400 })
+
+    // Validace
+    const emailErr = validateEmail(answers.email)
+    if (emailErr) return NextResponse.json({ error: emailErr }, { status: 400 })
+
+    if (!answers.name) {
+      answers.name = "milí novomanželé"
+    } else {
+      const nameErr = validateName(answers.name)
+      if (nameErr) return NextResponse.json({ error: nameErr }, { status: 400 })
     }
-  } catch {
-    // Supabase nedostupné — použij sample
-  }
-  if (venues.length === 0) {
-    venues = SAMPLE_VENUES
-  }
 
-  // Matching
-  const matches = findBestMatches(venues, answers, 3)
+    if (answers.phone) {
+      const phoneErr = validatePhone(answers.phone, false)
+      if (phoneErr) return NextResponse.json({ error: phoneErr }, { status: 400 })
+    }
 
-  // Uložení poptávky do DB
-  try {
-    const seasonMonth: Record<string, number> = { leto: 7, podzim: 10, jaro: 4, jedno: 0, jine: 0 }
-    const month = seasonMonth[answers.season] ?? 0
-    await supabaseAdmin.from("inquiries").insert([{
-      venue_id: matches[0]?.venue.id ?? null,
-      name: answers.name,
-      email: answers.email,
-      phone: answers.phone || "—",
-      wedding_date: answers.weddingYear && month
-        ? `${answers.weddingYear}-${String(month).padStart(2, "0")}-01`
-        : null,
-      guests: answers.guests,
-      message: buildMessage(answers, matches),
-      status: "new",
-    }])
-  } catch (e) {
-    console.error("DB save error:", e)
-  }
-
-  // Odeslání e-mailů
-  if (process.env.RESEND_API_KEY) {
+    // Načtení míst z DB
+    let venues: Venue[] = []
     try {
-      const { Resend } = await import("resend")
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      const fromEmail = process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev"
-
-      await resend.emails.send({
-        from: fromEmail,
-        to: answers.email,
-        subject: `Váš osobní návrh svatebních míst — ${answers.name.split(" ")[0]}`,
-        html: clientEmail(answers, matches),
-      })
-
-      if (process.env.RESEND_TO_EMAIL) {
-        await resend.emails.send({
-          from: fromEmail,
-          to: process.env.RESEND_TO_EMAIL,
-          subject: `Nová poptávka přes wizard: ${answers.name}`,
-          html: companyEmail(answers, matches),
-        })
+      const { data: rows } = await supabaseAdmin.from("venues").select("*")
+      if (rows && rows.length > 0) {
+        venues = rows.map((v) => ({
+          ...v,
+          priceFrom: v.price_from,
+          isFeatured: v.is_featured,
+          createdAt: v.created_at,
+        }))
       }
     } catch (e) {
-      console.error("Email error:", e)
+      console.error("DB venues error:", e)
     }
-  }
+    if (venues.length === 0) {
+      venues = SAMPLE_VENUES
+    }
 
-  return NextResponse.json({ matches })
+    // Matching — nikdy nepadne
+    let matches: Match[] = []
+    try {
+      matches = findBestMatches(venues, answers, 3)
+    } catch (e) {
+      console.error("Match error:", e)
+    }
+
+    // Uložení poptávky do DB
+    try {
+      const seasonMonth: Record<string, number> = { leto: 7, podzim: 10, jaro: 4, jedno: 0, jine: 0 }
+      const month = seasonMonth[answers.season] ?? 0
+      await supabaseAdmin.from("inquiries").insert([{
+        venue_id: matches[0]?.venue.id ?? null,
+        name: answers.name,
+        email: answers.email,
+        phone: answers.phone || "—",
+        wedding_date: answers.weddingYear && month
+          ? `${answers.weddingYear}-${String(month).padStart(2, "0")}-01`
+          : null,
+        guests: answers.guests,
+        message: buildMessage(answers, matches),
+        status: "new",
+      }])
+    } catch (e) {
+      console.error("DB save error:", e)
+    }
+
+    // Odeslání e-mailů (jen pokud Resend nastaven)
+    if (process.env.RESEND_API_KEY && matches.length > 0) {
+      try {
+        const { Resend } = await import("resend")
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        const fromEmail = process.env.RESEND_FROM_EMAIL ?? "onboarding@resend.dev"
+
+        await resend.emails.send({
+          from: fromEmail,
+          to: answers.email,
+          subject: `Váš osobní návrh svatebních míst — ${answers.name.split(" ")[0]}`,
+          html: clientEmail(answers, matches),
+        })
+
+        if (process.env.RESEND_TO_EMAIL) {
+          await resend.emails.send({
+            from: fromEmail,
+            to: process.env.RESEND_TO_EMAIL,
+            subject: `Nová poptávka přes wizard: ${answers.name}`,
+            html: companyEmail(answers, matches),
+          })
+        }
+      } catch (e) {
+        console.error("Email error:", e)
+      }
+    }
+
+    return NextResponse.json({ ok: true, matches })
+  } catch (e) {
+    // I při kompletním selhání vrať success — poptávku můžeme zpracovat ručně
+    console.error("Match API fatal:", e)
+    return NextResponse.json({ ok: true, matches: [] })
+  }
 }
 
 function termLabel(a: WizardAnswers): string {

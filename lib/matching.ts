@@ -66,7 +66,13 @@ export interface Match {
   score: number
   reasons: string[]
   warnings: string[]
-  personalDescription?: string  // Monca-style personalizovaný popis
+  personalDescription?: string
+  bucket?: "primary" | "alternative"
+}
+
+export interface RecommendationSet {
+  primary: Match[]     // 5 míst, která splňují všechna kritéria
+  alternative: Match[] // 3 místa, kde sedí jen lokalita
 }
 
 /* ─────────── MATCHING ALGORITMUS ─────────── */
@@ -223,44 +229,102 @@ export function scoreVenue(v: Venue, a: WizardAnswers): Match {
   }
 }
 
-export function findBestMatches(venues: Venue[], answers: WizardAnswers, top = 3): Match[] {
+/**
+ * Vrací DVĚ skupiny doporučení:
+ *  - primary: 5 míst splňujících VŠECHNA kritéria (s min. 1 VIP)
+ *  - alternative: 3 místa, kde sedí JEN lokalita (s min. 1 VIP)
+ */
+export function findRecommendations(venues: Venue[], answers: WizardAnswers): RecommendationSet {
   const scored = venues.map((v) => scoreVenue(v, answers))
   const sortedByScore = [...scored].sort((a, b) => b.score - a.score)
 
-  // Najdi VIP, které je v preferované lokalitě klienta (kraj nebo nejbližší město).
-  // Když není, vezmi nejlepší VIP podle skóre.
   const userRegions = answers.regions
   const userCity = answers.nearestCity
 
-  const vipFromLocation = sortedByScore.find((m) => {
-    if (!m.venue.isFeatured) return false
+  // Test: je místo v klientově lokalitě?
+  const isInLocation = (m: Match): boolean => {
+    if (userRegions.length === 0 && (!userCity || userCity === "jedno")) return true
     if (userRegions.length > 0 && userRegions.includes(m.venue.region)) return true
     if (userCity && userCity !== "jedno" && m.venue.nearestCity === userCity) return true
     return false
+  }
+
+  // ========== PRIMARY (5 míst) — splňují všechna kritéria ==========
+  // Threshold pro „splňuje kritéria" = skóre >= 55 (z 100)
+  const QUALIFIED_THRESHOLD = 55
+  const primary: Match[] = []
+
+  // 1. Najdi VIP v lokalitě klienta s dobrým skóre
+  const vipInLocation = sortedByScore.find((m) =>
+    m.venue.isFeatured && isInLocation(m) && m.score >= QUALIFIED_THRESHOLD
+  )
+  // Fallback: nejlepší VIP s dobrým skóre obecně
+  const fallbackVip = sortedByScore.find((m) =>
+    m.venue.isFeatured && m.score >= 40
+  )
+  const featuredVip = vipInLocation ?? fallbackVip
+  if (featuredVip) primary.push(featuredVip)
+
+  // 2. Doplň zbytek do 5 podle skóre (musí splňovat threshold)
+  for (const m of sortedByScore) {
+    if (primary.length >= 5) break
+    if (primary.includes(m)) continue
+    if (m.score < QUALIFIED_THRESHOLD) continue
+    primary.push(m)
+  }
+
+  // Pokud se nepodařilo najít 5 kvalifikovaných, doplň nejlepší zbylé
+  if (primary.length < 5) {
+    for (const m of sortedByScore) {
+      if (primary.length >= 5) break
+      if (!primary.includes(m)) primary.push(m)
+    }
+  }
+
+  // ========== ALTERNATIVE (3 místa) — jen lokalita sedí ==========
+  // Místa v lokalitě klienta, která NEJSOU v primary, řazená podle skóre
+  const alternativeCandidates = sortedByScore
+    .filter((m) => !primary.includes(m))
+    .filter((m) => isInLocation(m))
+
+  const alternative: Match[] = []
+
+  // 1. VIP z lokality (pokud existuje a není už v primary)
+  const altVip = alternativeCandidates.find((m) => m.venue.isFeatured)
+  if (altVip) alternative.push(altVip)
+
+  // 2. Doplň 2 další podle skóre
+  for (const m of alternativeCandidates) {
+    if (alternative.length >= 3) break
+    if (!alternative.includes(m)) alternative.push(m)
+  }
+
+  // Pokud v lokalitě není dost míst, doplň nejbližší z DB
+  if (alternative.length < 3) {
+    for (const m of sortedByScore) {
+      if (alternative.length >= 3) break
+      if (primary.includes(m) || alternative.includes(m)) continue
+      alternative.push(m)
+    }
+  }
+
+  // Označení bucketu + personalizovaný popis
+  const withDesc = (m: Match, bucket: "primary" | "alternative"): Match => ({
+    ...m,
+    bucket,
+    personalDescription: generatePersonalDescription(m.venue, answers),
   })
 
-  // Fallback — pokud žádné VIP v lokalitě, vezmi nejlepší VIP obecně
-  const fallbackVip = sortedByScore.find((m) => m.venue.isFeatured)
-
-  const featuredVip = vipFromLocation ?? fallbackVip
-  const result: Match[] = []
-
-  if (featuredVip) {
-    result.push(featuredVip)
+  return {
+    primary:     primary.map((m) => withDesc(m, "primary")),
+    alternative: alternative.map((m) => withDesc(m, "alternative")),
   }
+}
 
-  // Doplň 2 další nejlepší (preferovaně z preferované lokality)
-  const remaining = sortedByScore.filter((m) => !result.includes(m))
-  for (const m of remaining) {
-    if (result.length >= top) break
-    result.push(m)
-  }
-
-  // Personalizovaný popis pro každé místo
-  return result.map((m) => ({
-    ...m,
-    personalDescription: generatePersonalDescription(m.venue, answers),
-  }))
+// Zpětná kompatibilita — vrací jen primary
+export function findBestMatches(venues: Venue[], answers: WizardAnswers, top = 3): Match[] {
+  const { primary } = findRecommendations(venues, answers)
+  return primary.slice(0, top)
 }
 
 /**
