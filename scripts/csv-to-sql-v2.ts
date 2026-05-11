@@ -182,6 +182,88 @@ const sqlArray = (arr: string[]): string => {
 
 /* ──────────── HLAVNÍ FUNKCE ──────────── */
 
+interface ParsedVenue {
+  title: string
+  email: string
+  web: string
+  region: string
+  nearCity: string
+  capacityNum: number
+  archType: string
+  accommodation: string
+  accomNorm: string
+  catering: string
+  cateringNorm: string
+  party: string
+  partyNorm: string
+  features: string
+  rental: string
+  avgCost: string
+}
+
+function parseNewFormat(rows: string[][], startIdx: number, endIdx: number): ParsedVenue[] {
+  const out: ParsedVenue[] = []
+  for (let i = startIdx; i < endIdx; i++) {
+    const r = rows[i]
+    if (!r[0] || !/^\d+$/.test(r[0].trim())) continue
+    const title = (r[1] ?? "").trim()
+    if (!title || title.includes("http") || title.includes("@")) continue
+    out.push({
+      title,
+      email:        r[2] ?? "",
+      web:          r[3] ?? "",
+      region:       r[4] ?? "",
+      nearCity:     r[5] ?? "",
+      capacityNum:  Number((r[7] ?? "").trim()) || 80,
+      archType:     r[8] ?? "",
+      accommodation: r[9] ?? "",
+      accomNorm:    r[10] ?? "",
+      catering:     r[12] ?? "",
+      cateringNorm: r[13] ?? "",
+      party:        r[14] ?? "",
+      partyNorm:    r[15] ?? "",
+      features:     r[16] ?? "",
+      rental:       r[17] ?? "",
+      avgCost:      r[18] ?? "",
+    })
+  }
+  return out
+}
+
+function parseOldFormat(rows: string[][], startIdx: number): ParsedVenue[] {
+  // Starý formát má jiné pozice sloupců
+  // Sloupce: 0=Jméno, 1=Email/Web, 2=Kraj, 3=Lokalita90min, 4=Kapacita, 5=ArchType,
+  //          6=Ubytování, 7=Služby, 8=Catering, 9=Party, 10=Features, 11=Pronájem, 12=AvgCena
+  const out: ParsedVenue[] = []
+  for (let i = startIdx; i < rows.length; i++) {
+    const r = rows[i]
+    const title = (r[0] ?? "").trim()
+    if (!title || title === "Jméno místa") continue
+    if (title.includes("http") || title.includes("@") || title.startsWith("✔")) continue
+    const emailWeb = r[1] ?? ""
+    const email = (emailWeb.match(/[\w.-]+@[\w.-]+\.\w+/) ?? [""])[0]
+    const web = (emailWeb.match(/https?:\/\/[^\s,]+/) ?? [""])[0]
+    out.push({
+      title,
+      email, web,
+      region:       r[2] ?? "",
+      nearCity:     r[3] ?? "",
+      capacityNum:  Number((r[4] ?? "").replace(/\D/g, "")) || 80,
+      archType:     r[5] ?? "",
+      accommodation: r[6] ?? "",
+      accomNorm:    r[6] ?? "",
+      catering:     r[8] ?? "",
+      cateringNorm: r[8] ?? "",
+      party:        r[9] ?? "",
+      partyNorm:    r[9] ?? "",
+      features:     r[10] ?? "",
+      rental:       r[11] ?? "",
+      avgCost:      r[12] ?? "",
+    })
+  }
+  return out
+}
+
 function main() {
   const csvPath = path.join(process.cwd(), "data", "venues-v2.csv")
   if (!fs.existsSync(csvPath)) {
@@ -190,80 +272,91 @@ function main() {
   }
   const text = fs.readFileSync(csvPath, "utf-8")
   const rows = parseCSV(text)
-  const header = rows[0].map((h) => h.trim())
 
-  // Najdi sloupce dle headeru
-  const col = (name: string) => header.findIndex((h) => h.toLowerCase().includes(name.toLowerCase()))
-  const cols = {
-    id:           col("ID"),
-    name:         col("Jméno místa"),
-    email:        col("E-mail"),
-    web:          col("Webová stránka"),
-    region:       col("Lokalita - kraj"),
-    nearCity:     col("Lokalita do 90"),
-    capacityText: col("Kapacita text"),
-    capacityMax:  col("Kapacita max"),
-    archType:     col("Architektonický typ"),
-    accommodation:    col("Ubytování"),
-    accomNormalized:  col("Ubytování normalizace"),
-    services:     col("Služby místa"),
-    catering:     col("Catering a pití"),
-    cateringNorm: col("Catering normalizace"),
-    party:        col("Večerní party"),
-    partyNorm:    col("Party normalizace"),
-    features:     col("Přidané hodnoty"),
-    rental:       col("Pronájem"),
-    avgCost:      col("Průměrná cena svatby"),
-    note:         col("Další poznámka"),
+  // Najdi rozdělovník — druhý header („Jméno místa" jako první buňka)
+  let splitIdx = rows.length
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0]?.trim() === "Jméno místa") {
+      splitIdx = i
+      break
+    }
   }
-  console.log("📋 Detekované sloupce:", cols)
+  console.log(`📍 Rozdělení CSV: nový formát řádky 1–${splitIdx - 1}, starý formát od ${splitIdx + 1}`)
 
+  const newVenues = parseNewFormat(rows, 1, splitIdx)
+  const oldVenues = parseOldFormat(rows, splitIdx + 1)
+  console.log(`✓ Nový formát: ${newVenues.length} míst`)
+  console.log(`✓ Starý formát: ${oldVenues.length} míst (obsahuje VIP)`)
+
+  // Dedupe — priorita: starý formát (VIP info), pak nový
+  const seenNames = new Set<string>()
+  const seenVipKeywords = new Set<string>()
   const seenSlugs = new Set<string>()
+  const allVenues: ParsedVenue[] = []
+
+  // Najdi VIP keyword pro dané jméno (vrátí klíč nebo null)
+  const matchedVipKey = (title: string): string | null => {
+    const t = title.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    for (const kw of VIP_KEYWORDS) {
+      const k = kw.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+      if (t.includes(k)) return k
+    }
+    return null
+  }
+
+  for (const v of [...oldVenues, ...newVenues]) {
+    const normName = v.title.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim()
+    if (seenNames.has(normName)) continue
+
+    // Pokud místo odpovídá VIP klíči a už máme VIP s tímto klíčem → skip
+    const vipKey = matchedVipKey(v.title)
+    if (vipKey && seenVipKeywords.has(vipKey)) continue
+
+    seenNames.add(normName)
+    if (vipKey) seenVipKeywords.add(vipKey)
+    allVenues.push(v)
+  }
+  console.log(`✓ Unique po dedup: ${allVenues.length} míst`)
+
   const inserts: string[] = []
   let imageRot = 0
   let vipCount = 0
 
-  for (let i = 1; i < rows.length; i++) {
-    const r = rows[i]
-    const title = (r[cols.name] ?? "").trim()
-    if (!title || title.length < 2) continue
+  for (const v of allVenues) {
+    const title = v.title
 
     let slug = slugify(title)
     if (!slug) continue
-    let baseSlug = slug; let counter = 2
+    const baseSlug = slug; let counter = 2
     while (seenSlugs.has(slug)) { slug = `${baseSlug}-${counter++}` }
     seenSlugs.add(slug)
 
-    const region = REGION_MAP[(r[cols.region] ?? "").trim()] ?? "Středočeský"
-    const type = normalizeType(r[cols.archType] ?? "")
-    const capacity = Number(r[cols.capacityMax]) || 80
-    const rentalPrice = parsePrice(r[cols.rental] ?? "")
-    const avgPrice = parsePrice(r[cols.avgCost] ?? "")
-    const accomCount = mapAccommodationCount(r[cols.accommodation] ?? "")
-    const cateringPolicy = mapCatering(r[cols.cateringNorm] ?? "")
-    const nightPartyPolicy = mapParty(r[cols.partyNorm] ?? "")
+    const region = REGION_MAP[v.region.trim()] ?? "Středočeský"
+    const type = normalizeType(v.archType)
+    const capacity = v.capacityNum
+    const rentalPrice = parsePrice(v.rental)
+    const avgPrice = parsePrice(v.avgCost)
+    const accomCount = mapAccommodationCount(v.accommodation)
+    const cateringPolicy = mapCatering(v.cateringNorm)
+    const nightPartyPolicy = mapParty(v.partyNorm)
 
-    // Rozparsuj features
-    const featuresText = (r[cols.features] ?? "").trim()
+    const featuresText = v.features.trim()
     const features = featuresText
-      .split(/[,;\n•·✔️✓★]/)
-      .map((f) => f.trim())
+      .split(/[,;\n•·✔✓★]/)
+      .map((f) => f.replace(/[️\s]+/g, " ").trim())
       .filter((f) => f.length > 2 && f.length < 100)
       .slice(0, 10)
 
-    // Sestaviv services array (kombinace info)
     const services = ["Komplet vše na jednom místě"]
     if (cateringPolicy === "own_free") services.push("Vlastní jídlo a pití bez poplatků")
     if (nightPartyPolicy === "no_curfew") services.push("Bez nočního klidu")
     if (accomCount > 0) services.push(`Ubytování pro ${accomCount} hostů`)
 
-    // Description
     const description = [
-      r[cols.archType] ?? "",
+      v.archType,
       featuresText.slice(0, 250),
     ].filter(Boolean).join(" — ").slice(0, 600) || `Svatební místo ${title}.`
 
-    // Images — placeholders
     const images = [
       PLACEHOLDERS[imageRot % PLACEHOLDERS.length],
       PLACEHOLDERS[(imageRot + 1) % PLACEHOLDERS.length],
@@ -275,13 +368,13 @@ function main() {
 
     const values = [
       sql(slug), sql(title), sql(description),
-      sql(`${region} kraj${r[cols.nearCity] ? ` — ${r[cols.nearCity]}` : ""}`),
+      sql(`${region} kraj${v.nearCity ? ` — ${v.nearCity}` : ""}`),
       sql(region), sql(type), capacity, rentalPrice || 100000,
       sqlArray(services), sqlArray(images), sqlArray(features),
-      isVip ? "true" : "false",  // is_featured
-      sql(r[cols.web] ?? null),
-      sql((r[cols.email] ?? "").trim() || null),
-      sql(mapNearestCity(r[cols.nearCity] ?? "")),
+      isVip ? "true" : "false",
+      sql(v.web || null),
+      sql(v.email.trim() || null),
+      sql(mapNearestCity(v.nearCity)),
       accomCount,
       sql(cateringPolicy),
       sql(nightPartyPolicy),
@@ -329,7 +422,7 @@ function main() {
 
   const outPath = path.join(process.cwd(), "data", "venues-v2.sql")
   fs.writeFileSync(outPath, out, "utf-8")
-  console.log(`\n✅ Vygenerováno ${inserts.length} míst → ${outPath}`)
+  console.log(`\n✅ Vygenerováno ${inserts.length} unikátních míst → ${outPath}`)
   console.log(`⭐ Z toho ${vipCount} VIP (is_featured = true)`)
 }
 
