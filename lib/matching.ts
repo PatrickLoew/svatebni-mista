@@ -224,12 +224,27 @@ export function scoreVenue(v: Venue, a: WizardAnswers): Match {
 
 export function findBestMatches(venues: Venue[], answers: WizardAnswers, top = 3): Match[] {
   const scored = venues.map((v) => scoreVenue(v, answers))
-  return scored
-    .sort((a, b) => {
-      // VIP první
-      if (a.venue.isFeatured && !b.venue.isFeatured) return -1
-      if (!a.venue.isFeatured && b.venue.isFeatured) return 1
-      return b.score - a.score
-    })
-    .slice(0, top)
+
+  // Seřazeno čistě podle skóre (bez VIP preference jako prvním kritériem)
+  const sortedByScore = [...scored].sort((a, b) => b.score - a.score)
+
+  // Garantujeme: minimálně 1 VIP v TOP 3 doporučeních
+  const vipMatches = sortedByScore.filter((m) => m.venue.isFeatured)
+  const nonVipMatches = sortedByScore.filter((m) => !m.venue.isFeatured)
+
+  const result: Match[] = []
+
+  // Pokud máme alespoň jedno VIP místo, dáme ho na 1. pozici
+  if (vipMatches.length > 0) {
+    result.push(vipMatches[0])
+  }
+
+  // Doplníme nejlepší zbylé místa (mix VIP + non-VIP podle skóre)
+  const remaining = sortedByScore.filter((m) => !result.includes(m))
+  for (const m of remaining) {
+    if (result.length >= top) break
+    result.push(m)
+  }
+
+  return result
 }

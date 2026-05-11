@@ -110,8 +110,9 @@ export default function FeaturedVenues() {
                   {/* Top badges */}
                   <div className="absolute top-5 left-5 flex gap-2">
                     {v.isFeatured && (
-                      <span className="bg-[#C9A96E] text-white text-[10px] font-medium tracking-[.2em] uppercase px-3 py-1.5 rounded-full">
-                        ✦ Doporučeno
+                      <span className="bg-gradient-to-r from-[#A88240] via-[#C9A96E] to-[#E8C98A] text-white text-[10px] font-bold tracking-[.15em] uppercase px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.4 5.8 22l2.4-8.1L2 9.4h7.6z"/></svg>
+                        Doporučujeme
                       </span>
                     )}
                     <span className="backdrop-blur-md bg-white/15 border border-white/20 text-white text-[10px] font-medium tracking-[.2em] uppercase px-3 py-1.5 rounded-full">

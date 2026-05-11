@@ -32,8 +32,9 @@ export default function VenueCard({ venue, index = 0 }: { venue: Venue; index?: 
               <div className="w-full h-full skeleton" />
             )}
             {venue.isFeatured && (
-              <span className="absolute top-3 left-3 bg-[#C9A96E] text-white text-xs font-semibold px-3 py-1 rounded-full">
-                ✦ Doporučeno
+              <span className="absolute top-3 left-3 bg-gradient-to-r from-[#A88240] via-[#C9A96E] to-[#E8C98A] text-white text-[11px] font-bold tracking-wider px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.4 5.8 22l2.4-8.1L2 9.4h7.6z"/></svg>
+                DOPORUČUJEME
               </span>
             )}
             <span className="absolute top-3 right-3 bg-black/60 text-white text-xs font-medium px-3 py-1 rounded-full">
