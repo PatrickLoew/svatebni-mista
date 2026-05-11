@@ -96,7 +96,14 @@ export default function Wizard() {
   }
 
   if (loading) return <WizardLoading />
-  if (done) return <SuccessScreen answers={a} />
+  if (done) {
+    // Když máme výsledky, zobraz je (pro testování + transparentnost klientovi)
+    if (done.matches.length > 0) {
+      return <ResultScreen matches={done.matches} answers={a} />
+    }
+    // Když matching selhal, zobraz success obrazovku
+    return <SuccessScreen answers={a} />
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-12">
