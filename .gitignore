@@ -43,3 +43,6 @@ next-env.d.ts
 # Citlivá data — exporty z formulářů
 /data/venues.csv
 /data/venues.sql
+
+/data/venues-v2.csv
+/data/venues-v2.sql
