@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   }
 
   // Matching
-  const matches = findBestMatches(venues, answers, 3)
+  const matches = findBestMatches(venues, answers, 8)
 
   // Uložení poptávky do DB
   try {
@@ -143,53 +143,138 @@ function buildMessage(a: WizardAnswers, matches: Match[]): string {
 
 const fmt = (n: number) => new Intl.NumberFormat("cs-CZ").format(n)
 
-function clientEmail(a: WizardAnswers, matches: Match[]): string {
-  const firstName = a.name.split(" ")[0]
+/* ─────────── PERSONA SUMMARY (Monca styl) ─────────── */
+function buildPersonaSummary(a: WizardAnswers): string {
   const term = termLabel(a)
-  const venueBlocks = matches.map((m, i) => `
-    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px;background:#fff;border:1px solid #E8DDD0;border-radius:12px;overflow:hidden">
-      <tr><td style="padding:0">
-        ${m.venue.images[0] ? `<img src="${m.venue.images[0]}" width="100%" style="display:block;max-height:240px;object-fit:cover" />` : ""}
-      </td></tr>
-      <tr><td style="padding:24px">
-        <p style="margin:0 0 4px;color:#C9A96E;font-size:11px;letter-spacing:2px;text-transform:uppercase">${i === 0 ? "★ Nejlepší shoda · " : ""}Shoda ${m.score} %</p>
-        <h3 style="margin:0 0 8px;font-family:Georgia,serif;font-weight:300;font-size:22px;color:#3E2723">${m.venue.title}</h3>
-        <p style="margin:0 0 16px;color:#666;font-size:14px">${m.venue.location} · do ${m.venue.capacity} hostů · od ${fmt(m.venue.priceFrom)} Kč</p>
-        <p style="margin:0 0 12px;color:#444;line-height:1.6;font-size:14px">${m.venue.description}</p>
-        ${m.reasons.length > 0 ? `
-        <div style="background:#F9F2E6;padding:12px 16px;border-radius:8px;margin-top:12px">
-          <p style="margin:0 0 6px;font-size:12px;font-weight:600;color:#3E2723">Proč právě toto místo:</p>
-          <ul style="margin:0;padding-left:18px;color:#444;font-size:13px;line-height:1.6">
-            ${m.reasons.map((r) => `<li>${r}</li>`).join("")}
-          </ul>
-        </div>` : ""}
-      </td></tr>
-    </table>
-  `).join("")
+  const parts: string[] = [
+    `Podle Vašich představ hledáte svatební místo pro cca <strong>${a.guests} hostů</strong>`,
+  ]
+  if (a.nearestCity && a.nearestCity !== "jedno") {
+    parts.push(`ideálně v rozumné dojezdové vzdálenosti od města <strong>${a.nearestCity}</strong>`)
+  } else if (a.regions.length > 0) {
+    parts.push(`v <strong>${a.regions.join(", ")}</strong> kraji`)
+  }
+  if (term && a.weddingYear) parts.push(`s plánovaným termínem na ${term}`)
+
+  const arch: Record<string, string> = {
+    priroda: "v přírodě (louka, les, u vody)",
+    unikat: "v zajímavém a originálním prostředí",
+    hotelovy: "v hotelovém stylu s komfortem",
+    mlyn: "ve stylu mlýna, stodoly nebo statku",
+    industrial: "v industriálním stylu",
+    hrad: "na hradě",
+    zamek: "v zámeckém prostředí",
+  }
+  if (arch[a.archType]) parts.push(arch[a.archType])
+
+  const sentence1 = parts.join(", ") + "."
+
+  // Druhý odstavec — preference
+  const prefs: string[] = []
+  if (a.weddingMode === "komplet") prefs.push("vše pohodlně na jednom místě — obřad, hostinu, ubytování i večerní party")
+  if (a.catering === "vlastni-vse") prefs.push("možnost vlastního pití a jídla bez poplatků")
+  if (a.catering === "vlastni-piti") prefs.push("možnost vlastního pití bez poplatků")
+  if (a.party === "velka-bez-klidu") prefs.push("party bez omezení nočního klidu")
+  if (a.party === "pohoda") prefs.push("pohodovou, příjemnou atmosféru bez velké party")
+  if (a.accommodation === "primo") prefs.push("ubytování přímo v místě")
+
+  const sentence2 = prefs.length > 0
+    ? `Důležité je pro Vás <strong>${prefs.join("</strong>, <strong>")}</strong>.`
+    : ""
+
+  // Třetí — speciální
+  const sentence3 = a.specialRequests
+    ? `Velkým plusem je pro Vás také ${a.specialRequests}.`
+    : ""
+
+  return [sentence1, sentence2, sentence3].filter(Boolean).join(" ")
+}
+
+/* ─────────── CROSS-SELLS dle odpovědí ─────────── */
+function buildCrossSells(a: WizardAnswers): string {
+  const blocks: string[] = []
+
+  if (a.needPhotographer === "ano") {
+    blocks.push(`
+      <div style="margin-top:32px;padding:24px;background:#F9F2E6;border-radius:12px">
+        <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:18px;color:#3E2723">📸 Fotograf</p>
+        <p style="margin:0 0 8px;color:#444;font-size:14px;line-height:1.6">Protože hledáte fotografa, rádi doporučíme:</p>
+        <ul style="margin:0;padding-left:20px;color:#444;font-size:13px;line-height:1.8">
+          <li><strong>Domculette Photo</strong> — přirozený a emotivní styl focení</li>
+          <li><strong>Nikol Leitgeb Photography</strong></li>
+          <li><strong>Patrik Borecký Photography</strong></li>
+        </ul>
+      </div>`)
+  }
+  if (a.needDjModerator === "ano") {
+    blocks.push(`
+      <div style="margin-top:24px;padding:24px;background:#F9F2E6;border-radius:12px">
+        <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:18px;color:#3E2723">🎵 DJ a moderátor</p>
+        <p style="margin:0;color:#444;font-size:14px;line-height:1.6">Velmi rádi doporučíme například <strong>Yes.Musicz</strong> nebo <strong>DJ Prague</strong> — oba opravdu top za rozumné ceny.</p>
+      </div>`)
+  }
+  if (a.needCoordinator === "ano") {
+    blocks.push(`
+      <div style="margin-top:24px;padding:24px;background:#F9F2E6;border-radius:12px">
+        <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:18px;color:#3E2723">📋 Koordinátorka</p>
+        <p style="margin:0;color:#444;font-size:14px;line-height:1.6">Můžeme Vám doporučit prověřené koordinátorky, se kterými dlouhodobě spolupracujeme. Ozveme se s konkrétními tipy do 24 hodin.</p>
+      </div>`)
+  }
+  return blocks.join("")
+}
+
+function clientEmail(a: WizardAnswers, matches: Match[]): string {
+  const firstName = a.name.split(" ")[0] || "milí novomanželé"
+  const personaSummary = buildPersonaSummary(a)
+  const crossSells = buildCrossSells(a)
+
+  const venueBlocks = matches.map((m, i) => {
+    const isVip = m.venue.isFeatured
+    const personalDesc = m.personalDescription ?? ""
+    return `
+    <div style="margin-bottom:24px;padding-bottom:24px;${i < matches.length - 1 ? "border-bottom:1px solid #E8DDD0;" : ""}">
+      <h3 style="margin:0 0 6px;font-family:Georgia,serif;font-weight:400;font-size:20px;color:#3E2723">
+        🌿 ${m.venue.title}
+        ${isVip ? `<span style="background:linear-gradient(90deg,#A88240,#E8C98A);color:#fff;font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:10px;margin-left:6px;font-family:Helvetica;">★ DOPORUČUJEME</span>` : ""}
+      </h3>
+      <p style="margin:0 0 8px;color:#888;font-size:12px">${m.venue.location} · do ${m.venue.capacity} hostů · od ${fmt(m.venue.priceFrom)} Kč</p>
+      <p style="margin:0;color:#444;line-height:1.6;font-size:14px">${personalDesc}</p>
+      ${m.venue.websiteUrl ? `<p style="margin:8px 0 0"><a href="${m.venue.websiteUrl}" style="color:#C9A96E;font-size:12px;text-decoration:none">Web místa →</a></p>` : ""}
+    </div>`
+  }).join("")
 
   return `
   <div style="font-family:Helvetica,Arial,sans-serif;background:#F9F6F0;padding:40px 20px">
-    <div style="max-width:620px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden">
+    <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden">
       <div style="background:#3E2723;padding:50px 40px;text-align:center;color:#fff">
         <p style="margin:0 0 12px;color:#E8C98A;font-size:11px;letter-spacing:3px;text-transform:uppercase">✦ Váš osobní návrh ✦</p>
-        <h1 style="margin:0;font-family:Georgia,serif;font-weight:300;font-size:34px;line-height:1.2">Děkujeme, ${firstName}!</h1>
-        <p style="margin:16px 0 0;color:rgba(255,255,255,.7);font-size:15px">Vybrali jsme pro vás 3 místa, která vám sednou nejlépe.</p>
+        <h1 style="margin:0;font-family:Georgia,serif;font-weight:300;font-size:34px;line-height:1.2">Dobrý den, ${firstName} 😊</h1>
       </div>
       <div style="padding:40px">
-        <p style="margin:0 0 24px;color:#444;line-height:1.7;font-size:15px">
-          Na základě vašich odpovědí (${term}, ${a.guests} hostů, rozpočet pronájmu do ${fmt(a.rentalBudget)} Kč) jsme prošli stovky míst v našem katalogu.
-        </p>
+        <p style="margin:0 0 16px;color:#444;line-height:1.7;font-size:15px">Děkujeme Vám za vyplnění svatební analýzy.</p>
+        <p style="margin:0 0 28px;color:#444;line-height:1.7;font-size:15px">${personaSummary}</p>
+        <p style="margin:0 0 24px;color:#444;line-height:1.7;font-size:15px">Na základě toho jsme pro Vás vybrali tato místa 👇</p>
+
         ${venueBlocks}
-        <div style="background:#F9F2E6;padding:24px;border-radius:12px;text-align:center;margin-top:32px">
-          <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:20px;color:#3E2723">Co bude dál?</p>
-          <p style="margin:0 0 20px;color:#444;font-size:14px;line-height:1.6">Náš tým se vám ozve <strong>do 24 hodin</strong> s detailním rozpočtem, dostupností termínů a možností prohlídek.</p>
-          <a href="${process.env.NEXT_PUBLIC_APP_URL ?? "https://svatebni-mista.cz"}/venues" style="display:inline-block;background:#C9A96E;color:#fff;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:600;font-size:14px">Prohlédnout celý katalog</a>
+
+        ${crossSells}
+
+        <div style="margin-top:32px;padding:24px;background:linear-gradient(135deg,#3E2723,#1F1310);color:#fff;border-radius:12px;text-align:center">
+          <p style="margin:0 0 8px;font-family:Georgia,serif;font-size:18px;color:#E8C98A">💰 Bonus pro Vás</p>
+          <p style="margin:0;color:rgba(255,255,255,.85);font-size:14px;line-height:1.6">
+            Pokud si nakonec vyberete některé z míst, která jsme Vám doporučili, a dáte nám vědět, můžeme Vám u vybraných míst zajistit <strong>cashback ve výši 1 000 až 10 000 Kč</strong>.
+          </p>
         </div>
-        <p style="margin:32px 0 0;color:#999;font-size:12px;text-align:center;line-height:1.6">
-          Otázky? Napište na <a href="mailto:info@svatebni-mista.cz" style="color:#C9A96E">info@svatebni-mista.cz</a> nebo zavolejte +420 123 456 789
+
+        <p style="margin:32px 0 8px;color:#444;line-height:1.7;font-size:15px">Budeme se těšit na Vaši zprávu.</p>
+        <p style="margin:0;color:#444;line-height:1.7;font-size:15px;font-style:italic">Mějte se krásně 🤍</p>
+
+        <p style="margin:32px 0 0;padding-top:24px;border-top:1px solid #E8DDD0;color:#999;font-size:12px;text-align:center;line-height:1.6">
+          Otázky? Napište na <a href="mailto:info@svatebnimista.cz" style="color:#C9A96E">info@svatebnimista.cz</a><br>
+          nebo zavolejte na <a href="tel:+420123456789" style="color:#C9A96E">+420 123 456 789</a>
         </p>
       </div>
-      <div style="background:#1F1310;padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:11px">© Svatební Místa.cz</div>
+      <div style="background:#1F1310;padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:11px">© Svatební Místa.cz — Jediná služba v ČR pro výběr místa na míru</div>
     </div>
   </div>
   `

@@ -66,6 +66,7 @@ export interface Match {
   score: number
   reasons: string[]
   warnings: string[]
+  personalDescription?: string  // Monca-style personalizovaný popis
 }
 
 /* ─────────── MATCHING ALGORITMUS ─────────── */
@@ -222,21 +223,19 @@ export function scoreVenue(v: Venue, a: WizardAnswers): Match {
   }
 }
 
-export function findBestMatches(venues: Venue[], answers: WizardAnswers, top = 3): Match[] {
+export function findBestMatches(venues: Venue[], answers: WizardAnswers, top = 8): Match[] {
   const scored = venues.map((v) => scoreVenue(v, answers))
 
   // Seřazeno čistě podle skóre (bez VIP preference jako prvním kritériem)
   const sortedByScore = [...scored].sort((a, b) => b.score - a.score)
 
-  // Garantujeme: minimálně 1 VIP v TOP 3 doporučeních
+  // Garantujeme: VIP místa převažují v top doporučeních
   const vipMatches = sortedByScore.filter((m) => m.venue.isFeatured)
-  const nonVipMatches = sortedByScore.filter((m) => !m.venue.isFeatured)
-
   const result: Match[] = []
 
-  // Pokud máme alespoň jedno VIP místo, dáme ho na 1. pozici
-  if (vipMatches.length > 0) {
-    result.push(vipMatches[0])
+  // Vezmeme top 2 VIPy (pokud existují) jako "Doporučujeme"
+  for (const m of vipMatches.slice(0, 2)) {
+    result.push(m)
   }
 
   // Doplníme nejlepší zbylé místa (mix VIP + non-VIP podle skóre)
@@ -246,5 +245,74 @@ export function findBestMatches(venues: Venue[], answers: WizardAnswers, top = 3
     result.push(m)
   }
 
-  return result
+  // Pro každé místo vygeneruj Monca-style personalizovaný popis
+  return result.map((m) => ({
+    ...m,
+    personalDescription: generatePersonalDescription(m.venue, answers),
+  }))
+}
+
+/**
+ * Generátor personalizovaného popisu místa ve stylu Monči.
+ * Vychází z reálných případových studií.
+ */
+function generatePersonalDescription(v: Venue, a: WizardAnswers): string {
+  const sentences: string[] = []
+  const type = v.type.toLowerCase()
+  const isSmallWedding = a.guests <= 60
+  const wantsNature = a.archType === "priroda"
+  const wantsParty = a.party === "velka-bez-klidu"
+  const wantsQuiet = a.party === "do-22"
+  const wantsOwnDrinks = a.catering === "vlastni-vse" || a.catering === "vlastni-piti"
+  const wantsAccomOnSite = a.accommodation === "primo"
+  const features = (v.features ?? []).map((f) => f.toLowerCase()).join(" ")
+  const hasPet = a.specialRequests.toLowerCase().includes("pej") || a.specialRequests.toLowerCase().includes("pes") || a.specialRequests.toLowerCase().includes("psi") || features.includes("pet")
+  const hasKids = a.specialRequests.toLowerCase().includes("děti") || a.specialRequests.toLowerCase().includes("dítě") || features.includes("dětsk")
+
+  // Hlavní popis dle typu místa
+  if (type.includes("zámek")) {
+    sentences.push("Elegantní zámecká atmosféra s velmi dobrým zázemím.")
+  } else if (type.includes("statek") || features.includes("stodola") || features.includes("mlýn")) {
+    sentences.push("Krásné statkové prostředí s pohodovou atmosférou.")
+  } else if (type.includes("hotel")) {
+    sentences.push("Hotelové zázemí s komfortem pro hosty.")
+  } else if (type.includes("příroda") || type.includes("pláž")) {
+    sentences.push("Příjemné přírodní místo s klidnou atmosférou.")
+  } else if (type.includes("vinný")) {
+    sentences.push("Autentický vinařský duch s krásnou atmosférou.")
+  } else {
+    sentences.push("Velmi zajímavé místo s krásnou atmosférou.")
+  }
+
+  // Personalizovaný důvod podle preferencí
+  if (v.isFeatured) {
+    sentences.push("Za nás jedno z nejdoporučovanějších míst v naší selekci.")
+  }
+  if (isSmallWedding && v.capacity <= 80) {
+    sentences.push("Velmi dobře sedí na menší a komornější svatby.")
+  }
+  if (wantsOwnDrinks && (v.cateringPolicy === "own_free" || v.cateringPolicy === "own_drinks_free")) {
+    sentences.push("Velkou výhodou je možnost vlastního pití bez poplatků.")
+  }
+  if (wantsParty && v.nightPartyPolicy === "no_curfew") {
+    sentences.push("Skvělé pro páry, které chtějí pořádnou party bez nočního klidu.")
+  }
+  if (wantsQuiet && v.nightPartyPolicy !== "no_curfew") {
+    sentences.push("Příjemná klidná atmosféra ideální pro pohodovou svatbu.")
+  }
+  if (wantsAccomOnSite && (v.accommodationCapacity ?? 0) > 0) {
+    sentences.push(`Výhodou je ubytování přímo v areálu pro ${v.accommodationCapacity} hostů.`)
+  }
+  if (wantsNature && (type.includes("příroda") || features.includes("rybník") || features.includes("les"))) {
+    sentences.push("Krásné přírodní prostředí pro svatbu v klidu.")
+  }
+  if (hasPet && features.includes("pet")) {
+    sentences.push("Pejsek je tu vítaný bez omezení.")
+  }
+  if (hasKids && (features.includes("dětsk") || features.includes("hřiště"))) {
+    sentences.push("Dobré zázemí i pro děti.")
+  }
+
+  // Maximálně 3 věty (sekvence po sobě)
+  return sentences.slice(0, 3).join(" ")
 }

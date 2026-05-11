@@ -720,28 +720,46 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
         <Sparkles className="inline-block mb-1 text-[#C9A96E] mr-2" size={20} />
         Náš návrh pro vás
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {matches.map((m, i) => (
           <motion.div
             key={m.venue.id}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.15 }}
+            transition={{ delay: i * 0.1 }}
             className="relative"
           >
-            <div className="absolute -top-3 left-3 z-10 bg-[#3E2723] text-white text-xs px-3 py-1 rounded-full font-medium">
-              {i === 0 ? "✦ Nejlepší shoda" : `Shoda ${m.score} %`}
-            </div>
+            {m.venue.isFeatured && (
+              <div className="absolute -top-3 left-3 z-10 bg-gradient-to-r from-[#A88240] via-[#C9A96E] to-[#E8C98A] text-white text-[10px] font-bold tracking-wider px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.4 5.8 22l2.4-8.1L2 9.4h7.6z"/></svg>
+                DOPORUČUJEME
+              </div>
+            )}
             <VenueCard venue={m.venue} index={i} />
-            {m.reasons[0] && (
-              <p className="text-xs text-charcoal/60 mt-3 italic px-2 leading-relaxed">
-                {m.reasons[0]}
+            {m.personalDescription && (
+              <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
+                {m.personalDescription}
               </p>
             )}
           </motion.div>
         ))}
       </div>
 
+      {/* Cashback banner */}
+      <div className="bg-gradient-to-r from-[#C9A96E]/15 via-[#E8C98A]/15 to-[#C9A96E]/15 border-2 border-[#C9A96E]/30 rounded-3xl p-7 sm:p-9 text-center mb-6">
+        <div className="flex items-center justify-center gap-2 text-[#A88240] text-xs font-semibold tracking-[.25em] uppercase mb-3">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.4 5.8 22l2.4-8.1L2 9.4h7.6z"/></svg>
+          Bonus pro vás
+        </div>
+        <p className="font-serif text-2xl md:text-3xl font-light text-[#3E2723] mb-3">
+          Cashback <em className="text-[#A88240]">1 000 – 10 000 Kč</em>
+        </p>
+        <p className="text-charcoal/70 leading-relaxed max-w-xl mx-auto text-sm">
+          Pokud si nakonec vyberete některé z míst, která jsme Vám doporučili, a dáte nám vědět, můžeme Vám u vybraných míst zajistit <strong>cashback ve výši 1 000 až 10 000 Kč</strong>.
+        </p>
+      </div>
+
+      {/* Konzultace CTA */}
       <div className="bg-gradient-to-br from-[#3E2723] to-[#1F1310] rounded-3xl p-10 text-white text-center mb-6 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-60 h-60 bg-[#C9A96E]/15 rounded-full blur-3xl pointer-events-none" />
         <div className="relative">
