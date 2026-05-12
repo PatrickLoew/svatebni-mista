@@ -2,12 +2,26 @@ import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
 
 export async function GET() {
+  // Diagnostika — zjistíme, zda je SERVICE_ROLE_KEY skutečně nastaven na Vercel
+  const hasServiceKey = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
+  if (!hasServiceKey) {
+    console.warn("[/api/inquiries] SUPABASE_SERVICE_ROLE_KEY chybí — admin neuvidí cizí poptávky kvůli RLS")
+  }
+
   const { data, error } = await supabaseAdmin
     .from("inquiries")
     .select("*, venues(title)")
     .order("created_at", { ascending: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error("[/api/inquiries] Supabase error:", error)
+    return NextResponse.json(
+      { error: error.message, hint: hasServiceKey ? undefined : "Nastav SUPABASE_SERVICE_ROLE_KEY na Vercelu" },
+      { status: 500 },
+    )
+  }
+
+  console.log(`[/api/inquiries] Načteno ${data?.length ?? 0} poptávek (service key: ${hasServiceKey ? "ANO" : "NE"})`)
 
   const mapped = (data ?? []).map((r: { venues?: { title?: string }; [key: string]: unknown }) => ({
     ...r,
