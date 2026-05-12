@@ -10,9 +10,23 @@ export default function AdminInquiriesPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>("all")
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch("/api/inquiries").then((r) => r.json()).then(setInquiries).finally(() => setLoading(false))
+    fetch("/api/inquiries")
+      .then(async (r) => {
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}))
+          throw new Error(err.hint || err.error || `HTTP ${r.status}`)
+        }
+        return r.json()
+      })
+      .then((data) => {
+        if (Array.isArray(data)) setInquiries(data)
+        else throw new Error("Neočekávaná odpověď z API")
+      })
+      .catch((e) => setErrorMsg(e.message ?? String(e)))
+      .finally(() => setLoading(false))
   }, [])
 
   async function changeStatus(id: string, status: string) {
@@ -60,6 +74,17 @@ export default function AdminInquiriesPage() {
           </button>
         ))}
       </div>
+
+      {errorMsg && (
+        <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm">
+          <p className="font-semibold text-red-800 mb-1">Nepodařilo se načíst poptávky</p>
+          <p className="text-red-700 mb-2">{errorMsg}</p>
+          <p className="text-red-600/80 text-xs">
+            Tip: ověř na Vercelu, že máš nastavený <code className="bg-white px-1 rounded">SUPABASE_SERVICE_ROLE_KEY</code>.
+            Pak zkus <strong>Redeploy</strong>.
+          </p>
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-3">
