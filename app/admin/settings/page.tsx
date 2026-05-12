@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Loader2, Save, CheckCircle } from "lucide-react"
+import { Loader2, Save, CheckCircle, ChevronDown } from "lucide-react"
 import type { SiteSettings } from "@/lib/settings"
 import { DEFAULT_SETTINGS } from "@/lib/settings"
 
@@ -14,7 +14,7 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
-      .then((data) => setS(data))
+      .then((data) => setS({ ...DEFAULT_SETTINGS, ...data }))
       .finally(() => setLoading(false))
   }, [])
 
@@ -23,171 +23,154 @@ export default function AdminSettingsPage() {
       setS((p) => ({ ...p, [k]: e.target.value }))
 
   async function save() {
-    setSaving(true)
-    setSaved(false)
+    setSaving(true); setSaved(false)
     try {
       const res = await fetch("/api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(s),
       })
-      if (res.ok) {
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
-      }
-    } finally {
-      setSaving(false)
-    }
+      if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 3000) }
+    } finally { setSaving(false) }
   }
 
-  const inputCl = "w-full bg-white border-2 border-[#E8DDD0] rounded-xl px-4 py-3 text-sm text-[#2C2C2C] focus:outline-none focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 transition"
-  const labelCl = "block text-xs font-semibold text-[#2C2C2C]/60 uppercase tracking-wider mb-1.5"
-  const sectionCl = "bg-white border border-[#E8DDD0] rounded-2xl p-6 space-y-4"
-  const sectionTitleCl = "font-serif text-lg font-medium text-[#3E2723] mb-3"
-
   if (loading) {
-    return (
-      <div className="space-y-4 max-w-3xl">
-        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-32 skeleton rounded-2xl" />)}
-      </div>
-    )
+    return <div className="max-w-3xl space-y-4"><div className="h-32 skeleton rounded-2xl" /><div className="h-48 skeleton rounded-2xl" /></div>
   }
 
   return (
     <div className="max-w-3xl pb-24">
       <div className="mb-8">
         <h1 className="font-serif text-3xl font-light mb-1">Nastavení webu</h1>
-        <p className="text-charcoal/60 text-sm">Změny se ihned projeví na celém webu.</p>
+        <p className="text-charcoal/60 text-sm">Upravte jakýkoli text na webu. Změny se ihned uloží do databáze.</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-3">
         {/* Kontakt */}
-        <div className={sectionCl}>
-          <h3 className={sectionTitleCl}>Kontaktní údaje</h3>
-          <p className="text-xs text-charcoal/50 -mt-2 mb-3">Zobrazí se v patičce, sekci konzultace a v e-mailech.</p>
+        <Section title="Kontaktní údaje" defaultOpen={true}>
+          <Row>
+            <Field label="Telefon" value={s.phone} onChange={set("phone")} placeholder="+420 722 123 456" />
+            <Field label="WhatsApp (bez mezer)" value={s.whatsapp} onChange={set("whatsapp")} placeholder="+420722123456" />
+          </Row>
+          <Row>
+            <Field label="E-mail" value={s.email} onChange={set("email")} placeholder="info@svatebnimista.cz" />
+            <Field label="Otevírací doba" value={s.hours} onChange={set("hours")} />
+          </Row>
+          <Field label="Adresa" value={s.address} onChange={set("address")} />
+        </Section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className={labelCl}>Telefon</label>
-              <input className={inputCl} value={s.phone} onChange={set("phone")} placeholder="+420 722 123 456" />
-            </div>
-            <div>
-              <label className={labelCl}>WhatsApp (bez mezer)</label>
-              <input className={inputCl} value={s.whatsapp} onChange={set("whatsapp")} placeholder="+420722123456" />
-            </div>
-            <div>
-              <label className={labelCl}>E-mail</label>
-              <input className={inputCl} value={s.email} onChange={set("email")} placeholder="info@svatebnimista.cz" />
-            </div>
-            <div>
-              <label className={labelCl}>Otevírací doba</label>
-              <input className={inputCl} value={s.hours} onChange={set("hours")} />
-            </div>
-            <div className="sm:col-span-2">
-              <label className={labelCl}>Adresa</label>
-              <input className={inputCl} value={s.address} onChange={set("address")} />
-            </div>
-          </div>
-          <p className="text-xs text-charcoal/50 mt-2">
-            <strong>WhatsApp</strong>: zadej bez mezer s předvolbou (např. <code>+420722123456</code>) — tlačítko otevře přímo chat.
-          </p>
-        </div>
-
-        {/* Hero texty */}
-        <div className={sectionCl}>
-          <h3 className={sectionTitleCl}>Hlavní stránka — Hero</h3>
-          <p className="text-xs text-charcoal/50 -mt-2 mb-3">Texty na úvodní obrazovce.</p>
-
-          <div>
-            <label className={labelCl}>Eyebrow (malý zlatý text nahoře)</label>
-            <input className={inputCl} value={s.heroEyebrow} onChange={set("heroEyebrow")} />
-          </div>
-
-          <div>
-            <label className={labelCl}>Hlavní nadpis — řádek 1</label>
-            <input className={inputCl} value={s.heroTitleLine1} onChange={set("heroTitleLine1")} />
-          </div>
-          <div>
-            <label className={labelCl}>Hlavní nadpis — řádek 2 (zlatý italic)</label>
-            <input className={inputCl} value={s.heroTitleLine2} onChange={set("heroTitleLine2")} />
-          </div>
-          <div>
-            <label className={labelCl}>Hlavní nadpis — řádek 3</label>
-            <input className={inputCl} value={s.heroTitleLine3} onChange={set("heroTitleLine3")} />
-          </div>
-
-          <div>
-            <label className={labelCl}>Podnadpis</label>
-            <textarea className={`${inputCl} resize-none`} rows={3} value={s.heroSubtitle} onChange={set("heroSubtitle")} />
-          </div>
-        </div>
+        {/* HERO */}
+        <Section title="Hero — úvodní obrazovka">
+          <Field label="Badge (zlatý popisek nahoře)" value={s.heroEyebrow} onChange={set("heroEyebrow")} />
+          <Row>
+            <Field label="Nadpis — řádek 1" value={s.heroTitleLine1} onChange={set("heroTitleLine1")} />
+            <Field label="Nadpis — řádek 2 (zlatý italic)" value={s.heroTitleLine2} onChange={set("heroTitleLine2")} />
+          </Row>
+          <Field label="Nadpis — řádek 3 (volitelné)" value={s.heroTitleLine3} onChange={set("heroTitleLine3")} />
+          <Textarea label="Podnadpis (delší popis pod nadpisem)" rows={3} value={s.heroSubtitle} onChange={set("heroSubtitle")} />
+          <Row>
+            <Field label="Hlavní tlačítko (text)" value={s.heroPrimaryCta} onChange={set("heroPrimaryCta")} />
+            <Field label="Vedlejší tlačítko (text)" value={s.heroSecondaryCta} onChange={set("heroSecondaryCta")} />
+          </Row>
+        </Section>
 
         {/* Statistiky */}
-        <div className={sectionCl}>
-          <h3 className={sectionTitleCl}>Statistiky a čísla</h3>
-          <p className="text-xs text-charcoal/50 -mt-2 mb-3">Zobrazené v Hero glass kartách a sekci recenzí.</p>
+        <Section title="Statistiky (čísla v glass kartách)">
+          <Row>
+            <Field label="Svateb organizovaných" value={s.statWeddings} onChange={set("statWeddings")} />
+            <Field label="Hodnocení" value={s.statRating} onChange={set("statRating")} />
+          </Row>
+          <Row>
+            <Field label="Počet míst" value={s.statVenues} onChange={set("statVenues")} />
+            <Field label="Let zkušeností" value={s.statYears} onChange={set("statYears")} />
+          </Row>
+        </Section>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div>
-              <label className={labelCl}>Svateb organizovaných</label>
-              <input className={inputCl} value={s.statWeddings} onChange={set("statWeddings")} placeholder="500+" />
-            </div>
-            <div>
-              <label className={labelCl}>Hodnocení</label>
-              <input className={inputCl} value={s.statRating} onChange={set("statRating")} placeholder="4,9 ★" />
-            </div>
-            <div>
-              <label className={labelCl}>Počet míst</label>
-              <input className={inputCl} value={s.statVenues} onChange={set("statVenues")} placeholder="200+" />
-            </div>
-            <div>
-              <label className={labelCl}>Let zkušeností</label>
-              <input className={inputCl} value={s.statYears} onChange={set("statYears")} placeholder="7" />
-            </div>
-          </div>
-        </div>
+        {/* PROCESS */}
+        <Section title={`Sekce „Jak to funguje"`}>
+          <Field label="Badge" value={s.processEyebrow} onChange={set("processEyebrow")} />
+          <Field label="Hlavní nadpis" value={s.processTitle} onChange={set("processTitle")} />
+          <Textarea label="Popis pod nadpisem" rows={2} value={s.processSubtitle} onChange={set("processSubtitle")} />
 
-        {/* Závěrečný citát */}
-        <div className={sectionCl}>
-          <h3 className={sectionTitleCl}>Závěrečný citát</h3>
-          <p className="text-xs text-charcoal/50 -mt-2 mb-3">Zobrazí se na konci sekce konzultace.</p>
+          <div className="bg-[#F9F2E6]/40 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold text-[#A88240] tracking-wider uppercase">Krok 1</p>
+            <Field label="Nadpis" value={s.process1Title} onChange={set("process1Title")} />
+            <Textarea label="Popis" rows={2} value={s.process1Desc} onChange={set("process1Desc")} />
+          </div>
+          <div className="bg-[#F9F2E6]/40 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold text-[#A88240] tracking-wider uppercase">Krok 2</p>
+            <Field label="Nadpis" value={s.process2Title} onChange={set("process2Title")} />
+            <Textarea label="Popis" rows={2} value={s.process2Desc} onChange={set("process2Desc")} />
+          </div>
+          <div className="bg-[#F9F2E6]/40 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold text-[#A88240] tracking-wider uppercase">Krok 3</p>
+            <Field label="Nadpis" value={s.process3Title} onChange={set("process3Title")} />
+            <Textarea label="Popis" rows={2} value={s.process3Desc} onChange={set("process3Desc")} />
+          </div>
+        </Section>
 
-          <div>
-            <label className={labelCl}>Citát</label>
-            <textarea className={`${inputCl} resize-none italic`} rows={3} value={s.closingQuote} onChange={set("closingQuote")} />
+        {/* CTA Sekce */}
+        <Section title={`Sekce „Pojďme začít psát váš příběh"`}>
+          <Field label="Badge" value={s.ctaEyebrow} onChange={set("ctaEyebrow")} />
+          <Field label="Hlavní nadpis" value={s.ctaTitle} onChange={set("ctaTitle")} />
+          <Textarea label="Popis pod nadpisem" rows={2} value={s.ctaSubtitle} onChange={set("ctaSubtitle")} />
+
+          <div className="bg-[#F9F2E6]/40 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold text-[#A88240] tracking-wider uppercase">Karta 1 — Online dotazník</p>
+            <Field label="Nadpis karty" value={s.card1Title} onChange={set("card1Title")} />
+            <Textarea label="Popis karty" rows={2} value={s.card1Description} onChange={set("card1Description")} />
           </div>
-          <div>
-            <label className={labelCl}>Podpis</label>
-            <input className={inputCl} value={s.closingSignature} onChange={set("closingSignature")} />
+          <div className="bg-[#F9F2E6]/40 rounded-xl p-4 space-y-3">
+            <p className="text-xs font-semibold text-[#A88240] tracking-wider uppercase">Karta 2 — Konzultace</p>
+            <Field label="Nadpis karty" value={s.card2Title} onChange={set("card2Title")} />
+            <Textarea label="Popis karty" rows={2} value={s.card2Description} onChange={set("card2Description")} />
           </div>
-        </div>
+        </Section>
+
+        {/* FAQ */}
+        <Section title="FAQ — Časté otázky">
+          {[1, 2, 3, 4, 5, 6].map((i) => {
+            const qKey = `faq${i}Q` as keyof SiteSettings
+            const aKey = `faq${i}A` as keyof SiteSettings
+            return (
+              <div key={i} className="bg-[#F9F2E6]/40 rounded-xl p-4 space-y-3">
+                <p className="text-xs font-semibold text-[#A88240] tracking-wider uppercase">Otázka {i}</p>
+                <Field label="Otázka" value={s[qKey] as string} onChange={set(qKey)} />
+                <Textarea label="Odpověď" rows={3} value={s[aKey] as string} onChange={set(aKey)} />
+              </div>
+            )
+          })}
+        </Section>
+
+        {/* Closing */}
+        <Section title="Závěrečný citát">
+          <Textarea label="Citát" rows={3} value={s.closingQuote} onChange={set("closingQuote")} />
+          <Field label="Podpis" value={s.closingSignature} onChange={set("closingSignature")} />
+        </Section>
+
+        {/* Footer */}
+        <Section title="Patička webu">
+          <Textarea label="Popis firmy v patičce" rows={3} value={s.footerDescription} onChange={set("footerDescription")} />
+        </Section>
 
         {/* Sociální sítě */}
-        <div className={sectionCl}>
-          <h3 className={sectionTitleCl}>Sociální sítě</h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className={labelCl}>Instagram URL</label>
-              <input className={inputCl} value={s.instagramUrl} onChange={set("instagramUrl")} placeholder="https://instagram.com/svatebnimista" />
-            </div>
-            <div>
-              <label className={labelCl}>Facebook URL</label>
-              <input className={inputCl} value={s.facebookUrl} onChange={set("facebookUrl")} placeholder="https://facebook.com/svatebnimista" />
-            </div>
-          </div>
-        </div>
+        <Section title="Sociální sítě">
+          <Row>
+            <Field label="Instagram URL" value={s.instagramUrl} onChange={set("instagramUrl")} placeholder="https://instagram.com/svatebnimista" />
+            <Field label="Facebook URL" value={s.facebookUrl} onChange={set("facebookUrl")} placeholder="https://facebook.com/svatebnimista" />
+          </Row>
+        </Section>
       </div>
 
-      {/* Sticky save bar */}
-      <div className="sticky bottom-4 mt-8 bg-white/90 backdrop-blur-md p-4 rounded-2xl border border-[#E8DDD0] shadow-lg flex items-center justify-between gap-4">
+      {/* Sticky save */}
+      <div className="sticky bottom-4 mt-8 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-[#E8DDD0] shadow-lg flex items-center justify-between gap-4 z-10">
         <div className="text-sm">
           {saved ? (
             <span className="flex items-center gap-2 text-green-600 font-medium">
-              <CheckCircle size={16} /> Uloženo!
+              <CheckCircle size={16} /> Uloženo! Změny jsou na webu.
             </span>
           ) : (
-            <span className="text-charcoal/60">Změny se uloží okamžitě po kliknutí.</span>
+            <span className="text-charcoal/60">Po kliknutí se vše uloží do databáze.</span>
           )}
         </div>
         <button
@@ -199,6 +182,51 @@ export default function AdminSettingsPage() {
           {saving ? "Ukládám…" : "Uložit změny"}
         </button>
       </div>
+    </div>
+  )
+}
+
+/* ─────────── KOMPONENTY ─────────── */
+
+function Section({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="bg-white border border-[#E8DDD0] rounded-2xl overflow-hidden">
+      <button onClick={() => setOpen(!open)} className="w-full px-6 py-5 flex items-center justify-between hover:bg-[#F9F2E6]/30 transition-colors">
+        <h3 className="font-serif text-lg font-medium text-[#3E2723] flex items-center gap-2">{title}</h3>
+        <ChevronDown size={18} className={`text-[#C9A96E] transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="px-6 pb-6 space-y-4 border-t border-[#E8DDD0]/50">{children}</div>}
+    </div>
+  )
+}
+
+function Row({ children }: { children: React.ReactNode }) {
+  return <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{children}</div>
+}
+
+function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; placeholder?: string }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-[#2C2C2C]/60 uppercase tracking-wider mb-1.5">{label}</label>
+      <input
+        type="text"
+        className="w-full bg-white border-2 border-[#E8DDD0] rounded-xl px-4 py-3 text-sm text-[#2C2C2C] focus:outline-none focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 transition"
+        value={value} onChange={onChange} placeholder={placeholder}
+      />
+    </div>
+  )
+}
+
+function Textarea({ label, value, onChange, rows = 2 }: { label: string; value: string; onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void; rows?: number }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-[#2C2C2C]/60 uppercase tracking-wider mb-1.5">{label}</label>
+      <textarea
+        rows={rows}
+        className="w-full bg-white border-2 border-[#E8DDD0] rounded-xl px-4 py-3 text-sm text-[#2C2C2C] focus:outline-none focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 transition resize-none"
+        value={value} onChange={onChange}
+      />
     </div>
   )
 }
