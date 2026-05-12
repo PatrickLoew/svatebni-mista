@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase"
 import { findBestMatches, type WizardAnswers, type Match } from "@/lib/matching"
 import { SAMPLE_VENUES } from "@/lib/sample-venues"
 import { validateEmail, validatePhone, validateName } from "@/lib/validation"
+import { evaluateWithClaude } from "@/lib/claude-ai"
 import type { Venue } from "@/lib/types"
 
 const MONTHS = ["", "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
@@ -52,12 +53,28 @@ export async function POST(req: Request) {
       venues = SAMPLE_VENUES
     }
 
-    // Matching — nikdy nepadne
+    // Matching — algoritmus
     let matches: Match[] = []
     try {
       matches = findBestMatches(venues, answers, 3)
     } catch (e) {
       console.error("Match error:", e)
+    }
+
+    // 🤖 CLAUDE AI: personalizované popisy
+    let claudeResult: Awaited<ReturnType<typeof evaluateWithClaude>> = null
+    if (matches.length > 0) {
+      try {
+        claudeResult = await evaluateWithClaude(answers, matches.map((m) => m.venue))
+        if (claudeResult) {
+          matches = matches.map((m) => {
+            const cm = claudeResult!.matches.find((x) => x.slug === m.venue.slug)
+            return cm ? { ...m, personalDescription: cm.personalDescription } : m
+          })
+        }
+      } catch (e) {
+        console.error("Claude error:", e)
+      }
     }
 
     // Uložení poptávky do DB
@@ -91,7 +108,7 @@ export async function POST(req: Request) {
           from: fromEmail,
           to: answers.email,
           subject: `Váš osobní návrh svatebních míst — ${answers.name.split(" ")[0]}`,
-          html: clientEmail(answers, matches),
+          html: clientEmail(answers, matches, claudeResult),
         })
 
         if (process.env.RESEND_TO_EMAIL) {
@@ -229,9 +246,16 @@ function buildCrossSells(a: WizardAnswers): string {
   return blocks.join("")
 }
 
-function clientEmail(a: WizardAnswers, matches: Match[]): string {
+function clientEmail(
+  a: WizardAnswers,
+  matches: Match[],
+  claude?: { personaSummary?: string; cashbackText?: string; signature?: string } | null
+): string {
   const firstName = a.name.split(" ")[0] || "milí novomanželé"
-  const personaSummary = buildPersonaSummary(a)
+  // Preferuj personalizovaný persona summary od Claude, fallback na algoritmus
+  const personaSummary = claude?.personaSummary || buildPersonaSummary(a)
+  const cashbackText = claude?.cashbackText || "Pokud si nakonec vyberete některé z míst, která jsme Vám doporučili, a dáte nám vědět, můžeme Vám u vybraných míst zajistit <strong>cashback ve výši 1 000 až 10 000 Kč</strong>."
+  const signature = claude?.signature || "Mějte se krásně"
   const crossSells = buildCrossSells(a)
 
   const venueBlocks = matches.map((m, i) => {
@@ -268,12 +292,12 @@ function clientEmail(a: WizardAnswers, matches: Match[]): string {
         <div style="margin-top:32px;padding:24px;background:linear-gradient(135deg,#3E2723,#1F1310);color:#fff;border-radius:12px;text-align:center">
           <p style="margin:0 0 8px;font-family:Georgia,serif;font-size:18px;color:#E8C98A">💰 Bonus pro Vás</p>
           <p style="margin:0;color:rgba(255,255,255,.85);font-size:14px;line-height:1.6">
-            Pokud si nakonec vyberete některé z míst, která jsme Vám doporučili, a dáte nám vědět, můžeme Vám u vybraných míst zajistit <strong>cashback ve výši 1 000 až 10 000 Kč</strong>.
+            ${cashbackText}
           </p>
         </div>
 
         <p style="margin:32px 0 8px;color:#444;line-height:1.7;font-size:15px">Budeme se těšit na Vaši zprávu.</p>
-        <p style="margin:0;color:#444;line-height:1.7;font-size:15px;font-style:italic">Mějte se krásně 🤍</p>
+        <p style="margin:0;color:#444;line-height:1.7;font-size:15px;font-style:italic">${signature} 🤍</p>
 
         <p style="margin:32px 0 0;padding-top:24px;border-top:1px solid #E8DDD0;color:#999;font-size:12px;text-align:center;line-height:1.6">
           Otázky? Napište na <a href="mailto:info@svatebnimista.cz" style="color:#C9A96E">info@svatebnimista.cz</a><br>
