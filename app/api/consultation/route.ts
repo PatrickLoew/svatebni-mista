@@ -99,7 +99,7 @@ export async function POST(req: Request) {
                   <tr><td><strong>Forma:</strong></td><td>${body.format}</td></tr>
                   <tr><td><strong>Kdy:</strong></td><td>${body.timing}</td></tr>
                 </table>
-                <p style="margin-top:20px;color:#999;font-size:13px">Otázky? Napište na <a href="mailto:info@svatebni-mista.cz" style="color:#C9A96E">info@svatebni-mista.cz</a></p>
+                <p style="margin-top:20px;color:#999;font-size:13px">Otázky? Napište na <a href="mailto:svatebnimista@svatebnimista.cz" style="color:#C9A96E">svatebnimista@svatebnimista.cz</a></p>
               </div>
               <div style="background:#1F1310;padding:20px;text-align:center;color:rgba(255,255,255,.4);font-size:11px">© Svatební Místa.cz</div>
             </div>

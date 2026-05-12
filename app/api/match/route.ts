@@ -300,7 +300,7 @@ function clientEmail(
         <p style="margin:0;color:#444;line-height:1.7;font-size:15px;font-style:italic">${signature} 🤍</p>
 
         <p style="margin:32px 0 0;padding-top:24px;border-top:1px solid #E8DDD0;color:#999;font-size:12px;text-align:center;line-height:1.6">
-          Otázky? Napište na <a href="mailto:info@svatebnimista.cz" style="color:#C9A96E">info@svatebnimista.cz</a><br>
+          Otázky? Napište na <a href="mailto:svatebnimista@svatebnimista.cz" style="color:#C9A96E">svatebnimista@svatebnimista.cz</a><br>
           nebo zavolejte na <a href="tel:+420123456789" style="color:#C9A96E">+420 123 456 789</a>
         </p>
       </div>

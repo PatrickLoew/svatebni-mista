@@ -167,7 +167,7 @@ export default function ConsultationCTA() {
 
             {/* E-mail */}
             <a
-              href="mailto:info@svatebnimista.cz"
+              href="mailto:svatebnimista@svatebnimista.cz"
               className="group flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border-2 border-white/20 hover:border-white/40 rounded-2xl px-7 py-5 transition-all"
             >
               <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -175,7 +175,7 @@ export default function ConsultationCTA() {
               </div>
               <div className="text-left">
                 <div className="text-white/60 text-[10px] font-semibold tracking-[.2em] uppercase mb-0.5">Napište nám</div>
-                <div className="font-serif text-base sm:text-lg text-white">info@svatebnimista.cz</div>
+                <div className="font-serif text-base sm:text-lg text-white">svatebnimista@svatebnimista.cz</div>
               </div>
             </a>
           </div>

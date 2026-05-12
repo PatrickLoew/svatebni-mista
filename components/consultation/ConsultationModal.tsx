@@ -17,7 +17,7 @@ interface Props {
 
 const DEFAULT_PHONE = "+420 123 456 789"
 const DEFAULT_WHATSAPP = "+420123456789"
-const DEFAULT_EMAIL = "info@svatebnimista.cz"
+const DEFAULT_EMAIL = "svatebnimista@svatebnimista.cz"
 
 const WHATSAPP_MESSAGE = "Dobrý den, mám zájem o nezávaznou konzultaci ke svatbě. Můžeme se domluvit?"
 

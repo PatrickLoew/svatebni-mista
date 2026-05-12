@@ -66,7 +66,7 @@ export interface SiteSettings {
 export const DEFAULT_SETTINGS: SiteSettings = {
   phone: "+420 123 456 789",
   whatsapp: "+420123456789",
-  email: "info@svatebnimista.cz",
+  email: "svatebnimista@svatebnimista.cz",
   hours: "Po–Pá, 9:00 – 18:00",
   address: "Praha 1, Česká republika",
 

@@ -53,7 +53,7 @@ export default function AdminSettingsPage() {
             <Field label="WhatsApp (bez mezer)" value={s.whatsapp} onChange={set("whatsapp")} placeholder="+420722123456" />
           </Row>
           <Row>
-            <Field label="E-mail" value={s.email} onChange={set("email")} placeholder="info@svatebnimista.cz" />
+            <Field label="E-mail" value={s.email} onChange={set("email")} placeholder="svatebnimista@svatebnimista.cz" />
             <Field label="Otevírací doba" value={s.hours} onChange={set("hours")} />
           </Row>
           <Field label="Adresa" value={s.address} onChange={set("address")} />

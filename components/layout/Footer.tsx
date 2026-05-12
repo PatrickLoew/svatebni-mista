@@ -84,7 +84,7 @@ export default function Footer() {
             {[
               { icon: InstagramIcon, href: "#", label: "Instagram" },
               { icon: FacebookIcon, href: "#", label: "Facebook" },
-              { icon: Mail, href: "mailto:info@svatebni-mista.cz", label: "E-mail" },
+              { icon: Mail, href: "mailto:svatebnimista@svatebnimista.cz", label: "E-mail" },
             ].map((s) => (
               <a
                 key={s.label}
@@ -122,8 +122,8 @@ export default function Footer() {
           <ul className="space-y-3 text-sm font-light">
             <li className="flex items-start gap-2">
               <Mail size={14} className="mt-0.5 text-[#C9A96E] flex-shrink-0" />
-              <a href="mailto:info@svatebni-mista.cz" className="hover:text-[#E8C98A] transition-colors">
-                info@svatebni-mista.cz
+              <a href="mailto:svatebnimista@svatebnimista.cz" className="hover:text-[#E8C98A] transition-colors">
+                svatebnimista@svatebnimista.cz
               </a>
             </li>
             <li className="flex items-start gap-2">
