@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react"
 import { formatDate, INQUIRY_STATUSES } from "@/lib/utils"
 import type { Inquiry } from "@/lib/types"
-import { Trash2 } from "lucide-react"
+import { Trash2, ChevronDown, Mail, Phone } from "lucide-react"
 
 export default function AdminInquiriesPage() {
   const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>("all")
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch("/api/inquiries").then((r) => r.json()).then(setInquiries).finally(() => setLoading(false))
@@ -74,45 +75,81 @@ export default function AdminInquiriesPage() {
           {filtered.map((inq) => {
             const statusInfo = INQUIRY_STATUSES[inq.status]
             return (
-              <div key={inq.id} className="bg-white rounded-2xl border border-[#E8DDD0] p-5">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-semibold text-charcoal">{inq.name}</span>
-                      <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusInfo.color}`}>
-                        {statusInfo.label}
-                      </span>
-                    </div>
-                    <div className="text-sm text-charcoal/60 space-y-0.5">
-                      <div>{inq.email} · {inq.phone}</div>
-                      <div>
-                        <strong className="text-charcoal/80">Místo:</strong> {inq.venueName} ·{" "}
-                        <strong className="text-charcoal/80">Datum:</strong> {inq.weddingDate} ·{" "}
-                        <strong className="text-charcoal/80">Hostů:</strong> {inq.guests}
+              <div key={inq.id} className="bg-white rounded-2xl border border-[#E8DDD0] overflow-hidden">
+                <div className="p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <span className="font-semibold text-charcoal text-base">{inq.name}</span>
+                        <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${statusInfo.color}`}>
+                          {statusInfo.label}
+                        </span>
+                        {inq.message?.includes("[KONZULTACE]") && (
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#C9A96E]/15 text-[#A88240]">
+                            Konzultace
+                          </span>
+                        )}
                       </div>
-                      {inq.message && <div className="text-charcoal/50 italic truncate max-w-lg">"{inq.message}"</div>}
+                      <div className="text-sm text-charcoal/70 space-y-1">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <a href={`mailto:${inq.email}`} className="flex items-center gap-1 hover:text-[#C9A96E]">
+                            <Mail size={13} /> {inq.email}
+                          </a>
+                          {inq.phone && inq.phone !== "—" && (
+                            <a href={`tel:${inq.phone}`} className="flex items-center gap-1 hover:text-[#C9A96E]">
+                              <Phone size={13} /> {inq.phone}
+                            </a>
+                          )}
+                        </div>
+                        <div className="text-xs">
+                          {inq.weddingDate && <><strong>Termín:</strong> {inq.weddingDate} · </>}
+                          {inq.guests > 0 && <><strong>Hostů:</strong> {inq.guests}</>}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <select
+                        value={inq.status}
+                        onChange={(e) => changeStatus(inq.id, e.target.value)}
+                        className="text-sm border border-[#E8DDD0] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#C9A96E] bg-white"
+                      >
+                        {Object.entries(INQUIRY_STATUSES).map(([k, v]) => (
+                          <option key={k} value={k}>{v.label}</option>
+                        ))}
+                      </select>
+                      <button onClick={() => remove(inq.id)}
+                        className="p-2 text-charcoal/40 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                        <Trash2 size={15} />
+                      </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <select
-                      value={inq.status}
-                      onChange={(e) => changeStatus(inq.id, e.target.value)}
-                      className="text-sm border border-[#E8DDD0] rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#C9A96E] bg-white"
+                  {/* Toggle detail */}
+                  {inq.message && (
+                    <button
+                      onClick={() => setExpandedId(expandedId === inq.id ? null : inq.id)}
+                      className="mt-3 flex items-center gap-1 text-xs text-[#C9A96E] hover:text-[#A88240] font-medium"
                     >
-                      {Object.entries(INQUIRY_STATUSES).map(([k, v]) => (
-                        <option key={k} value={k}>{v.label}</option>
-                      ))}
-                    </select>
-                    <button onClick={() => remove(inq.id)}
-                      className="p-2 text-charcoal/40 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                      <Trash2 size={15} />
+                      <ChevronDown size={14} className={`transition-transform ${expandedId === inq.id ? "rotate-180" : ""}`} />
+                      {expandedId === inq.id ? "Skrýt detail" : "Zobrazit detail (odpovědi wizardu)"}
                     </button>
+                  )}
+
+                  <div className="mt-3 pt-3 border-t border-[#E8DDD0] text-xs text-charcoal/40">
+                    Přijato: {formatDate(inq.createdAt)}
                   </div>
                 </div>
-                <div className="mt-3 pt-3 border-t border-[#E8DDD0] text-xs text-charcoal/40">
-                  Přijato: {formatDate(inq.createdAt)}
-                </div>
+
+                {/* Detail rozbalený */}
+                {expandedId === inq.id && inq.message && (
+                  <div className="bg-[#F9F2E6]/40 border-t border-[#E8DDD0] p-5">
+                    <p className="text-xs font-semibold text-[#A88240] tracking-wider uppercase mb-3">
+                      Detail poptávky (odpovědi z wizardu)
+                    </p>
+                    <pre className="whitespace-pre-wrap text-sm text-charcoal/80 font-sans leading-relaxed">{inq.message}</pre>
+                  </div>
+                )}
               </div>
             )
           })}

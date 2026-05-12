@@ -210,7 +210,7 @@ function RadioGrid<T extends string | number>({
             type="button"
             onClick={() => onChange(o.id)}
             className={`text-left px-4 py-3.5 rounded-xl border-2 transition-all ${
-              on ? "bg-[#3E2723] text-white border-[#3E2723]" : "bg-white text-[#2C2C2C] border-[#E8DDD0] hover:border-[#C9A96E]"
+              on ? "bg-[#C9A96E] text-white border-[#C9A96E] shadow-md" : "bg-white text-[#2C2C2C] border-[#E8DDD0] hover:border-[#C9A96E]"
             }`}
           >
             <div className="font-medium text-sm">{o.label}</div>
@@ -838,12 +838,6 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
             transition={{ delay: i * 0.15 }}
             className="relative"
           >
-            {m.venue.isFeatured && (
-              <div className="absolute -top-3 left-3 z-10 bg-gradient-to-r from-[#A88240] via-[#C9A96E] to-[#E8C98A] text-white text-[10px] font-bold tracking-wider px-3 py-1 rounded-full shadow-lg flex items-center gap-1">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.4 5.8 22l2.4-8.1L2 9.4h7.6z"/></svg>
-                DOPORUČUJEME
-              </div>
-            )}
             <VenueCard venue={m.venue} index={i} />
             {m.personalDescription && (
               <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
