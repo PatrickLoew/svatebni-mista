@@ -279,6 +279,58 @@ export async function POST(req: Request) {
           matches.push({ ...m, bucket: "alternative" })
         }
       }
+
+      // ===== PRAVIDLO REPREZENTACE KRAJŮ =====
+      // Pokud klient zadal víc krajů, KAŽDÝ kraj musí mít aspoň 1 místo v doporučení.
+      // Pokud nějaký kraj chybí, nahradíme nejhorší alternativu místem z chybějícího kraje.
+      if (answers.regions.length >= 2) {
+        const representedRegions = new Set(matches.map((m) => m.venue.region))
+        const missingRegions = answers.regions.filter((r) => !representedRegions.has(r))
+
+        for (const missing of missingRegions) {
+          // Najdi nejlepší místo z chybějícího kraje (priorita: VIP → splňuje MUST-HAVE → ostatní)
+          const used = new Set(matches.map((m) => m.venue.slug))
+          const candidates = venues
+            .filter((v) => v.region === missing && !used.has(v.slug))
+            .sort((a, b) => {
+              // VIP první
+              if (a.isFeatured && !b.isFeatured) return -1
+              if (!a.isFeatured && b.isFeatured) return 1
+              // Validní MUST-HAVE preferujeme
+              const aOk = validateVenue(a).ok
+              const bOk = validateVenue(b).ok
+              if (aOk && !bOk) return -1
+              if (!aOk && bOk) return 1
+              return 0
+            })
+
+          if (candidates.length === 0) continue
+
+          const chosen = candidates[0]
+          const validation = validateVenue(chosen)
+
+          // Nahraď nejhorší alternativu (poslední) nebo přidej, pokud máme < 5
+          const newMatch: Match = {
+            venue: chosen,
+            score: 0,
+            reasons: [],
+            warnings: [],
+            personalDescription: chosen.isFeatured
+              ? `Doporučujeme z naší VIP sekce v kraji ${missing}.${validation.ok ? "" : ` Pozor: ${validation.reason}.`}`
+              : `Z kraje ${missing} doporučujeme toto místo.${validation.ok ? "" : ` Pozor: ${validation.reason}.`}`,
+            bucket: "alternative",
+          }
+
+          // Nahraď nejhorší alternativu (poslední non-primary), nebo přidej pokud < 5
+          const lastAltIdx = matches.map((m) => m.bucket).lastIndexOf("alternative")
+          if (matches.length >= 5 && lastAltIdx >= 0) {
+            matches[lastAltIdx] = newMatch
+          } else if (matches.length < 5) {
+            matches.push(newMatch)
+          }
+          console.log(`[match] Doplněno místo z chybějícího kraje ${missing}: ${chosen.title}`)
+        }
+      }
     } else {
       // FALLBACK — Claude selhal, použij algoritmus
       console.log("[match] Claude selhal, používám algoritmus jako fallback")
