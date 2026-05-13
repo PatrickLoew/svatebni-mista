@@ -67,6 +67,20 @@ const normStr = (s: string) =>
  * 2) Pokud N je "ověřit detail" nebo prázdný, fallback na M (volný text)
  * 3) M má desítky variant — hledáme klíčová slova
  */
+/**
+ * Pokročilé mapování cateringu.
+ * Volá se s kombinací: pokud N je "ověřit detail", použij text z M.
+ */
+function mapCateringSmart(rawM: string, rawN: string): string {
+  const norm = rawN.toLowerCase().trim()
+  // Pokud N je jasný, použij N
+  if (norm === "povinný interní catering/pití") return "only_venue"
+  if (norm === "vlastní jídlo/pití bez poplatků") return "own_free"
+  if (norm === "dle domluvy") return "negotiable"
+  // Pokud N je "ověřit detail" → použij M (volný text)
+  return mapCatering(rawM || rawN)
+}
+
 function mapCatering(s: string): string {
   if (!s) return "negotiable"
   const t = s.toLowerCase().trim()
@@ -109,14 +123,18 @@ function mapCatering(s: string): string {
 
   // "Snoubenci můžou mít vlastní pití" / "Vlastní pití snoubenců bez poplatků"
   // "snoubenci mohou mít vlastní pití bez příplatku"
-  // "Pití je volne"
+  // "Pití je volne" / "Pití od nás, catering mohou mít vlastní"
+  // "Catering a nápoje od nás, tvrdý alkohol může být vlastní bez korkovného"
+  // "Jídlo a nealko od nás, alkohol vlastní" → catering povinný, ale alkohol vlastní → own_drinks_free
+  // "snoubenci mohou mít vlastní dort a vlastní alkohol, za kolkovné" → negotiable (s poplatkem)
   if (
     (t.includes("můžou mít vlastní pití") || t.includes("muzou mit vlastni piti")) ||
     (t.includes("mohou mít vlastní pití") || t.includes("mohou mit vlastni piti")) ||
     (t.includes("vlastní pití") && t.includes("bez poplatk")) ||
     t.includes("pití je volne") || t.includes("piti je volne") ||
-    (t.includes("vlastní pití") && !t.includes("jídlo")) ||
-    (t.includes("alkohol") && t.includes("vlastní") && !t.includes("jídlo"))
+    (t.includes("alkohol") && t.includes("vlastní") && t.includes("bez korkovn")) ||
+    (t.includes("alkohol vlastní") && (t.includes("od nás") || t.includes("od nas"))) ||
+    (t.includes("vlastní pití") && !t.includes("jídlo") && !t.includes("korkovn") && !t.includes("poplatek"))
   ) return "own_drinks_free"
 
   // Komplexnější fráze — částečné povolení vlastního ale s poplatkem/korkovným
@@ -147,11 +165,19 @@ function mapCatering(s: string): string {
 }
 
 /**
+ * Smart wrapper: pokud P je "ověřit detail" / "nevyplněno", použij text z O.
+ */
+function mapPartySmart(rawO: string, rawP: string): string {
+  const norm = rawP.toLowerCase().trim()
+  if (norm === "po 22:00 s přesunem dovnitř") return "indoor_after_22"
+  if (norm === "bez nočního limitu / neruší okolí") return "no_curfew"
+  if (norm === "možné po 22:00 dle podmínek") return "indoor_after_22"
+  // "ověřit detail", "nevyplněno", nebo cokoliv jiného → použij O text
+  return mapParty(rawO || rawP)
+}
+
+/**
  * Mapování party — pokrývá VŠECHNY formulace v Mončině sheetu.
- *
- * Sloupec P (normalizace) má 5 přesných hodnot:
- *   "po 22:00 s přesunem dovnitř" / "bez nočního limitu / neruší okolí"
- *   / "možné po 22:00 dle podmínek" / "nevyplněno" / "ověřit detail"
  */
 function mapParty(s: string): string {
   if (!s) return "negotiable"
@@ -211,19 +237,44 @@ function mapParty(s: string): string {
     t.includes("v rozumné míře")
   ) return "indoor_after_22"
 
+  // "Do půlnoci" / "do 00:00" / "Hudba do 00:00" → indoor_after_22 (de facto)
+  if (
+    t === "do půlnoci" || t === "do pulnoci" ||
+    t.includes("hudba do 00") ||
+    t.includes("hudba do 24") ||
+    t.includes("do 00:00") ||
+    (t.includes("párty") && t.includes("pokračovat"))
+  ) return "indoor_after_22"
+
+  // "party možná do 02:00" / "do 2:00" / "do rána / až do rána" → no_curfew
+  if (
+    t.includes("možná do 02") ||
+    t.includes("mozna do 02") ||
+    t.includes("do 2:00") ||
+    t.includes("do 02:00") ||
+    t.includes("možná až do rána") ||
+    t.includes("dle domluvy") && t.includes("rána") ||
+    t.includes("hudba se může pouštět do 2") ||
+    (t.includes("víkendu") && t.includes("do 2:00"))
+  ) return "no_curfew"
+
+  // "Většinou do 22:00, pak třeba stlumit prostředí" → indoor_after_22
+  // (klient může pokračovat, ale ztlumeně)
+  if (
+    t.includes("většinou do 22") && (t.includes("stlumit") || t.includes("ztlumit") || t.includes("pak")) ||
+    t.includes("oficiálně zavíráme") && t.includes("většinou") ||
+    t.includes("party max do 23")
+  ) return "indoor_after_22"
+
   // Noční klid platí — party končí v 22:00, žádné výjimky
-  // "Party max do 22.00" / "Party max do 23h"
-  // "Bohužel není možné na zámku Jemniště pořádat večerní party"
+  // "Party max do 22.00" / "Bohužel není možné na zámku Jemniště pořádat večerní party"
   if (
     t.includes("max do 22") ||
     t.includes("party max do 22") ||
-    t.includes("party max do 23") ||
-    t.includes("party do 22") ||
+    t.includes("party do 22") && !t.includes("po 22") ||
     t === "do 22" ||
     t.includes("není možné") ||
-    t.includes("neni mozne") ||
-    (t.includes("většinou do 22") && !t.includes("pak")) ||
-    t.includes("oficiálně zavíráme")
+    t.includes("neni mozne")
   ) return "quiet_hours"
 
   // Dle domluvy → negotiable
@@ -435,8 +486,8 @@ async function main() {
     }
 
     const accommodation = parseAccommodation(s.accommodation)
-    const catering = mapCatering(s.cateringNorm || s.catering)
-    const party = mapParty(s.partyNorm || s.party)
+    const catering = mapCateringSmart(s.catering, s.cateringNorm)
+    const party = mapPartySmart(s.party, s.partyNorm)
     const features = parseFeatures(s.features, "", s.archType)
 
     const updates: Record<string, unknown> = {}
