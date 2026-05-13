@@ -44,6 +44,7 @@ export default function Wizard() {
   const [step, setStep] = useState(0)
   const [a, setA] = useState<WizardAnswers>(empty)
   const [loading, setLoading] = useState(false)
+  const [isFinalizing, setIsFinalizing] = useState(false)
   const [done, setDone] = useState<{ matches: Match[] } | null>(null)
   const [error, setError] = useState("")
 
@@ -70,11 +71,14 @@ export default function Wizard() {
 
   async function submit() {
     setLoading(true)
+    setIsFinalizing(false)
     setError("")
-    // Minimální doba loadingu — aby klient stihl přečíst všechny zprávy
-    // a viděl celou animaci spojení prstýnků.
-    // 6 zpráv × 2.5s = 15s; ale uděláme 13s aby měl klient pocit rychlosti.
-    const minWait = new Promise<void>((r) => setTimeout(r, 13000))
+    // Minimální doba pro storytelling — klient stihne přečíst zprávy
+    // (čtyři zprávy × ~1.8s = 7s minimum)
+    const minStoryTime = new Promise<void>((r) => setTimeout(r, 7000))
+    // Doba animace spojení prstýnků (po dokončení API)
+    const finalAnimationMs = 2500
+
     try {
       const apiCall = fetch("/api/match", {
         method: "POST",
@@ -87,19 +91,25 @@ export default function Wizard() {
           return { matches: [] }
         }
       })
-      const [json] = await Promise.all([apiCall, minWait])
-      // I když selže API, zobraz success — analýzu pošleme ručně z poptávky
+      const [json] = await Promise.all([apiCall, minStoryTime])
+
+      // API + minimální čas hotov → spustit finální animaci spojení
+      setIsFinalizing(true)
+      await new Promise<void>((r) => setTimeout(r, finalAnimationMs))
+
       setDone({ matches: json?.matches ?? [] })
     } catch {
-      // I při technické chybě zobraz success — poptávka je uložená v DB
-      await minWait
+      await minStoryTime
+      setIsFinalizing(true)
+      await new Promise<void>((r) => setTimeout(r, finalAnimationMs))
       setDone({ matches: [] })
     } finally {
       setLoading(false)
+      setIsFinalizing(false)
     }
   }
 
-  if (loading) return <WizardLoading name={a.name} />
+  if (loading) return <WizardLoading name={a.name} isFinalizing={isFinalizing} />
   if (done) {
     // Když máme výsledky, zobraz je (pro testování + transparentnost klientovi)
     if (done.matches.length > 0) {
