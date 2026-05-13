@@ -47,6 +47,23 @@ const FIXES: FixRule[] = [
   { titleMatch: "varvažov", region: "Ústecký", nearestCity: "Praha" },
   { titleMatch: "varvazov", region: "Ústecký", nearestCity: "Praha" },
   { titleMatch: "stará pošta", region: "Ústecký", nearestCity: "Praha" },
+
+  // Smrčiny — Želiv 91 (Pelhřimov, Vysočina), AI to dala Jihočeský
+  { titleMatch: "smrčiny", region: "Vysočina", nearestCity: "Brno" },
+  { titleMatch: "smrciny", region: "Vysočina", nearestCity: "Brno" },
+
+  // Bouda Karlovka — Královéhradecký kraj (Krkonoše), AI to dala Liberecký
+  { titleMatch: "karlovka", region: "Královéhradecký", nearestCity: "Hradec Králové" },
+
+  // Ranč Telč — Telč je na Vysočině (okres Jihlava), ne Jihočeský!
+  { titleMatch: "ranč telč", region: "Vysočina", nearestCity: "Brno" },
+  { titleMatch: "ranc telc", region: "Vysočina", nearestCity: "Brno" },
+
+  // U CERHŮ Kněžmost — okres Mladá Boleslav, Středočeský kraj!
+  { titleMatch: "cerhů", region: "Středočeský", nearestCity: "Praha" },
+  { titleMatch: "cerhu", region: "Středočeský", nearestCity: "Praha" },
+  { titleMatch: "kněžmost", region: "Středočeský", nearestCity: "Praha" },
+  { titleMatch: "knezmost", region: "Středočeský", nearestCity: "Praha" },
 ]
 
 async function main() {
