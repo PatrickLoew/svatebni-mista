@@ -82,15 +82,42 @@ const REGION_MAP: Record<string, string> = {
   "Beskydy": "Moravskoslezský", "Praha": "Praha", "Slovensko": "Slovensko",
 }
 
-function normalizeType(t: string): string {
-  const s = t.toLowerCase()
-  if (s.includes("zámek") || s.includes("zámeč") || s.includes("hrad")) return "Zámek"
-  if (s.includes("hotel")) return "Hotel"
-  if (s.includes("víno") || s.includes("vinař") || s.includes("sklep") || s.includes("sklíp")) return "Vinný sklep"
-  if (s.includes("mlýn") || s.includes("stodola") || s.includes("statek") || s.includes("dvůr")) return "Venkovský statek"
-  if (s.includes("industriál") || s.includes("loft")) return "Moderní prostor"
-  if (s.includes("příroda") || s.includes("louka") || s.includes("les") || s.includes("u vody") || s.includes("samot")) return "Pláž / Příroda"
-  if (s.includes("klášter") || s.includes("fara") || s.includes("histor")) return "Historická budova"
+/**
+ * Vícezdrojová detekce typu: bere v potaz archType (sloupec) + název místa + popis (features).
+ * Důvod: někdy je v archType "Hotelový styl", ale název je "zámek Wichterle" → správně Zámek.
+ */
+function normalizeType(archType: string, title = "", features = ""): string {
+  // Kombinujeme všechny zdroje pro lepší detekci
+  const s = `${archType} ${title} ${features}`.toLowerCase()
+
+  // Zámek / hrad — priorita podle názvu
+  if (s.includes("zámek") || s.includes("zámeč") || s.includes("zameck") || s.includes("hrad") || s.includes("château") || s.includes("chateau")) {
+    return "Zámek"
+  }
+  // Vinný sklep
+  if (s.includes("víno") || s.includes("vinař") || s.includes("vinné sklep") || s.includes("sklep") || s.includes("sklíp")) {
+    return "Vinný sklep"
+  }
+  // Hotel — pouze pokud není zámek
+  if (s.includes("hotel") || s.includes("resort") || s.includes("penzion")) {
+    return "Hotel"
+  }
+  // Statek / mlýn / stodola
+  if (s.includes("mlýn") || s.includes("mlejn") || s.includes("stodola") || s.includes("statek") || s.includes("dvůr") || s.includes("ranč") || s.includes("ranch") || s.includes("farma")) {
+    return "Venkovský statek"
+  }
+  // Industriál / loft
+  if (s.includes("industriál") || s.includes("industrial") || s.includes("loft") || s.includes("hala") || s.includes("továrn")) {
+    return "Moderní prostor"
+  }
+  // Příroda
+  if (s.includes("příroda") || s.includes("priroda") || s.includes("louka") || s.includes("les") || s.includes("u vody") || s.includes("samot") || s.includes("pláž") || s.includes("plaz") || s.includes("rybník")) {
+    return "Pláž / Příroda"
+  }
+  // Historická budova
+  if (s.includes("klášter") || s.includes("klaster") || s.includes("fara") || s.includes("histor") || s.includes("tvrz") || s.includes("vila") || s.includes("villa")) {
+    return "Historická budova"
+  }
   return "Historická budova"
 }
 
@@ -207,15 +234,41 @@ function mapParty(s: string): string {
 }
 function mapNearestCity(t: string): string | null {
   const s = t.toLowerCase()
-  if (s.includes("praha")) return "Praha"
+  if (s.includes("praha") || s.includes("prague")) return "Praha"
   if (s.includes("brno")) return "Brno"
-  if (s.includes("budějovic")) return "České Budějovice"
+  if (s.includes("budějovic") || s.includes("budejovic")) return "České Budějovice"
   if (s.includes("plzn") || s.includes("plzeň")) return "Plzeň"
   if (s.includes("hradec")) return "Hradec Králové"
   if (s.includes("ostrav")) return "Ostrava"
   if (s.includes("olomouc")) return "Olomouc"
   if (s.includes("liberec")) return "Liberec"
   return null
+}
+
+/**
+ * Pokud `nearest_city` chybí, odvoď nejbližší velké město z kraje.
+ * To je důležité pro vyhodnocení "do 90 min od X" — bez tohoto AI neví,
+ * jak je místo daleko od Ostravy/Brna/Prahy.
+ */
+function inferNearestCity(region: string, explicitCity: string | null): string | null {
+  if (explicitCity) return explicitCity
+  const regionToCity: Record<string, string> = {
+    "Praha": "Praha",
+    "Středočeský": "Praha",
+    "Ústecký": "Praha",          // jih kraje blíž Praze, sever Liberec
+    "Liberecký": "Liberec",
+    "Královéhradecký": "Hradec Králové",
+    "Pardubický": "Hradec Králové",
+    "Plzeňský": "Plzeň",
+    "Karlovarský": "Plzeň",
+    "Jihočeský": "České Budějovice",
+    "Vysočina": "Brno",
+    "Jihomoravský": "Brno",
+    "Zlínský": "Ostrava",         // ale je tu i Brno blízko
+    "Olomoucký": "Olomouc",
+    "Moravskoslezský": "Ostrava",
+  }
+  return regionToCity[region] ?? null
 }
 function parsePrice(s: string): number {
   if (!s) return 0
@@ -374,7 +427,7 @@ async function main() {
     seenSlugs.add(slug)
 
     const region = REGION_MAP[v.region.trim()] ?? "Středočeský"
-    const type = normalizeType(v.archType)
+    const type = normalizeType(v.archType, v.title, v.features)
     const cateringPolicy = mapCatering(v.cateringNorm || v.catering)
     const nightPartyPolicy = mapParty(v.partyNorm || v.party)
     const isVip = isVipTitle(v.title)
@@ -402,7 +455,7 @@ async function main() {
       is_featured: isVip,
       website_url: v.web || null,
       contact_email: v.email.trim() || null,
-      nearest_city: mapNearestCity(v.nearCity),
+      nearest_city: inferNearestCity(region, mapNearestCity(v.nearCity)),
       accommodation_capacity: 0,
       catering_policy: cateringPolicy,
       night_party_policy: nightPartyPolicy,

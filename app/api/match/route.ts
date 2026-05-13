@@ -5,6 +5,7 @@ import { SAMPLE_VENUES } from "@/lib/sample-venues"
 import { validateEmail, validatePhone, validateName } from "@/lib/validation"
 import { evaluateWithClaude } from "@/lib/claude-ai"
 import { toCzechVocative } from "@/lib/czech-vocative"
+import { isRegionWithin90Min, getAcceptableRegions } from "@/lib/geography"
 import type { Venue } from "@/lib/types"
 
 const MONTHS = ["", "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
@@ -92,9 +93,18 @@ export async function POST(req: Request) {
         if (answers.rentalBudget > 0 && v.priceFrom > answers.rentalBudget * 1.20) {
           return { ok: false, reason: `pronájem ${v.priceFrom.toLocaleString("cs-CZ")} Kč přesahuje rozpočet ${answers.rentalBudget.toLocaleString("cs-CZ")} Kč o víc než 20 %` }
         }
-        // Lokalita: pokud klient zadal kraj, musí sedět
-        if (answers.regions.length > 0 && !answers.regions.includes(v.region)) {
-          return { ok: false, reason: `není v preferovaném kraji (${v.region} ≠ ${answers.regions.join("/")})` }
+        // Lokalita: pokud klient zadal kraje → musí být v některém Z NICH nebo do 90 min od preferovaného města
+        if (answers.regions.length > 0) {
+          const inPreferredRegion = answers.regions.includes(v.region)
+          const closeToCity = isRegionWithin90Min(v.region, answers.nearestCity)
+          if (!inPreferredRegion && !closeToCity) {
+            return { ok: false, reason: `není v preferovaném kraji ani v dojezdové vzdálenosti od ${answers.nearestCity}` }
+          }
+        } else if (answers.nearestCity && answers.nearestCity !== "jedno") {
+          // Jen město → ověř že kraj je v dosahu
+          if (!isRegionWithin90Min(v.region, answers.nearestCity)) {
+            return { ok: false, reason: `${v.region} kraj je víc než 90 min od ${answers.nearestCity}` }
+          }
         }
         // CATERING: klient chce vlastní catering → místo NESMÍ být "only_venue"
         if (answers.catering === "vlastni-vse") {
@@ -130,24 +140,20 @@ export async function POST(req: Request) {
           // Klient sám chce do 22 — vše OK, žádný konflikt
         }
 
-        // UBYTOVÁNÍ: tvrdé kontroly
-        if (answers.accommodation === "primo") {
-          // Klient chce ubytování přímo na místě
-          if ((v.accommodationCapacity ?? 0) === 0) {
-            return { ok: false, reason: `místo nemá ubytování přímo na místě, ale klient ho vyžaduje` }
-          }
-          // Pro min 40 % hostů (kdyby chtěl většinu hostů ubytovat) — měkčí kontrola
-          if ((v.accommodationCapacity ?? 0) < answers.guests * 0.4) {
-            return {
-              ok: false,
-              reason: `ubytování na místě má kapacitu jen ${v.accommodationCapacity} lůžek pro ${answers.guests} hostů (méně než 40 %)`,
-            }
-          }
-        }
+        // UBYTOVÁNÍ: měkká kontrola (kapacita v DB často chybí — accommodation_capacity = 0 u většiny)
+        // Pokud DB nemá ubytování vyplněné, NEVYLUČUJEME místo — bylo by to plošně.
+        // Tvrdá kontrola až když máme data: aspoň 50 % VIP s capacity > 0.
+        // Tuto kontrolu zatím vypínáme, dokud sync neopraví data.
+        // if (answers.accommodation === "primo" && (v.accommodationCapacity ?? 0) === 0) {
+        //   return { ok: false, reason: `místo nemá ubytování přímo na místě` }
+        // }
 
-        // ARCHITEKTONICKÝ TYP: pokud klient vybral konkrétní typy (mimo "jedno"), místo by mělo sedět
+        // ARCHITEKTONICKÝ TYP: měkká kontrola — typ je preference, ne tvrdé pravidlo.
+        // Místo se přesune do alternativ (ne vyloučí), takže klient pořád dostane 5 nabídek.
+        // Tvrdá kontrola jen pokud klient zaškrtnul výhradně 1 specifický typ (Zámek/Hotel apod.)
         const archTypes = (answers.archTypes ?? []).filter((t) => t !== "jedno")
-        if (archTypes.length > 0) {
+        if (archTypes.length === 1 && ["zamek", "hrad", "hotelovy"].includes(archTypes[0])) {
+          // Klient výhradně chce 1 specifický typ → musí sedět
           const typeMap: Record<string, string[]> = {
             priroda: ["Pláž / Příroda", "Zahrada"],
             unikat: ["Moderní prostor", "Historická budova"],
@@ -157,11 +163,10 @@ export async function POST(req: Request) {
             hrad: ["Zámek", "Historická budova"],
             zamek: ["Zámek"],
           }
-          const matchesType = archTypes.some((t) => typeMap[t]?.includes(v.type))
-          if (!matchesType) {
+          if (!typeMap[archTypes[0]]?.includes(v.type)) {
             return {
               ok: false,
-              reason: `typ "${v.type}" neodpovídá vybraným preferencím (${archTypes.join(", ")})`,
+              reason: `typ "${v.type}" neodpovídá preferenci klienta (chce výhradně ${archTypes[0]})`,
             }
           }
         }
@@ -204,55 +209,71 @@ export async function POST(req: Request) {
         }, alternativy: ${matches.filter((m) => m.bucket === "alternative").length}, přesunuto kvůli validaci: ${rejectedFromPrimary.length})`,
       )
 
-      // Doplnění primary, pokud po validaci je primary < 3: doplníme VIP z preferovaného kraje
-      const primaryCount = matches.filter((m) => m.bucket !== "alternative").length
-      if (primaryCount < 3) {
-        const usedSlugs = new Set(matches.map((m) => m.venue.slug))
-        // Najdi VIP z kraje, které splňuje MUST-HAVE
-        const vipFromRegion = venues
-          .filter((v) => v.isFeatured && !usedSlugs.has(v.slug))
-          .filter((v) => validateVenue(v).ok)
-          .slice(0, 3 - primaryCount)
+      // ===== FORCE VIP RULE =====
+      // Pokud klient zadal kraj a v něm/dosažitelných krajích existuje VIP místo,
+      // MUSÍ být v doporučení. Nezávisí na AI — je to deterministické pravidlo.
+      const acceptableRegions = getAcceptableRegions(answers.regions, answers.nearestCity)
+      const usedSlugsForVip = new Set(matches.map((m) => m.venue.slug))
+      const allRelevantVips = venues
+        .filter((v) => v.isFeatured && !usedSlugsForVip.has(v.slug))
+        .filter((v) => acceptableRegions.length === 0 || acceptableRegions.includes(v.region))
 
-        for (const v of vipFromRegion) {
+      // Validované VIP z preferovaných krajů (splňují MUST-HAVE)
+      const validatedVips = allRelevantVips.filter((v) => validateVenue(v).ok)
+      // Nevalidované VIP z preferovaných krajů (jako alternativa s varováním)
+      const partialVips = allRelevantVips.filter((v) => !validateVenue(v).ok)
+
+      console.log(
+        `[match] FORCE VIP RULE — k dispozici ${allRelevantVips.length} VIP v krajích ${acceptableRegions.join("/")}: validovaných ${validatedVips.length}, částečných ${partialVips.length}`,
+      )
+
+      // Pokud Claude některé VIP přehlédl, vložíme je natvrdo
+      const primaryCount = matches.filter((m) => m.bucket !== "alternative").length
+      if (primaryCount < 3 && validatedVips.length > 0) {
+        const need = Math.min(validatedVips.length, 3 - primaryCount)
+        for (let i = 0; i < need; i++) {
+          const v = validatedVips[i]
           matches.unshift({
             venue: v,
             score: 0,
             reasons: [],
             warnings: [],
-            personalDescription: "Doporučujeme jako VIP místo z naší prémiové selekce ve Vašem kraji — splňuje Vaše kritéria.",
+            personalDescription: "Naše top VIP doporučení ze selekce ve Vašem kraji — splňuje všechna Vaše kritéria.",
             bucket: "primary",
           })
         }
-        console.log(`[match] Doplněno ${vipFromRegion.length} VIP primary z kraje (validovaných)`)
+        console.log(`[match] Force-přidáno ${need} validovaných VIP do primary`)
       }
 
-      // Pokud je celkem méně než 5, doplníme alternativy z VIP kraje
+      // Doplnění alternativ: zbylé VIP (i částečné) z dosažitelných krajů
       if (matches.length < 5) {
-        const usedSlugs = new Set(matches.map((m) => m.venue.slug))
-        const vipFromRegion = venues
-          .filter((v) => v.isFeatured && !usedSlugs.has(v.slug))
-          .filter((v) => answers.regions.length === 0 || answers.regions.includes(v.region))
-          .slice(0, 5 - matches.length)
+        const used = new Set(matches.map((m) => m.venue.slug))
+        const candidates = [
+          ...validatedVips.filter((v) => !used.has(v.slug)),
+          ...partialVips.filter((v) => !used.has(v.slug)),
+        ].slice(0, 5 - matches.length)
 
-        for (const v of vipFromRegion) {
+        for (const v of candidates) {
+          const validation = validateVenue(v)
           matches.push({
             venue: v,
             score: 0,
             reasons: [],
             warnings: [],
-            personalDescription: "Doporučujeme jako alternativu z naší VIP sekce — místo s ověřenou kvalitou ve Vašem kraji.",
+            personalDescription: validation.ok
+              ? "Doporučujeme jako alternativu z naší VIP sekce ve Vašem kraji."
+              : `Doporučujeme jako alternativu z naší VIP sekce. Pozor: ${validation.reason}.`,
             bucket: "alternative",
           })
         }
-        console.log(`[match] Doplněno ${vipFromRegion.length} VIP alternativ z kraje`)
+        console.log(`[match] Doplněno ${candidates.length} VIP alternativ`)
       }
 
-      // Pokud i tak méně než 5 → doplnit nejlepšími z algoritmu
+      // Poslední doplnění: nejlepší z algoritmu (fallback)
       if (matches.length < 5) {
-        const usedSlugs = new Set(matches.map((m) => m.venue.slug))
+        const used = new Set(matches.map((m) => m.venue.slug))
         const algoMatches = findBestMatches(venues, answers, 10)
-          .filter((m) => !usedSlugs.has(m.venue.slug))
+          .filter((m) => !used.has(m.venue.slug))
           .slice(0, 5 - matches.length)
         for (const m of algoMatches) {
           matches.push({ ...m, bucket: "alternative" })
