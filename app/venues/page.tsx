@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase"
 import VenueCard from "@/components/venues/VenueCard"
 import VenueFilters from "@/components/venues/VenueFilters"
 import type { Venue } from "@/lib/types"
+import { mapDbToVenue } from "@/lib/venue-mapping"
 
 export const metadata: Metadata = {
   title: "Katalog svatebních míst",
@@ -32,19 +33,7 @@ async function getVenues(params: Record<string, string>): Promise<Venue[]> {
   const { data } = await query
   if (!data) return []
 
-  return data.map((v) => ({
-    ...v,
-    priceFrom: v.price_from,
-    isFeatured: v.is_featured,
-    createdAt: v.created_at,
-    accommodationCapacity: v.accommodation_capacity,
-    cateringPolicy: v.catering_policy,
-    nightPartyPolicy: v.night_party_policy,
-    avgWeddingCost: v.avg_wedding_cost,
-    nearestCity: v.nearest_city,
-    websiteUrl: v.website_url,
-    contactEmail: v.contact_email,
-  }))
+  return data.map(mapDbToVenue)
 }
 
 export default async function VenuesPage({

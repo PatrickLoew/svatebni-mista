@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
+import { mapDbToVenue } from "@/lib/venue-mapping"
 
 export async function GET() {
   const { data, error } = await supabaseAdmin
@@ -8,7 +9,9 @@ export async function GET() {
     .order("created_at", { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+  // Mapování snake_case → camelCase, aby UI mělo správná pole (např. v adminu)
+  const mapped = (data ?? []).map(mapDbToVenue)
+  return NextResponse.json(mapped)
 }
 
 export async function POST(req: Request) {

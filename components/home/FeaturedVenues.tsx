@@ -8,6 +8,7 @@ import { MapPin, Users, ArrowUpRight } from "lucide-react"
 import type { Venue } from "@/lib/types"
 import { formatPrice } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
+import { mapDbToVenue } from "@/lib/venue-mapping"
 
 // Fallback content (shows if Supabase isn't configured yet)
 const fallback: Venue[] = [
@@ -50,9 +51,7 @@ export default function FeaturedVenues() {
           .limit(3)
           .order("created_at", { ascending: false })
         if (data && data.length > 0) {
-          setVenues(data.map((v) => ({
-            ...v, priceFrom: v.price_from, isFeatured: v.is_featured, createdAt: v.created_at,
-          })))
+          setVenues(data.map(mapDbToVenue))
         }
       } catch {}
     }

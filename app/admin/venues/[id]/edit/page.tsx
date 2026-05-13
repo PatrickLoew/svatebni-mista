@@ -2,11 +2,12 @@ import { supabaseAdmin } from "@/lib/supabase"
 import VenueForm from "@/components/admin/VenueForm"
 import { notFound } from "next/navigation"
 import type { Venue } from "@/lib/types"
+import { mapDbToVenue } from "@/lib/venue-mapping"
 
 async function getVenue(id: string): Promise<Venue | null> {
   const { data } = await supabaseAdmin.from("venues").select("*").eq("id", id).single()
   if (!data) return null
-  return { ...data, priceFrom: data.price_from, isFeatured: data.is_featured, createdAt: data.created_at }
+  return mapDbToVenue(data)
 }
 
 export default async function EditVenuePage({ params }: { params: Promise<{ id: string }> }) {

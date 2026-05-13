@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
+import { mapDbToInquiry } from "@/lib/venue-mapping"
 
 export async function GET() {
   // Diagnostika — zjistíme, zda je SERVICE_ROLE_KEY skutečně nastaven na Vercel
@@ -23,14 +24,7 @@ export async function GET() {
 
   console.log(`[/api/inquiries] Načteno ${data?.length ?? 0} poptávek (service key: ${hasServiceKey ? "ANO" : "NE"})`)
 
-  const mapped = (data ?? []).map((r: { venues?: { title?: string }; [key: string]: unknown }) => ({
-    ...r,
-    venueName: (r.venues as { title?: string } | null)?.title ?? "—",
-    venueId: r.venue_id,
-    weddingDate: r.wedding_date,
-    createdAt: r.created_at,
-  }))
-
+  const mapped = (data ?? []).map(mapDbToInquiry)
   return NextResponse.json(mapped)
 }
 

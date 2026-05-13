@@ -17,7 +17,7 @@ export default function AdminDashboard() {
       setStats({
         venues:       venues.length,
         inquiries:    inquiries.length,
-        featured:     venues.filter((v: { is_featured: boolean }) => v.is_featured).length,
+        featured:     venues.filter((v: { isFeatured: boolean }) => v.isFeatured).length,
         newInquiries: inquiries.filter((i: { status: string }) => i.status === "new").length,
       })
     })

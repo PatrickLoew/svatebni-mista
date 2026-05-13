@@ -9,25 +9,7 @@ import { formatPrice } from "@/lib/utils"
 import { MapPin, Users, Banknote, CheckCircle, ChevronLeft, Utensils, Music, BedDouble, Handshake } from "lucide-react"
 import type { Venue } from "@/lib/types"
 import { describeCatering, describeNightParty, policyBadgeClasses } from "@/lib/venue-policies"
-
-// Mapuje DB snake_case na náš camelCase typ Venue.
-// Bez tohoto by accommodationCapacity, cateringPolicy, nightPartyPolicy byly
-// undefined a UI by zobrazilo defaultní "Dle dohody" / "Ubytování v okolí".
-function mapDbToVenue(data: Record<string, unknown>): Venue {
-  return {
-    ...data,
-    priceFrom: data.price_from,
-    isFeatured: data.is_featured,
-    createdAt: data.created_at,
-    accommodationCapacity: data.accommodation_capacity,
-    cateringPolicy: data.catering_policy,
-    nightPartyPolicy: data.night_party_policy,
-    avgWeddingCost: data.avg_wedding_cost,
-    nearestCity: data.nearest_city,
-    websiteUrl: data.website_url,
-    contactEmail: data.contact_email,
-  } as Venue
-}
+import { mapDbToVenue } from "@/lib/venue-mapping"
 
 async function getVenue(slug: string): Promise<Venue | null> {
   const { data } = await supabase.from("venues").select("*").eq("slug", slug).single()

@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase"
+import { mapDbToVenue } from "@/lib/venue-mapping"
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const { data, error } = await supabaseAdmin.from("venues").select("*").eq("id", id).single()
   if (error) return NextResponse.json({ error: error.message }, { status: 404 })
-  return NextResponse.json(data)
+  return NextResponse.json(mapDbToVenue(data))
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {

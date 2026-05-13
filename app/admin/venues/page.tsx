@@ -8,7 +8,7 @@ import { formatPrice } from "@/lib/utils"
 
 interface VenueRow {
   id: string; slug: string; title: string; location: string; region: string
-  capacity: number; price_from: number; is_featured: boolean; images: string[]
+  capacity: number; priceFrom: number; isFeatured: boolean; images: string[]
 }
 
 export default function AdminVenuesPage() {
@@ -74,7 +74,7 @@ export default function AdminVenuesPage() {
                       <div>
                         <div className="font-semibold text-charcoal flex items-center gap-1">
                           {v.title}
-                          {v.is_featured && <Star size={12} className="text-[#C9A96E] fill-[#C9A96E]" />}
+                          {v.isFeatured && <Star size={12} className="text-[#C9A96E] fill-[#C9A96E]" />}
                         </div>
                         <div className="text-charcoal/50 text-xs">{v.location}</div>
                       </div>
@@ -82,7 +82,7 @@ export default function AdminVenuesPage() {
                   </td>
                   <td className="px-5 py-4 text-charcoal/70 hidden md:table-cell">{v.region}</td>
                   <td className="px-5 py-4 text-charcoal/70 hidden lg:table-cell">{v.capacity} hostů</td>
-                  <td className="px-5 py-4 text-charcoal/70 hidden lg:table-cell">{formatPrice(v.price_from)}</td>
+                  <td className="px-5 py-4 text-charcoal/70 hidden lg:table-cell">{formatPrice(v.priceFrom)}</td>
                   <td className="px-5 py-4">
                     <div className="flex items-center justify-end gap-2">
                       <Link

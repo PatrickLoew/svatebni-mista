@@ -6,6 +6,7 @@ import { validateEmail, validatePhone, validateName } from "@/lib/validation"
 import { evaluateWithClaude } from "@/lib/claude-ai"
 import { toCzechVocative } from "@/lib/czech-vocative"
 import { isRegionWithin90Min, getAcceptableRegions } from "@/lib/geography"
+import { mapDbToVenue } from "@/lib/venue-mapping"
 import type { Venue } from "@/lib/types"
 
 const MONTHS = ["", "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
@@ -41,12 +42,7 @@ export async function POST(req: Request) {
     try {
       const { data: rows } = await supabaseAdmin.from("venues").select("*")
       if (rows && rows.length > 0) {
-        venues = rows.map((v) => ({
-          ...v,
-          priceFrom: v.price_from,
-          isFeatured: v.is_featured,
-          createdAt: v.created_at,
-        }))
+        venues = rows.map(mapDbToVenue)
       }
     } catch (e) {
       console.error("DB venues error:", e)
