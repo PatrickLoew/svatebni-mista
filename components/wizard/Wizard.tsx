@@ -18,7 +18,7 @@ const empty: WizardAnswers = {
   guests: 80,
   regions: [],
   nearestCity: undefined,
-  archType: "jedno",
+  archTypes: [],
   accommodation: "primo",
   weddingMode: "komplet",
   catering: "jedno",
@@ -223,6 +223,60 @@ function RadioGrid<T extends string | number>({
   )
 }
 
+/**
+ * Multi-select grid — klient vybere jednu nebo více možností.
+ * Speciální chování: pokud klient klikne na "exkluzivní" option (např. "jedno"),
+ * smaže všechny ostatní volby. Pokud má vybráno "jedno" a klikne na něco jiného,
+ * "jedno" se odebere.
+ */
+function CheckboxGrid<T extends string>({
+  values, onChange, options, columns = 1, exclusiveId,
+}: {
+  values: T[]
+  onChange: (v: T[]) => void
+  options: { id: T; label: string; sub?: string }[]
+  columns?: 1 | 2 | 3
+  exclusiveId?: T
+}) {
+  const cols = columns === 1 ? "grid-cols-1" : columns === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-2 sm:grid-cols-3"
+  const toggle = (id: T) => {
+    if (exclusiveId && id === exclusiveId) {
+      // Kliknutí na "jedno" → smaž ostatní, nech jen "jedno"
+      onChange([id])
+      return
+    }
+    let next = values.includes(id) ? values.filter((v) => v !== id) : [...values, id]
+    // Pokud klikne na jinou možnost, odeber "jedno"
+    if (exclusiveId) next = next.filter((v) => v !== exclusiveId)
+    onChange(next)
+  }
+  return (
+    <div className={`grid ${cols} gap-2`}>
+      {options.map((o) => {
+        const on = values.includes(o.id)
+        return (
+          <button
+            key={String(o.id)}
+            type="button"
+            onClick={() => toggle(o.id)}
+            className={`text-left px-4 py-3.5 rounded-xl border-2 transition-all relative ${
+              on ? "bg-[#C9A96E] text-white border-[#C9A96E] shadow-md" : "bg-white text-[#2C2C2C] border-[#E8DDD0] hover:border-[#C9A96E]"
+            }`}
+          >
+            <div className="font-medium text-sm pr-6">{o.label}</div>
+            {o.sub && <div className={`text-xs mt-0.5 ${on ? "text-white/70" : "text-[#2C2C2C]/50"}`}>{o.sub}</div>}
+            {on && (
+              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-white text-[#C9A96E] flex items-center justify-center text-xs font-bold">
+                ✓
+              </span>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 /* ───────── STEPS ───────── */
 
 function Step1({ a, update }: { a: WizardAnswers; update: <K extends keyof WizardAnswers>(k: K, v: WizardAnswers[K]) => void }) {
@@ -341,11 +395,12 @@ function Step3({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
         "Vyberte ten, který nejvíc odpovídá vaší vizi.")}
 
       <div className="mb-7">
-        <label className={labelCl}>Architektonický typ místa *</label>
-        <RadioGrid
-          value={a.archType}
-          onChange={(v) => update("archType", v)}
+        <label className={labelCl}>Architektonický typ místa * <span className="text-charcoal/50 font-normal">(můžete vybrat více možností)</span></label>
+        <CheckboxGrid
+          values={a.archTypes ?? []}
+          onChange={(v) => update("archTypes", v)}
           columns={2}
+          exclusiveId="jedno"
           options={[
             { id: "priroda", label: "Příroda", sub: "louka, les, u vody" },
             { id: "unikat", label: "Zajímavé místo", sub: "unikát, originál" },
@@ -846,7 +901,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                       transition={{ delay: i * 0.12 }}
                       className="relative"
                     >
-                      <VenueCard venue={m.venue} index={i} />
+                      <VenueCard venue={m.venue} index={i} hideType />
                       {m.personalDescription && (
                         <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
                           {m.personalDescription}
@@ -879,7 +934,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                       transition={{ delay: i * 0.12 }}
                       className="relative"
                     >
-                      <VenueCard venue={m.venue} index={i} />
+                      <VenueCard venue={m.venue} index={i} hideType />
                       {m.personalDescription && (
                         <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
                           {m.personalDescription}

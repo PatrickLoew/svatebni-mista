@@ -159,6 +159,11 @@ function describeClient(a: WizardAnswers): string {
     zamek: "zámek",
     jedno: "typ je jedno",
   }
+
+  const archTypes = a.archTypes ?? []
+  const archDescription = archTypes.length === 0 || archTypes.includes("jedno")
+    ? "klient nezadal preferenci"
+    : archTypes.map((t) => archMap[t] ?? t).join(" NEBO ")
   const accomMap: Record<string, string> = {
     primo: "přímo v místě",
     okoli: "v okolí do 10 minut",
@@ -185,7 +190,7 @@ function describeClient(a: WizardAnswers): string {
 - Hostů: ${a.guests}
 - Lokalita do 90 min od: ${a.nearestCity || "neuvedeno"}
 - Preferované kraje: ${a.regions.join(", ") || "—"}
-- Architektonický typ: ${archMap[a.archType] ?? "—"}
+- Architektonický typ (klient vybral více možností — vyhovuje kterákoli z nich): ${archDescription}
 - Ubytování: ${accomMap[a.accommodation] ?? "—"}
 - Způsob svatby: ${modeMap[a.weddingMode] ?? "—"}
 - Catering/pití: ${cateringMap[a.catering] ?? "—"}

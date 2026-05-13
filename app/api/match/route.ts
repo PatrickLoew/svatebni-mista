@@ -274,7 +274,7 @@ function buildMessage(a: WizardAnswers, matches: Match[]): string {
     `Hostů: ${a.guests}`,
     `Lokalita do 90 min od: ${a.nearestCity ?? "neuvedeno"}`,
     `Kraje: ${a.regions.join(", ") || "—"}`,
-    `Typ místa: ${a.archType}`,
+    `Typ místa: ${(a.archTypes ?? []).join(", ") || "neuvedeno"}`,
     `Způsob svatby: ${a.weddingMode}`,
     `Ubytování: ${a.accommodation}`,
     `Catering: ${a.catering}`,
@@ -318,7 +318,10 @@ function buildPersonaSummary(a: WizardAnswers): string {
     hrad: "na hradě",
     zamek: "v zámeckém prostředí",
   }
-  if (arch[a.archType]) parts.push(arch[a.archType])
+  const archTypes = (a.archTypes ?? []).filter((t) => t !== "jedno" && arch[t])
+  if (archTypes.length > 0) {
+    parts.push(archTypes.map((t) => arch[t]).join(" nebo "))
+  }
 
   const sentence1 = parts.join(", ") + "."
 
@@ -472,7 +475,7 @@ function companyEmail(a: WizardAnswers, matches: Match[]): string {
       <tr><td><strong>Hostů:</strong></td><td>${a.guests}</td></tr>
       <tr><td><strong>Lokalita 90 min od:</strong></td><td>${a.nearestCity ?? "—"}</td></tr>
       <tr><td><strong>Kraje:</strong></td><td>${a.regions.join(", ") || "—"}</td></tr>
-      <tr><td><strong>Typ místa:</strong></td><td>${a.archType}</td></tr>
+      <tr><td><strong>Typ místa:</strong></td><td>${(a.archTypes ?? []).join(", ") || "—"}</td></tr>
       <tr><td><strong>Způsob svatby:</strong></td><td>${a.weddingMode}</td></tr>
       <tr><td><strong>Ubytování:</strong></td><td>${a.accommodation}</td></tr>
       <tr><td><strong>Catering:</strong></td><td>${a.catering}</td></tr>

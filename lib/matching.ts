@@ -28,8 +28,8 @@ export interface WizardAnswers {
   regions: Region[]
   nearestCity?: NearestCity | "jedno"
 
-  // Krok 3 — Typ místa
-  archType: VenueArchType
+  // Krok 3 — Typ místa (multi-select, "jedno" znamená je to jedno)
+  archTypes: VenueArchType[]
   accommodation: AccommodationType
   weddingMode: WeddingMode
 
@@ -122,7 +122,7 @@ export function scoreVenue(v: Venue, a: WizardAnswers): Match {
     score += 3
   }
 
-  // 3) Architektonický typ (0–15) — mapování na náš venue type
+  // 3) Architektonický typ (0–15) — multi-select
   const typeMap: Record<VenueArchType, string[]> = {
     priroda: ["Pláž / Příroda", "Zahrada"],
     unikat: ["Moderní prostor", "Historická budova"],
@@ -133,9 +133,10 @@ export function scoreVenue(v: Venue, a: WizardAnswers): Match {
     zamek: ["Zámek"],
     jedno: [],
   }
-  if (a.archType === "jedno") {
+  const archTypes = a.archTypes ?? []
+  if (archTypes.length === 0 || archTypes.includes("jedno")) {
     score += 10
-  } else if (typeMap[a.archType]?.includes(v.type)) {
+  } else if (archTypes.some((t) => typeMap[t]?.includes(v.type))) {
     score += 15
     reasons.push(`Typ "${v.type}" odpovídá vašemu vkusu.`)
   } else {
@@ -295,7 +296,7 @@ function generatePersonalDescription(v: Venue, a: WizardAnswers): string {
   const sentences: string[] = []
   const type = v.type.toLowerCase()
   const isSmallWedding = a.guests <= 60
-  const wantsNature = a.archType === "priroda"
+  const wantsNature = (a.archTypes ?? []).includes("priroda")
   const wantsParty = a.party === "velka-bez-klidu"
   const wantsQuiet = a.party === "do-22"
   const wantsOwnDrinks = a.catering === "vlastni-vse" || a.catering === "vlastni-piti"

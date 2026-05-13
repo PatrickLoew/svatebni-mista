@@ -7,7 +7,15 @@ import { MapPin, Users, Banknote } from "lucide-react"
 import type { Venue } from "@/lib/types"
 import { formatPrice } from "@/lib/utils"
 
-export default function VenueCard({ venue, index = 0 }: { venue: Venue; index?: number }) {
+export default function VenueCard({
+  venue,
+  index = 0,
+  hideType = false,
+}: {
+  venue: Venue
+  index?: number
+  hideType?: boolean
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -50,9 +58,11 @@ export default function VenueCard({ venue, index = 0 }: { venue: Venue; index?: 
                 </span>
               </div>
             )}
-            <span className="absolute top-3 right-3 bg-black/60 text-white text-xs font-medium px-3 py-1 rounded-full">
-              {venue.type}
-            </span>
+            {!hideType && (
+              <span className="absolute top-3 right-3 bg-black/60 text-white text-xs font-medium px-3 py-1 rounded-full">
+                {venue.type}
+              </span>
+            )}
           </div>
 
           {/* Body */}
