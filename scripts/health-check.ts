@@ -127,7 +127,8 @@ async function checkDatabase() {
 
 /* ─────────── 3. VENUES DATA QUALITY ─────────── */
 
-async function checkVenuesData(supabase: ReturnType<typeof createClient>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function checkVenuesData(supabase: any) {
   console.log("\n🏰 3. VENUES DATA QUALITY\n")
 
   const { data } = await supabase.from("venues").select("*")
@@ -146,7 +147,7 @@ async function checkVenuesData(supabase: ReturnType<typeof createClient>) {
     "nearest_city": venues.filter((v) => v.nearest_city).length,
     "catering_policy": venues.filter((v) => v.catering_policy).length,
     "night_party_policy": venues.filter((v) => v.night_party_policy).length,
-    "accommodation_capacity > 0": venues.filter((v) => (v.accommodation_capacity ?? 0) > 0).length,
+    "accommodation_capacity > 0": venues.filter((v) => Number(v.accommodation_capacity ?? 0) > 0).length,
     "description (>50 znaků)": venues.filter((v) => (typeof v.description === "string" ? v.description : "").length > 50).length,
     "features (≥3)": venues.filter((v) => Array.isArray(v.features) && v.features.length >= 3).length,
     "website_url": venues.filter((v) => v.website_url).length,
@@ -174,7 +175,8 @@ async function checkVenuesData(supabase: ReturnType<typeof createClient>) {
 
 /* ─────────── 4. SETTINGS LOAD ─────────── */
 
-async function checkSettings(supabase: ReturnType<typeof createClient>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function checkSettings(supabase: any) {
   console.log("\n⚙️ 4. SITE SETTINGS\n")
 
   const { data, error } = await supabase
