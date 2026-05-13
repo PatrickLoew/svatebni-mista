@@ -98,31 +98,53 @@ function mapCatering(s: string): string {
   if (!s) return "negotiable"
   const t = s.toLowerCase().trim()
 
-  // 1) Přímé hodnoty z normalizovaného sloupce (preferované — Monča může psát rovnou kódy)
+  // 1) Přímé kódy z normalizovaného sloupce (preferované)
   if (t === "own_free" || t.includes("own_free")) return "own_free"
   if (t === "own_drinks_free" || t.includes("own_drinks")) return "own_drinks_free"
   if (t === "only_venue" || t.includes("only_venue")) return "only_venue"
   if (t === "negotiable") return "negotiable"
 
-  // 2) České formulace — vlastní jídlo i pití povolené (zdarma)
+  // 2) Vlastní jídlo I pití (kompletní vlastní catering bez poplatků)
   if (
-    (t.includes("vlastní") && t.includes("jídlo")) ||
+    (t.includes("vlastní") && t.includes("jídlo") && t.includes("pití")) ||
+    (t.includes("vlastni") && t.includes("jidlo") && t.includes("piti")) ||
     t.includes("vlastní jídlo i pití") ||
-    (t.includes("vlastní") && t.includes("bez poplatk"))
+    t.includes("vlastní jídlo a pití") ||
+    t.includes("vše vlastní") ||
+    t.includes("vse vlastni") ||
+    (t.includes("vlastní") && t.includes("bez poplatk")) ||
+    (t.includes("vlastní") && t.includes("zdarma"))
   ) return "own_free"
 
-  // 3) Pouze vlastní pití (jídlo musí být z místa)
-  if (t.includes("vlastní pití")) return "own_drinks_free"
+  // 3) Pouze vlastní pití (jídlo z místa)
+  if (
+    t.includes("vlastní pití") ||
+    t.includes("vlastni piti") ||
+    t.includes("vlastní alkohol") ||
+    t.includes("vlastni alkohol") ||
+    (t.includes("pití") && t.includes("bez poplatk")) ||
+    t.includes("only own drinks")
+  ) return "own_drinks_free"
 
   // 4) Pouze catering od místa / zákaz vlastního
   if (
     t.includes("pouze od místa") ||
+    t.includes("pouze od mista") ||
+    t.includes("jen od místa") ||
+    t.includes("jen od mista") ||
+    t.includes("jen catering") ||
     t.includes("povinný") ||
+    t.includes("povinny") ||
     t.includes("musí") ||
+    t.includes("musi") ||
     t.includes("zákaz vlastn") ||
+    t.includes("zakaz vlastn") ||
     t.includes("nelze vlastní") ||
+    t.includes("nelze vlastni") ||
     t.includes("nepovolen") ||
-    t.includes("jen catering")
+    t.includes("v ceně") ||
+    t.includes("v cene") ||
+    t.includes("povinný catering")
   ) return "only_venue"
 
   return "negotiable"
@@ -132,36 +154,53 @@ function mapParty(s: string): string {
   if (!s) return "negotiable"
   const t = s.toLowerCase().trim()
 
-  // 1) Přímé kódy
+  // 1) Přímé kódy (preferované — Monča může psát rovnou kódy ve sloupci P)
   if (t === "no_curfew" || t.includes("no_curfew")) return "no_curfew"
   if (t === "indoor_after_22" || t.includes("indoor_after_22")) return "indoor_after_22"
   if (t === "quiet_hours" || t.includes("quiet_hours")) return "quiet_hours"
   if (t === "negotiable") return "negotiable"
 
-  // 2) České formulace — bez nočního klidu (party může až do rána venku)
+  // 2) Bez nočního klidu — party může až do rána i venku
   if (
     t.includes("bez nočního") ||
+    t.includes("bez nocniho") ||
     t.includes("neruší") ||
+    t.includes("nerusi") ||
     t.includes("žádný noční") ||
+    t.includes("zadny nocni") ||
     t.includes("bez omezení") ||
-    t.includes("do rána")
+    t.includes("bez omezeni") ||
+    t.includes("do rána") ||
+    t.includes("do rana") ||
+    t.includes("celou noc") ||
+    t.includes("party do rána")
   ) return "no_curfew"
 
-  // 3) Přesun dovnitř po 22:00
+  // 3) Po 22:00 přesun dovnitř / party místnost
   if (
     t.includes("po 22") ||
     t.includes("přesun") ||
+    t.includes("presun") ||
     t.includes("párty místnost") ||
     t.includes("party místnost") ||
-    t.includes("uvnitř po")
+    t.includes("party mistnost") ||
+    t.includes("uvnitř po") ||
+    t.includes("uvnitr po") ||
+    t.includes("dovnitř") ||
+    t.includes("dovnitr")
   ) return "indoor_after_22"
 
-  // 4) Pouze do 22 / noční klid
+  // 4) Pouze do 22 / noční klid (party končí v 22:00)
   if (
     t.includes("max do 22") ||
     t.includes("do 22") ||
     t.includes("noční klid") ||
-    t.includes("hluku")
+    t.includes("nocni klid") ||
+    t.includes("hluku") ||
+    t.includes("respektuje") ||
+    t.includes("končí") ||
+    t.includes("konci") ||
+    t.includes("večerka")
   ) return "quiet_hours"
 
   return "negotiable"

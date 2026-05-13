@@ -112,14 +112,60 @@ export async function POST(req: Request) {
             return { ok: false, reason: `místo zakazuje vlastní pití, ale klient ho chce` }
           }
         }
-        // PARTY: klient chce velkou party bez nočního klidu → místo NESMÍ mít quiet_hours
-        if (answers.party === "velka-bez-klidu" && v.nightPartyPolicy === "quiet_hours") {
-          return { ok: false, reason: `místo má noční klid, ale klient chce velkou party bez omezení` }
+        // PARTY: tvrdé kontroly podle preference klienta
+        if (answers.party === "velka-bez-klidu") {
+          // Chce velkou party bez nočního klidu → místo MUSÍ mít no_curfew (ideálně) nebo aspoň indoor_after_22
+          if (v.nightPartyPolicy === "quiet_hours") {
+            return { ok: false, reason: `místo má noční klid (party končí v 22:00), ale klient chce velkou party bez omezení` }
+          }
+          if (v.nightPartyPolicy === "indoor_after_22") {
+            return { ok: false, reason: `místo vyžaduje po 22:00 přesun party dovnitř — klient ale chce party bez jakéhokoliv omezení` }
+          }
         }
-        // UBYTOVÁNÍ: klient chce přímo na místě → musí mít alespoň nějaká lůžka
-        if (answers.accommodation === "primo" && (v.accommodationCapacity ?? 0) === 0) {
-          return { ok: false, reason: `místo nemá ubytování přímo na místě, ale klient ho vyžaduje` }
+        if (answers.party === "pohoda") {
+          // Pohoda: tolerantní — místo s quiet_hours je OK, no_curfew je OK
+          // Bez tvrdé kontroly
         }
+        if (answers.party === "do-22") {
+          // Klient sám chce do 22 — vše OK, žádný konflikt
+        }
+
+        // UBYTOVÁNÍ: tvrdé kontroly
+        if (answers.accommodation === "primo") {
+          // Klient chce ubytování přímo na místě
+          if ((v.accommodationCapacity ?? 0) === 0) {
+            return { ok: false, reason: `místo nemá ubytování přímo na místě, ale klient ho vyžaduje` }
+          }
+          // Pro min 40 % hostů (kdyby chtěl většinu hostů ubytovat) — měkčí kontrola
+          if ((v.accommodationCapacity ?? 0) < answers.guests * 0.4) {
+            return {
+              ok: false,
+              reason: `ubytování na místě má kapacitu jen ${v.accommodationCapacity} lůžek pro ${answers.guests} hostů (méně než 40 %)`,
+            }
+          }
+        }
+
+        // ARCHITEKTONICKÝ TYP: pokud klient vybral konkrétní typy (mimo "jedno"), místo by mělo sedět
+        const archTypes = (answers.archTypes ?? []).filter((t) => t !== "jedno")
+        if (archTypes.length > 0) {
+          const typeMap: Record<string, string[]> = {
+            priroda: ["Pláž / Příroda", "Zahrada"],
+            unikat: ["Moderní prostor", "Historická budova"],
+            hotelovy: ["Hotel"],
+            mlyn: ["Venkovský statek"],
+            industrial: ["Moderní prostor"],
+            hrad: ["Zámek", "Historická budova"],
+            zamek: ["Zámek"],
+          }
+          const matchesType = archTypes.some((t) => typeMap[t]?.includes(v.type))
+          if (!matchesType) {
+            return {
+              ok: false,
+              reason: `typ "${v.type}" neodpovídá vybraným preferencím (${archTypes.join(", ")})`,
+            }
+          }
+        }
+
         return { ok: true }
       }
 
