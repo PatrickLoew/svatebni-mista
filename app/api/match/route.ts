@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     if (claudeResult && claudeResult.selectedMatches.length > 0) {
       // Claude vybral místa — sestavíme Match objekty
       const venueBySlug = new Map(venues.map((v) => [v.slug, v]))
-      matches = claudeResult.selectedMatches
+      const claudeMatches: Match[] = claudeResult.selectedMatches
         .map((cm) => {
           const venue = venueBySlug.get(cm.slug)
           if (!venue) return null
@@ -81,13 +81,84 @@ export async function POST(req: Request) {
         })
         .filter((m): m is Match => m !== null)
 
+      // ⚠️ POST-VALIDACE: kontrolujeme MUST-HAVE kritéria
+      // Pokud místo poruší MUST-HAVE, přesune se do alternativ + varování
+      const validateVenue = (v: Venue): { ok: boolean; reason?: string } => {
+        // Kapacita: musí být alespoň 0.85× počet hostů
+        if (v.capacity < answers.guests * 0.85) {
+          return { ok: false, reason: `kapacita ${v.capacity} je nedostatečná pro ${answers.guests} hostů` }
+        }
+        // Rozpočet pronájmu: max +20 %
+        if (answers.rentalBudget > 0 && v.priceFrom > answers.rentalBudget * 1.20) {
+          return { ok: false, reason: `pronájem ${v.priceFrom.toLocaleString("cs-CZ")} Kč přesahuje rozpočet ${answers.rentalBudget.toLocaleString("cs-CZ")} Kč o víc než 20 %` }
+        }
+        // Lokalita: pokud klient zadal kraj, musí sedět nebo alespoň sousední kraj
+        if (answers.regions.length > 0 && !answers.regions.includes(v.region)) {
+          // Toleruj jen pokud chyba klienta jasná není (např. zadal jen jeden kraj)
+          return { ok: false, reason: `není v preferovaném kraji (${v.region} ≠ ${answers.regions.join("/")})` }
+        }
+        return { ok: true }
+      }
+
+      const validatedMatches: Match[] = []
+      const rejectedFromPrimary: Match[] = []
+
+      for (const m of claudeMatches) {
+        const validation = validateVenue(m.venue)
+        if (validation.ok) {
+          validatedMatches.push(m)
+        } else if (m.bucket !== "alternative") {
+          // Primary místo porušilo MUST-HAVE → přesun do alternativ + varování v popisu
+          console.warn(
+            `[match] ⚠️ Claude vybral nevhodné místo "${m.venue.title}" jako primary: ${validation.reason}`,
+          )
+          validatedMatches.push({
+            ...m,
+            bucket: "alternative",
+            personalDescription: `${m.personalDescription}${m.personalDescription ? " " : ""}(Pozor: ${validation.reason}.)`,
+          })
+          rejectedFromPrimary.push(m)
+        } else {
+          // Alternativa porušila MUST-HAVE → necháme, ale s varováním
+          validatedMatches.push({
+            ...m,
+            personalDescription: `${m.personalDescription}${m.personalDescription ? " " : ""}(Pozor: ${validation.reason}.)`,
+          })
+        }
+      }
+
+      matches = validatedMatches
+
       console.log(
         `[match] Claude vybral ${matches.length} míst (primary: ${
           matches.filter((m) => m.bucket !== "alternative").length
-        }, alternativy: ${matches.filter((m) => m.bucket === "alternative").length})`,
+        }, alternativy: ${matches.filter((m) => m.bucket === "alternative").length}, přesunuto kvůli validaci: ${rejectedFromPrimary.length})`,
       )
 
-      // Doplnění do 5: pokud Claude vrátil < 5, doplníme VIP z preferovaného kraje
+      // Doplnění primary, pokud po validaci je primary < 3: doplníme VIP z preferovaného kraje
+      const primaryCount = matches.filter((m) => m.bucket !== "alternative").length
+      if (primaryCount < 3) {
+        const usedSlugs = new Set(matches.map((m) => m.venue.slug))
+        // Najdi VIP z kraje, které splňuje MUST-HAVE
+        const vipFromRegion = venues
+          .filter((v) => v.isFeatured && !usedSlugs.has(v.slug))
+          .filter((v) => validateVenue(v).ok)
+          .slice(0, 3 - primaryCount)
+
+        for (const v of vipFromRegion) {
+          matches.unshift({
+            venue: v,
+            score: 0,
+            reasons: [],
+            warnings: [],
+            personalDescription: "Doporučujeme jako VIP místo z naší prémiové selekce ve Vašem kraji — splňuje Vaše kritéria.",
+            bucket: "primary",
+          })
+        }
+        console.log(`[match] Doplněno ${vipFromRegion.length} VIP primary z kraje (validovaných)`)
+      }
+
+      // Pokud je celkem méně než 5, doplníme alternativy z VIP kraje
       if (matches.length < 5) {
         const usedSlugs = new Set(matches.map((m) => m.venue.slug))
         const vipFromRegion = venues
@@ -106,6 +177,17 @@ export async function POST(req: Request) {
           })
         }
         console.log(`[match] Doplněno ${vipFromRegion.length} VIP alternativ z kraje`)
+      }
+
+      // Pokud i tak méně než 5 → doplnit nejlepšími z algoritmu
+      if (matches.length < 5) {
+        const usedSlugs = new Set(matches.map((m) => m.venue.slug))
+        const algoMatches = findBestMatches(venues, answers, 10)
+          .filter((m) => !usedSlugs.has(m.venue.slug))
+          .slice(0, 5 - matches.length)
+        for (const m of algoMatches) {
+          matches.push({ ...m, bucket: "alternative" })
+        }
       }
     } else {
       // FALLBACK — Claude selhal, použij algoritmus
@@ -180,6 +262,13 @@ function termLabel(a: WizardAnswers): string {
 }
 
 function buildMessage(a: WizardAnswers, matches: Match[]): string {
+  const matchLines = matches.map((m, i) => {
+    const bucketLabel = m.bucket === "alternative" ? "[ALT]" : "[TOP]"
+    const vip = m.venue.isFeatured ? " ⭐VIP" : ""
+    return `${i + 1}. ${bucketLabel}${vip} ${m.venue.title} (${m.venue.region}, ${m.venue.capacity} hostů, od ${m.venue.priceFrom.toLocaleString("cs-CZ")} Kč)
+   → ${m.personalDescription ?? "—"}`
+  }).join("\n")
+
   return [
     `Termín: ${termLabel(a)}`,
     `Hostů: ${a.guests}`,
@@ -200,7 +289,8 @@ function buildMessage(a: WizardAnswers, matches: Match[]): string {
     a.wantOnlineConsultation ? "★ CHCE ONLINE KONZULTACI" : "",
     `Newsletter: ${a.consentNewsletter ? "ANO" : "NE"}`,
     "",
-    `TOP MATCH: ${matches[0]?.venue.title ?? "—"} (${matches[0]?.score ?? 0} %)`,
+    `=== AI DOPORUČENÍ (${matches.length} míst) ===`,
+    matchLines,
   ].filter(Boolean).join("\n")
 }
 

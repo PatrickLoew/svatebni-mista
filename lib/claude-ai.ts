@@ -17,7 +17,9 @@ import Anthropic from "@anthropic-ai/sdk"
 import type { Venue } from "./types"
 import type { WizardAnswers } from "./matching"
 
-const MODEL = "claude-haiku-4-5"
+// Upgrade na Sonnet 4.5 — výrazně lepší vyhodnocování českých nuancí
+// Cena ~1,2 Kč/dotaz (s cachingem ~0,15 Kč), ale kvalita rozhodnutí ekvivalentní specialistovi.
+const MODEL = "claude-sonnet-4-5"
 
 interface ClaudeMatch {
   slug: string
@@ -38,10 +40,14 @@ const SYSTEM_PROMPT = `Jsi specialista na svatební místa "Svatební Místa.cz"
 
 ## METRIKA (priorita shora dolů)
 
-### A) MUST-HAVE (vylučující kritéria pro hlavní doporučení):
-1. Kapacita ≥ počet hostů × 0.85 (mírně větší OK, menší ne).
-2. Lokalita — pokud klient zadal kraj/město, musí to sedět.
-3. Rozpočet pronájmu (priceFrom) ≤ rozpočet klienta × 1.20 (přesah max +20 %).
+### A) MUST-HAVE — TVRDÁ KRITÉRIA (NESMÍŠ jako primary vybrat místo, které toto porušuje!)
+1. **Kapacita ≥ počet hostů × 0.85.** Místo s kapacitou 60, když klient chce 80 → JE ŠPATNÉ, do alternativ nebo vůbec.
+2. **Lokalita.** Pokud klient zadal preferovaný kraj — místo MUSÍ být v některém z těch krajů. Sousední kraj NE.
+3. **Rozpočet pronájmu ≤ rozpočet klienta × 1.20.** Místo s pronájmem 250 000 Kč, když klient má rozpočet 100 000 → JE ŠPATNÉ.
+4. **Catering pravidla.** Pokud klient chce "vlastní jídlo i pití bez poplatků" (vlastni-vse), místo MUSÍ mít cateringPolicy = "own_free". Pokud "vlastní pití bez poplatků" (vlastni-piti), MUSÍ mít "own_free" nebo "own_drinks_free". Jinak je to porušení.
+5. **Noční klid pro velkou party.** Pokud klient chce "velkou party bez nočního klidu" (velka-bez-klidu), místo MUSÍ mít nightPartyPolicy = "no_curfew". Jinak je to porušení.
+
+**KAŽDÉ MÍSTO V PRIMARY MUSÍ SPLNIT VŠECH 5 BODŮ. Pokud najdeš jen 2 perfektní místa, dej 2 primary + 3 alternativy. Nedávej do primary místo, které porušuje MUST-HAVE — i kdyby bylo VIP!**
 
 ### B) SOFT kritéria:
 4. Architektonický typ sedí klientovi (priroda/mlyn/zamek/hotel/industrial/unikat).
@@ -167,6 +173,12 @@ function describeClient(a: WizardAnswers): string {
     "jine": "jiné",
   }
 
+  const yesNoMap: Record<string, string> = {
+    "ano": "ANO, hledá",
+    "ne": "ne, nepotřebuje",
+    "uz-mam": "už má",
+  }
+
   return `KLIENT:
 - Jméno: ${a.name || "neuvedeno"}
 - Termín: ${seasonMap[a.season] ?? "—"} ${a.weddingYear || ""}
@@ -180,20 +192,30 @@ function describeClient(a: WizardAnswers): string {
 - Party: ${partyMap[a.party] ?? "—"}
 - Rozpočet pronájmu: ${a.rentalBudget ? `do ${a.rentalBudget.toLocaleString("cs-CZ")} Kč` : "—"}
 - Celkový rozpočet svatby: ${a.weddingBudget ? `do ${a.weddingBudget.toLocaleString("cs-CZ")} Kč` : "—"}
-- Speciální požadavky (ČTI POZORNĚ!): ${a.specialRequests || "—"}`
+- Speciální požadavky (ČTI POZORNĚ A PROHLEDEJ FEATURES + POPIS MÍST!): ${a.specialRequests || "—"}
+- S čím chce pomoci: ${a.serviceHelp.join(", ") || "—"}
+- Koordinátorka: ${yesNoMap[a.needCoordinator] ?? a.needCoordinator}
+- DJ/moderátor: ${yesNoMap[a.needDjModerator] ?? a.needDjModerator}
+- Fotograf: ${yesNoMap[a.needPhotographer] ?? a.needPhotographer}
+- Online konzultace: ${a.wantOnlineConsultation ? "ANO chce" : "ne"}`
 }
 
 function describeVenue(v: Venue, i: number): string {
   const features = (v.features ?? []).join(", ")
-  const description = (v.description ?? "").substring(0, 300) // limit pro úsporu tokenů
+  const services = (v.services ?? []).join(", ")
+  const description = v.description ?? "" // PLNÝ popis — žádné ořezání
   const vip = v.isFeatured ? " [VIP-DOPORUČUJEME]" : ""
+  const avgCost = v.avgWeddingCost
+    ? ` | průměrná cena celé svatby: ${v.avgWeddingCost.toLocaleString("cs-CZ")} Kč`
+    : ""
   return `${i + 1}. ${v.title}${vip}
    slug: ${v.slug}
    lokalita: ${v.location} | kraj: ${v.region} | nejbližší město: ${v.nearestCity ?? "—"}
-   typ: ${v.type} | kapacita: ${v.capacity} | pronájem od: ${v.priceFrom.toLocaleString("cs-CZ")} Kč
-   catering: ${v.cateringPolicy ?? "—"} | noční klid: ${v.nightPartyPolicy ?? "—"}
+   typ: ${v.type} | kapacita: ${v.capacity} hostů | pronájem od: ${v.priceFrom.toLocaleString("cs-CZ")} Kč${avgCost}
+   catering policy: ${v.cateringPolicy ?? "—"} | night party policy: ${v.nightPartyPolicy ?? "—"}
    ubytování na místě: ${v.accommodationCapacity ?? 0} lůžek
    features: ${features || "—"}
+   services: ${services || "—"}
    popis: ${description || "—"}`
 }
 
