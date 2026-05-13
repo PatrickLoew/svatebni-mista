@@ -12,7 +12,8 @@
     "sync-sheet": "tsx scripts/sync-google-sheet.ts",
     "audit-venues": "tsx scripts/audit-venues.ts",
     "fix-stablovice": "tsx scripts/fix-region-stablovice.ts",
-    "refresh-venues": "tsx scripts/refresh-venues.ts"
+    "refresh-venues": "tsx scripts/refresh-venues.ts",
+    "verify-all-venues": "tsx scripts/verify-all-venues.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
