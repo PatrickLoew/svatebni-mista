@@ -70,16 +70,138 @@ const slugify = (s: string) =>
     .replace(/^-+|-+$/g, "")
 
 const REGION_MAP: Record<string, string> = {
-  "Středočeský": "Středočeský", "Středočeský kraj": "Středočeský",
-  "Jihočeský": "Jihočeský", "Plzeňský": "Plzeňský",
-  "Karlovarský": "Karlovarský", "Ústecký": "Ústecký", "Ústecký kraj": "Ústecký",
-  "Liberecký": "Liberecký", "Liberecký Kraj": "Liberecký",
+  "Středočeský": "Středočeský", "Středočeský kraj": "Středočeský", "Stredocesky": "Středočeský",
+  "Jihočeský": "Jihočeský", "Jihocesky": "Jihočeský", "Jihočeský kraj": "Jihočeský",
+  "Plzeňský": "Plzeňský", "Plzensky": "Plzeňský",
+  "Karlovarský": "Karlovarský", "Karlovarsky": "Karlovarský",
+  "Ústecký": "Ústecký", "Ústecký kraj": "Ústecký", "Ustecky": "Ústecký",
+  "Liberecký": "Liberecký", "Liberecký Kraj": "Liberecký", "Liberecky": "Liberecký",
   "Královohradecký": "Královéhradecký", "Královéhradecký": "Královéhradecký",
-  "Hradecký kraj": "Královéhradecký",
-  "Pardubický": "Pardubický", "Vysočina": "Vysočina",
-  "Jihomoravský": "Jihomoravský", "Olomoucký": "Olomoucký",
-  "Zlínský": "Zlínský", "Moravskoslezský": "Moravskoslezský",
-  "Beskydy": "Moravskoslezský", "Praha": "Praha", "Slovensko": "Slovensko",
+  "Hradecký kraj": "Královéhradecký", "Kralovehradecky": "Královéhradecký",
+  "Pardubický": "Pardubický", "Pardubicky": "Pardubický",
+  "Vysočina": "Vysočina", "Vysocina": "Vysočina", "Kraj Vysočina": "Vysočina",
+  "Jihomoravský": "Jihomoravský", "Jihomoravsky": "Jihomoravský",
+  "Olomoucký": "Olomoucký", "Olomoucky": "Olomoucký",
+  "Zlínský": "Zlínský", "Zlinsky": "Zlínský",
+  "Moravskoslezský": "Moravskoslezský", "Moravsko-slezský": "Moravskoslezský",
+  "Moravskoslezsky": "Moravskoslezský", "MSK": "Moravskoslezský",
+  "Beskydy": "Moravskoslezský",
+  "Praha": "Praha",
+  "Slovensko": "Slovensko",
+}
+
+/**
+ * Inteligentní detekce kraje z více zdrojů.
+ * Pokud regionStr ze sheetu nesedí ze známých formátů, použij další signály:
+ *  - Název obce (Štáblovice → Moravskoslezský)
+ *  - Volný text v nearCity
+ *  - Až jako poslední Středočeský (fallback)
+ *
+ * Tím zachytíme případy, kdy Monča napsala v regionu "MSK", "Moravsko-slezský",
+ * nebo nechala prázdné.
+ */
+
+// Mapa obcí/měst → kraj (pro známé VIP lokality)
+const CITY_TO_REGION: Record<string, string> = {
+  // Moravskoslezský
+  "štáblovice": "Moravskoslezský", "stablovice": "Moravskoslezský",
+  "opava": "Moravskoslezský", "ostrava": "Moravskoslezský",
+  "frýdek": "Moravskoslezský", "frydek": "Moravskoslezský",
+  "karviná": "Moravskoslezský", "karvina": "Moravskoslezský",
+  "havířov": "Moravskoslezský", "havirov": "Moravskoslezský",
+  "nový jičín": "Moravskoslezský", "novy jicin": "Moravskoslezský",
+  "krnov": "Moravskoslezský", "bruntál": "Moravskoslezský", "bruntal": "Moravskoslezský",
+  "třinec": "Moravskoslezský", "trinec": "Moravskoslezský",
+  "ostravice": "Moravskoslezský", "beskydy": "Moravskoslezský",
+
+  // Olomoucký
+  "olomouc": "Olomoucký", "přerov": "Olomoucký", "prerov": "Olomoucký",
+  "prostějov": "Olomoucký", "prostejov": "Olomoucký",
+  "jeseník": "Olomoucký", "jesenik": "Olomoucký",
+  "šumperk": "Olomoucký", "sumperk": "Olomoucký",
+  "hranice": "Olomoucký",
+
+  // Zlínský
+  "zlín": "Zlínský", "zlin": "Zlínský", "kroměříž": "Zlínský", "kromeriz": "Zlínský",
+  "uherské hradiště": "Zlínský", "uherske hradiste": "Zlínský",
+  "vsetín": "Zlínský", "vsetin": "Zlínský", "valašské": "Zlínský", "valasske": "Zlínský",
+
+  // Jihomoravský
+  "brno": "Jihomoravský", "břeclav": "Jihomoravský", "breclav": "Jihomoravský",
+  "znojmo": "Jihomoravský", "hodonín": "Jihomoravský", "hodonin": "Jihomoravský",
+  "vyškov": "Jihomoravský", "vyskov": "Jihomoravský", "blansko": "Jihomoravský",
+  "mikulov": "Jihomoravský", "tišnov": "Jihomoravský", "tisnov": "Jihomoravský",
+
+  // Vysočina
+  "jihlava": "Vysočina", "třebíč": "Vysočina", "trebic": "Vysočina",
+  "havlíčkův brod": "Vysočina", "havlickuv brod": "Vysočina",
+  "žďár": "Vysočina", "zdar": "Vysočina", "pelhřimov": "Vysočina", "pelhrimov": "Vysočina",
+
+  // Pardubický
+  "pardubice": "Pardubický", "chrudim": "Pardubický",
+  "ústí nad orlicí": "Pardubický", "usti nad orlici": "Pardubický",
+  "svitavy": "Pardubický",
+
+  // Královéhradecký
+  "hradec králové": "Královéhradecký", "hradec kralove": "Královéhradecký",
+  "jičín": "Královéhradecký", "jicin": "Královéhradecký",
+  "trutnov": "Královéhradecký", "náchod": "Královéhradecký", "nachod": "Královéhradecký",
+  "rychnov": "Královéhradecký",
+
+  // Liberecký
+  "liberec": "Liberecký", "jablonec": "Liberecký",
+  "česká lípa": "Liberecký", "ceska lipa": "Liberecký",
+  "semily": "Liberecký",
+
+  // Ústecký
+  "ústí nad labem": "Ústecký", "usti nad labem": "Ústecký",
+  "děčín": "Ústecký", "decin": "Ústecký",
+  "teplice": "Ústecký", "most": "Ústecký", "louny": "Ústecký",
+  "litoměřice": "Ústecký", "litomerice": "Ústecký",
+  "chomutov": "Ústecký", "milešovkou": "Ústecký", "milesovkou": "Ústecký",
+  "varvažov": "Ústecký", "varvazov": "Ústecký",
+
+  // Karlovarský
+  "karlovy vary": "Karlovarský", "cheb": "Karlovarský", "sokolov": "Karlovarský",
+
+  // Plzeňský
+  "plzeň": "Plzeňský", "plzen": "Plzeňský", "klatovy": "Plzeňský",
+  "tachov": "Plzeňský", "domažlice": "Plzeňský", "domazlice": "Plzeňský",
+  "rokycany": "Plzeňský",
+
+  // Jihočeský
+  "české budějovice": "Jihočeský", "ceske budejovice": "Jihočeský",
+  "český krumlov": "Jihočeský", "cesky krumlov": "Jihočeský",
+  "tábor": "Jihočeský", "tabor": "Jihočeský", "písek": "Jihočeský", "pisek": "Jihočeský",
+  "strakonice": "Jihočeský", "jindřichův hradec": "Jihočeský", "jindrichuv hradec": "Jihočeský",
+  "prachatice": "Jihočeský",
+
+  // Středočeský
+  "kladno": "Středočeský", "kolín": "Středočeský", "kolin": "Středočeský",
+  "mladá boleslav": "Středočeský", "mlada boleslav": "Středočeský",
+  "mělník": "Středočeský", "melnik": "Středočeský",
+  "benešov": "Středočeský", "benesov": "Středočeský",
+  "kutná hora": "Středočeský", "kutna hora": "Středočeský",
+  "příbram": "Středočeský", "pribram": "Středočeský",
+  "nymburk": "Středočeský", "rakovník": "Středočeský", "rakovnik": "Středočeský",
+
+  // Praha
+  "praha": "Praha", "prague": "Praha",
+}
+
+function detectRegion(regionStr: string, title: string, nearCity: string, features: string): string | null {
+  // 1) Z sloupce kraje
+  const direct = REGION_MAP[regionStr.trim()]
+  if (direct) return direct
+
+  // 2) Z názvu místa, nearCity a features — hledej známou obec
+  const haystack = `${title} ${nearCity} ${features}`.toLowerCase()
+  for (const [city, region] of Object.entries(CITY_TO_REGION)) {
+    if (haystack.includes(city)) return region
+  }
+
+  // 3) Neznámé — vrátíme null, fallback řeší volající
+  return null
 }
 
 /**
@@ -426,7 +548,11 @@ async function main() {
     while (seenSlugs.has(slug)) slug = `${base}-${n++}`
     seenSlugs.add(slug)
 
-    const region = REGION_MAP[v.region.trim()] ?? "Středočeský"
+    const detectedRegion = detectRegion(v.region, v.title, v.nearCity, v.features)
+    if (!detectedRegion) {
+      console.warn(`⚠️ Neznámý kraj pro "${v.title}" (region="${v.region}", nearCity="${v.nearCity}") — fallback Středočeský`)
+    }
+    const region = detectedRegion ?? "Středočeský"
     const type = normalizeType(v.archType, v.title, v.features)
     const cateringPolicy = mapCatering(v.cateringNorm || v.catering)
     const nightPartyPolicy = mapParty(v.partyNorm || v.party)

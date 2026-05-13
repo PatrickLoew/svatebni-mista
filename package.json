@@ -10,7 +10,8 @@
     "import-venues": "tsx scripts/import-venues.ts",
     "import-venues-v2": "tsx scripts/import-venues-v2.ts",
     "sync-sheet": "tsx scripts/sync-google-sheet.ts",
-    "audit-venues": "tsx scripts/audit-venues.ts"
+    "audit-venues": "tsx scripts/audit-venues.ts",
+    "fix-stablovice": "tsx scripts/fix-region-stablovice.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
