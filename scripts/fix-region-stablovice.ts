@@ -38,10 +38,15 @@ const FIXES: FixRule[] = [
   { titleMatch: "garden u holubů", type: "Hotel", nearestCity: "Ostrava" },
   { titleMatch: "garden u holubu", type: "Hotel", nearestCity: "Ostrava" },
 
-  // Další VIP místa s pravděpodobně špatným typem (Zámek/Hotel)
-  // — odkomentuj/doplň podle skutečnosti, pokud Monča řekne
-  // { titleMatch: "zámeček dubí", type: "Zámek" },  // už správně (Zámek)
-  // { titleMatch: "zámek čekanice", type: "Zámek" }, // už správně
+  // Penzion Tereza — Telnice u Ústí nad Labem, NE Liberecký kraj!
+  // Telnice se v ČR jmenuje víc obcí (i u Brna), AI přiřadila špatně.
+  { titleMatch: "tereza", region: "Ústecký", nearestCity: "Praha" },
+
+  // Penzion Stará pošta Varvažov — Varvažov u Chlumce/Ústí n. Labem, NE Plzeňský!
+  // Varvažov existuje dvojí (i u Písku v Jihočeském), AI šla po jihu.
+  { titleMatch: "varvažov", region: "Ústecký", nearestCity: "Praha" },
+  { titleMatch: "varvazov", region: "Ústecký", nearestCity: "Praha" },
+  { titleMatch: "stará pošta", region: "Ústecký", nearestCity: "Praha" },
 ]
 
 async function main() {

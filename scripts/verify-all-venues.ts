@@ -92,6 +92,18 @@ MÍSTO:
 Z názvu a popisu (a webové URL, pokud poznáš doménu) urči SKUTEČNÝ kraj v ČR.
 Český Krumlov → Jihočeský. Štáblovice → Moravskoslezský. Tábor → Jihočeský.
 
+⚠️ POZOR NA VÍCEZNAČNÉ NÁZVY OBCÍ V ČR:
+Některé obce mají v ČR několik výskytů — NEHÁDEJ, používej URL webu a popis:
+- "Varvažov" existuje 2× — Ústecký (u Chlumce u Ústí) i Jihočeský (u Písku).
+  Pokud doména nebo popis nevyjasní, RADĚJI nech confidence "low" než hádej.
+- "Telnice" existuje 2× — Ústecký (u Ústí n. Labem) i Jihomoravský (u Brna).
+- "Lhota", "Vrchlabí", "Dolní/Horní" + cokoliv → typicky víc obcí.
+
+PRAVIDLO: Pokud máš dvě nebo více možností pro stejný název obce, použij:
+1. Doménu webu (např. .cz subdoména s lokálním názvem)
+2. Popis (zmínka okolního města / hor)
+3. Pokud nelze rozhodnout → confidence "low" (skript pak nepřepíše).
+
 POVOLENÉ HODNOTY:
 - region: ${VALID_REGIONS.join(" | ")}
 - nearest_city (nejbližší velké město do 90 min autem): ${VALID_CITIES.join(" | ")}
