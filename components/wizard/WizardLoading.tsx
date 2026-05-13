@@ -147,13 +147,6 @@ function RingsAnimation({ isFinalizing }: { isFinalizing: boolean }) {
             <stop offset="40%" stopColor="#FFE4A0" stopOpacity="0.6" />
             <stop offset="100%" stopColor="#C9A96E" stopOpacity="0" />
           </radialGradient>
-
-          {/* Srdce gradient */}
-          <linearGradient id="heartGold" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#E8C98A" />
-            <stop offset="50%" stopColor="#C9A96E" />
-            <stop offset="100%" stopColor="#A88240" />
-          </linearGradient>
         </defs>
 
         {/* Soft shadow */}
@@ -178,21 +171,20 @@ function RingsAnimation({ isFinalizing }: { isFinalizing: boolean }) {
           animate={
             isFinalizing
               ? {
-                  // FINALIZING: rychlé přiblížení k centru
+                  // FINALIZING: během 2.5s se rychle přiblíží k centru
                   x: [-25, 0],
-                  rotate: [0, 720],
+                  rotate: [0, 360],
                 }
               : {
-                  // SEARCHING: vznáší se na svojí pozici daleko od centra
-                  x: [-25, -22, -25, -28, -25],
-                  y: [0, -3, 0, 3, 0],
-                  rotate: 0,
+                  // SEARCHING: klidná pomalá rotace na svojí pozici
+                  x: -25,
+                  rotate: 360,
                 }
           }
           transition={
             isFinalizing
               ? { duration: 2.5, ease: "easeInOut" }
-              : { duration: 4, repeat: Infinity, ease: "easeInOut" }
+              : { rotate: { duration: 14, repeat: Infinity, ease: "linear" } }
           }
           style={{ transformOrigin: "140px 140px" }}
         >
@@ -226,18 +218,17 @@ function RingsAnimation({ isFinalizing }: { isFinalizing: boolean }) {
             isFinalizing
               ? {
                   x: [25, 0],
-                  rotate: [0, -720],
+                  rotate: [0, -360],
                 }
               : {
-                  x: [25, 28, 25, 22, 25],
-                  y: [0, 3, 0, -3, 0],
-                  rotate: 0,
+                  x: 25,
+                  rotate: -360,
                 }
           }
           transition={
             isFinalizing
               ? { duration: 2.5, ease: "easeInOut" }
-              : { duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
+              : { rotate: { duration: 14, repeat: Infinity, ease: "linear" } }
           }
           style={{ transformOrigin: "140px 140px" }}
         >
@@ -260,44 +251,6 @@ function RingsAnimation({ isFinalizing }: { isFinalizing: boolean }) {
             />
             <circle cx="-2" cy="6" r="0.7" fill="#FFFFFF" opacity="0.8" />
           </g>
-        </motion.g>
-
-        {/* PULZUJÍCÍ SRDCE — uprostřed mezi prstýnky, heart-beat rytmus */}
-        <motion.g
-          animate={{
-            scale: isFinalizing
-              ? [1, 1.4, 1.2]  // velký pulse při spojení
-              : [1, 1.12, 1, 1.18, 1],  // lub-dub rytmus (dva údery, pauza)
-          }}
-          transition={{
-            duration: isFinalizing ? 2.5 : 1.2,
-            repeat: isFinalizing ? 0 : Infinity,
-            times: isFinalizing ? [0, 0.6, 1] : [0, 0.15, 0.3, 0.45, 1],
-            ease: "easeInOut",
-          }}
-          style={{ transformOrigin: "140px 140px" }}
-        >
-          {/* Heart path — křivka srdce, zlatý outline + soft fill */}
-          <path
-            d="M 140 130
-               C 130 115, 110 115, 110 132
-               C 110 148, 140 165, 140 165
-               C 140 165, 170 148, 170 132
-               C 170 115, 150 115, 140 130 Z"
-            fill="url(#heartGold)"
-            stroke="#A88240"
-            strokeWidth="1.5"
-            opacity="0.85"
-          />
-          {/* Inner highlight on heart */}
-          <path
-            d="M 124 124 C 122 122, 120 126, 122 130"
-            stroke="#FFFAF0"
-            strokeWidth="1.5"
-            fill="none"
-            opacity="0.7"
-            strokeLinecap="round"
-          />
         </motion.g>
 
         {/* SEARCHING: jiskření po obvodu — víc decentní */}
@@ -325,40 +278,6 @@ function RingsAnimation({ isFinalizing }: { isFinalizing: boolean }) {
               ease: "easeInOut",
             }}
           />
-        ))}
-
-        {/* FINALIZING: vznášející se zlatá srdíčka nahoru po spojení */}
-        {isFinalizing && [
-          { x: 100, delay: 0.5 },
-          { x: 140, delay: 0.7 },
-          { x: 180, delay: 0.9 },
-          { x: 120, delay: 1.1 },
-          { x: 160, delay: 1.3 },
-        ].map((h, i) => (
-          <motion.g
-            key={i}
-            initial={{ opacity: 0, y: 0, scale: 0.3 }}
-            animate={{
-              opacity: [0, 0.9, 0],
-              y: -120,
-              scale: [0.3, 1, 0.7],
-            }}
-            transition={{
-              duration: 2,
-              delay: h.delay,
-              ease: "easeOut",
-            }}
-          >
-            <path
-              d={`M ${h.x} 140
-                  C ${h.x - 5} 134, ${h.x - 12} 134, ${h.x - 12} 142
-                  C ${h.x - 12} 150, ${h.x} 158, ${h.x} 158
-                  C ${h.x} 158, ${h.x + 12} 150, ${h.x + 12} 142
-                  C ${h.x + 12} 134, ${h.x + 5} 134, ${h.x} 140 Z`}
-              fill="url(#heartGold)"
-              opacity="0.85"
-            />
-          </motion.g>
         ))}
 
         {/* FINALIZING: středová hvězda */}
