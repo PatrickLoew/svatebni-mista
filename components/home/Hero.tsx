@@ -4,8 +4,9 @@ import { useRef } from "react"
 import Link from "next/link"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { Heart, Award, MapPin, ChevronDown } from "lucide-react"
+import type { SiteSettings } from "@/lib/settings"
 
-export default function Hero() {
+export default function Hero({ settings }: { settings: SiteSettings }) {
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] })
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "40%"])
@@ -51,7 +52,7 @@ export default function Hero() {
           >
             <span className="text-[#E8C98A]">✦</span>
             <span className="text-[#E8C98A] text-[11px] sm:text-xs font-semibold tracking-[.2em] uppercase">
-              Jediná služba v ČR
+              {settings.heroEyebrow}
             </span>
           </motion.div>
 
@@ -62,7 +63,7 @@ export default function Hero() {
               transition={{ delay: 0.4, duration: 0.8 }}
               className="block"
             >
-              Svatební místo
+              {settings.heroTitleLine1}
             </motion.span>
             <motion.span
               initial={{ opacity: 0, y: 30 }}
@@ -70,8 +71,18 @@ export default function Hero() {
               transition={{ delay: 0.6, duration: 0.8 }}
               className="block italic text-[#E8C98A]"
             >
-              přesně na míru
+              {settings.heroTitleLine2}
             </motion.span>
+            {settings.heroTitleLine3 && (
+              <motion.span
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
+                className="block italic text-[#E8C98A]"
+              >
+                {settings.heroTitleLine3}
+              </motion.span>
+            )}
           </h1>
 
           <motion.p
@@ -80,8 +91,7 @@ export default function Hero() {
             transition={{ delay: 1 }}
             className="text-white/85 text-base sm:text-lg md:text-xl leading-relaxed max-w-xl mb-8 sm:mb-10 font-light"
           >
-            Jediná služba v České republice, která vám podle <strong className="font-medium text-white">vašich kritérií</strong> vyhodnotí to <strong className="font-medium text-white">nejlepší svatební místo</strong>.
-            Žádné koordinace, žádné plánování — jen ten správný prostor.
+            {settings.heroSubtitle}
           </motion.p>
 
           <motion.div
@@ -94,7 +104,7 @@ export default function Hero() {
               href="/chci-svatbu"
               className="group bg-[#C9A96E] text-white font-medium px-6 sm:px-9 py-4 rounded-full hover:bg-[#A88240] transition-all hover:scale-[1.02] inline-flex items-center justify-center gap-2 text-sm sm:text-base"
             >
-              Spustit analýzu
+              {settings.heroPrimaryCta}
               <span className="transition-transform group-hover:translate-x-1">→</span>
             </Link>
             <a
@@ -103,7 +113,7 @@ export default function Hero() {
               rel="noopener noreferrer"
               className="border border-white/40 backdrop-blur-md bg-white/5 text-white font-medium px-6 sm:px-9 py-4 rounded-full hover:bg-white/15 transition-all inline-flex items-center justify-center text-sm sm:text-base"
             >
-              Prohlédnout celý katalog
+              {settings.heroSecondaryCta}
             </a>
           </motion.div>
         </div>

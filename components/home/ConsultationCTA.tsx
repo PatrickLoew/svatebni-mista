@@ -4,8 +4,9 @@ import { motion } from "framer-motion"
 import { CheckCircle, Calendar, Sparkles, Phone, Mail } from "lucide-react"
 import ConsultationButton from "@/components/consultation/ConsultationButton"
 import Link from "next/link"
+import type { SiteSettings } from "@/lib/settings"
 
-export default function ConsultationCTA() {
+export default function ConsultationCTA({ settings }: { settings: SiteSettings }) {
   return (
     <section
       id="consultation"
@@ -29,18 +30,17 @@ export default function ConsultationCTA() {
           <div className="flex items-center justify-center gap-3 mb-6">
             <span className="h-px w-10 bg-[#C9A96E]" />
             <span className="text-[#E8C98A] text-xs font-semibold tracking-[.3em] uppercase">
-              Začněte hledat své místo
+              {settings.ctaEyebrow}
             </span>
             <span className="h-px w-10 bg-[#C9A96E]" />
           </div>
 
           <h2 className="font-serif font-light text-3xl sm:text-4xl md:text-6xl leading-[1.05] mb-5 max-w-3xl mx-auto">
-            Najděte své <em className="text-[#E8C98A]">svatební místo na míru</em>
+            {settings.ctaTitle}
           </h2>
 
           <p className="text-white/70 leading-relaxed max-w-2xl mx-auto mb-12 sm:mb-14 font-light text-base sm:text-lg">
-            Jediná služba v ČR, která vám podle vašich kritérií vyhodnotí nejlepší
-            svatební místo. Vyberte si cestu — obě jsou zdarma a bez závazku.
+            {settings.ctaSubtitle}
           </p>
         </motion.div>
 
@@ -59,11 +59,10 @@ export default function ConsultationCTA() {
             </div>
 
             <h3 className="font-serif text-2xl md:text-3xl text-white font-light mb-3">
-              Svatební místo na míru
+              {settings.card1Title}
             </h3>
             <p className="text-white/65 leading-relaxed mb-6 text-sm">
-              6 otázek, 5 minut. Naše analýza projde stovky míst
-              a do 24 hodin dostanete osobní výběr 5 míst přímo na e-mail.
+              {settings.card1Description}
             </p>
 
             <ul className="space-y-2 mb-8 text-sm">
@@ -101,7 +100,7 @@ export default function ConsultationCTA() {
 
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 <h3 className="font-serif text-2xl md:text-3xl text-white font-light">
-                  Individuální konzultace
+                  {settings.card2Title}
                 </h3>
                 <span className="bg-[#E8C98A] text-[#3E2723] text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
                   Doporučeno
@@ -109,8 +108,7 @@ export default function ConsultationCTA() {
               </div>
 
               <p className="text-white/70 leading-relaxed mb-6 text-sm">
-                30 minut s naším specialistou na svatební místa. Online,
-                telefonicky nebo osobně. Hlubší analýza, konkrétní doporučení.
+                {settings.card2Description}
               </p>
 
               <ul className="space-y-2 mb-8 text-sm">
@@ -153,7 +151,7 @@ export default function ConsultationCTA() {
           <div className="flex flex-col sm:flex-row items-stretch justify-center gap-3 sm:gap-4">
             {/* Telefon */}
             <a
-              href="tel:+420123456789"
+              href={`tel:${(settings.phone || "").replace(/\s/g, "")}`}
               className="group flex items-center justify-center gap-3 bg-[#E8C98A]/10 hover:bg-[#E8C98A]/20 border-2 border-[#E8C98A]/40 hover:border-[#E8C98A] rounded-2xl px-7 py-5 transition-all"
             >
               <div className="w-11 h-11 rounded-full bg-[#E8C98A] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -161,13 +159,13 @@ export default function ConsultationCTA() {
               </div>
               <div className="text-left">
                 <div className="text-white/60 text-[10px] font-semibold tracking-[.2em] uppercase mb-0.5">Zavolejte nám</div>
-                <div className="font-serif text-xl sm:text-2xl text-white">+420 123 456 789</div>
+                <div className="font-serif text-xl sm:text-2xl text-white">{settings.phone}</div>
               </div>
             </a>
 
             {/* E-mail */}
             <a
-              href="mailto:svatebnimista@svatebnimista.cz"
+              href={`mailto:${settings.email}`}
               className="group flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border-2 border-white/20 hover:border-white/40 rounded-2xl px-7 py-5 transition-all"
             >
               <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -175,7 +173,7 @@ export default function ConsultationCTA() {
               </div>
               <div className="text-left">
                 <div className="text-white/60 text-[10px] font-semibold tracking-[.2em] uppercase mb-0.5">Napište nám</div>
-                <div className="font-serif text-base sm:text-lg text-white">svatebnimista@svatebnimista.cz</div>
+                <div className="font-serif text-base sm:text-lg text-white">{settings.email}</div>
               </div>
             </a>
           </div>
@@ -183,11 +181,10 @@ export default function ConsultationCTA() {
           {/* Teplé zakončení */}
           <div className="text-center mt-10 pt-8 border-t border-white/10">
             <p className="font-serif text-lg sm:text-xl text-white/90 italic font-light leading-relaxed max-w-xl mx-auto">
-              &bdquo;Ať už zvolíte cokoliv — vždy se s vámi rádi spojíme.
-              Těšíme se, že budeme moci být součástí vašeho příběhu.&ldquo;
+              &bdquo;{settings.closingQuote}&ldquo;
             </p>
             <p className="text-[#E8C98A] text-xs tracking-[.25em] uppercase font-semibold mt-4">
-              — Tým Svatební Místa
+              — {settings.closingSignature}
             </p>
           </div>
         </motion.div>

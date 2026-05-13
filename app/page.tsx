@@ -7,20 +7,27 @@ import Gallery from "@/components/home/Gallery"
 import Testimonials from "@/components/home/Testimonials"
 import ConsultationCTA from "@/components/home/ConsultationCTA"
 import FAQ from "@/components/home/FAQ"
+import { getSettings } from "@/lib/settings"
 
-export default function HomePage() {
+// Načti site_settings z DB při každém requestu — žádné cachování,
+// admin změny se okamžitě promítnou
+export const dynamic = "force-dynamic"
+
+export default async function HomePage() {
+  const settings = await getSettings()
+
   return (
     <>
-      <Hero />
+      <Hero settings={settings} />
       <FeaturedVenues />
-      <MidCTA />
-      <Process />
+      <MidCTA settings={settings} />
+      <Process settings={settings} />
       <Catering />
       <Gallery />
       <Testimonials />
-      <ConsultationCTA />
+      <ConsultationCTA settings={settings} />
       <div id="faq" />
-      <FAQ />
+      <FAQ settings={settings} />
     </>
   )
 }

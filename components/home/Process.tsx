@@ -2,45 +2,29 @@
 
 import { motion } from "framer-motion"
 import { Coffee, MapPinned, Sparkles } from "lucide-react"
+import type { SiteSettings } from "@/lib/settings"
 
-const steps = [
-  {
-    num: "01",
-    icon: Coffee,
-    title: "Vyplníte krátkou analýzu",
-    desc: "Šest jednoduchých otázek o vaší vizi, počtu hostů, rozpočtu a preferencích. Zabere vám to 5 minut a je to zcela zdarma.",
-  },
-  {
-    num: "02",
-    icon: MapPinned,
-    title: "Najdeme místo na míru",
-    desc: "Naši specialisté projdou stovky míst v naší databázi a vyberou tři, která přesně odpovídají vašim představám.",
-  },
-  {
-    num: "03",
-    icon: Sparkles,
-    title: "Pošleme vám návrh",
-    desc: "Do 24 hodin obdržíte e-mailem detailní návrh tří míst včetně rozpočtových rozpadů a přímých kontaktů.",
-  },
-]
+export default function Process({ settings }: { settings: SiteSettings }) {
+  const steps = [
+    { num: "01", icon: Coffee, title: settings.process1Title, desc: settings.process1Desc },
+    { num: "02", icon: MapPinned, title: settings.process2Title, desc: settings.process2Desc },
+    { num: "03", icon: Sparkles, title: settings.process3Title, desc: settings.process3Desc },
+  ]
 
-export default function Process() {
   return (
     <section id="process" className="py-32 px-6 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-20">
           <div className="flex items-center justify-center gap-3 mb-5">
             <span className="h-px w-10 bg-[#C9A96E]" />
-            <span className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase">Jak fungujeme</span>
+            <span className="text-[#C9A96E] text-xs font-medium tracking-[.3em] uppercase">{settings.processEyebrow}</span>
             <span className="h-px w-10 bg-[#C9A96E]" />
           </div>
           <h2 className="font-serif font-light text-4xl md:text-5xl lg:text-6xl leading-[1.1] mb-5">
-            Tři kroky k <em className="text-[#3E2723]">vašemu místu na míru</em>
+            {settings.processTitle}
           </h2>
           <p className="text-charcoal/60 max-w-2xl mx-auto leading-relaxed font-light">
-            <strong className="text-[#3E2723] font-medium">Jediná služba v ČR</strong>, která vám podle
-            vašich kritérií vyhodnotí to nejlepší svatební místo. Žádné plánování,
-            žádná koordinace — jen ten správný prostor.
+            {settings.processSubtitle}
           </p>
         </div>
 

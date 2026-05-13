@@ -3,35 +3,17 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus } from "lucide-react"
+import type { SiteSettings } from "@/lib/settings"
 
-const faqs = [
-  {
-    q: "Co znamená Svatební místo na míru?",
-    a: "Sami provozujeme svatební místa, takže přesně víme, jak fungují, na co se ptát a co je v praxi důležité. Místo abyste hodiny prohledávali katalogy, vyplníte krátkou analýzu a my vám doporučíme pět míst, která sednou přesně k vaší vizi a rozpočtu.",
-  },
-  {
-    q: "Plánujete nebo koordinujete svatby?",
-    a: "Ne — to není naše služba. My pomáháme najít to správné svatební místo. Samotné plánování (catering, dekorace, koordinace v den D) si pak buď řeší majitel daného místa, nebo si můžete najmout svatebního koordinátora.",
-  },
-  {
-    q: "Jak brzy bychom měli začít hledat místo?",
-    a: "Pro prémiová místa v hlavní sezóně (květen–září) doporučujeme začít hledat 12–18 měsíců předem. Mimo sezónu nebo ve všedních dnech si vystačíte s 6–9 měsíci. Naše analýza vám okamžitě ukáže, která místa mají volné termíny.",
-  },
-  {
-    q: "Kolik analýza stojí?",
-    a: "Analýza i následný návrh míst je pro vás zcela zdarma. Naši partneři (svatební místa) nám platí provizi pouze v případě, že si u nich rezervujete termín — vy nic neplatíte. Žádné skryté poplatky.",
-  },
-  {
-    q: "Pracujete po celé České republice?",
-    a: "Ano. Naše databáze obsahuje místa ve všech 14 krajích, plus partnerská místa na Slovensku. Pro každý kraj máme prověřené partnery, se kterými dlouhodobě spolupracujeme.",
-  },
-  {
-    q: "Jaký je první krok?",
-    a: "Vyplňte naši krátkou analýzu — 6 otázek, 5 minut. Do 24 hodin vám e-mailem pošleme pět míst, která se nejvíc hodí k vaší vizi. Dále si můžete domluvit individuální konzultaci pro hlubší probrání.",
-  },
-]
-
-export default function FAQ() {
+export default function FAQ({ settings }: { settings: SiteSettings }) {
+  const faqs = [
+    { q: settings.faq1Q, a: settings.faq1A },
+    { q: settings.faq2Q, a: settings.faq2A },
+    { q: settings.faq3Q, a: settings.faq3A },
+    { q: settings.faq4Q, a: settings.faq4A },
+    { q: settings.faq5Q, a: settings.faq5A },
+    { q: settings.faq6Q, a: settings.faq6A },
+  ]
   const [open, setOpen] = useState<number | null>(0)
 
   return (

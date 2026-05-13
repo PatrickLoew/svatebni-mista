@@ -3,8 +3,11 @@
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Sparkles } from "lucide-react"
+import type { SiteSettings } from "@/lib/settings"
 
-export default function MidCTA() {
+// settings prop pro budoucí editovatelný text — komponenta zatím
+// používá vlastní hardcoded text, ale prop je k dispozici.
+export default function MidCTA({ settings: _settings }: { settings: SiteSettings }) {
   return (
     <section className="relative py-24 px-6 bg-[#F9F2E6] overflow-hidden">
       <div className="absolute -top-20 -left-20 w-72 h-72 bg-[#C9A96E]/15 rounded-full blur-3xl pointer-events-none" />
