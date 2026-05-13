@@ -71,7 +71,10 @@ export default function Wizard() {
   async function submit() {
     setLoading(true)
     setError("")
-    const minWait = new Promise<void>((r) => setTimeout(r, 4500))
+    // Minimální doba loadingu — aby klient stihl přečíst všechny zprávy
+    // a viděl celou animaci spojení prstýnků.
+    // 6 zpráv × 2.5s = 15s; ale uděláme 13s aby měl klient pocit rychlosti.
+    const minWait = new Promise<void>((r) => setTimeout(r, 13000))
     try {
       const apiCall = fetch("/api/match", {
         method: "POST",
