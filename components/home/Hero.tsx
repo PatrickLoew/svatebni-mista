@@ -129,7 +129,7 @@ export default function Hero() {
               {
                 icon: Heart,
                 title: "Do 24 hodin",
-                subtitle: "návrh 3 míst přímo do mailu",
+                subtitle: "návrh 5 míst přímo do mailu",
                 pos: "bottom-12 right-4",
                 delay: 1.8,
               },

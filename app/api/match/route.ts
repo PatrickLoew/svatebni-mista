@@ -4,6 +4,7 @@ import { findBestMatches, type WizardAnswers, type Match } from "@/lib/matching"
 import { SAMPLE_VENUES } from "@/lib/sample-venues"
 import { validateEmail, validatePhone, validateName } from "@/lib/validation"
 import { evaluateWithClaude } from "@/lib/claude-ai"
+import { toCzechVocative } from "@/lib/czech-vocative"
 import type { Venue } from "@/lib/types"
 
 const MONTHS = ["", "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
@@ -146,7 +147,7 @@ export async function POST(req: Request) {
         await resend.emails.send({
           from: fromEmail,
           to: answers.email,
-          subject: `Váš osobní návrh svatebních míst — ${answers.name.split(" ")[0]}`,
+          subject: `Váš osobní návrh svatebních míst — ${toCzechVocative(answers.name)}`,
           html: clientEmail(answers, matches, claudeResult),
         })
 
@@ -290,7 +291,7 @@ function clientEmail(
   matches: Match[],
   claude?: { personaSummary?: string; cashbackText?: string; signature?: string } | null
 ): string {
-  const firstName = a.name.split(" ")[0] || "milí novomanželé"
+  const firstName = toCzechVocative(a.name) || "milí novomanželé"
   // Preferuj personalizovaný persona summary od Claude, fallback na algoritmus
   const personaSummary = claude?.personaSummary || buildPersonaSummary(a)
   const cashbackText = claude?.cashbackText || "Pokud si nakonec vyberete některé z míst, která jsme Vám doporučili, a dáte nám vědět, můžeme Vám u vybraných míst zajistit <strong>cashback ve výši 1 000 až 10 000 Kč</strong>."

@@ -10,6 +10,7 @@ import VenueCard from "@/components/venues/VenueCard"
 import WizardLoading from "./WizardLoading"
 import ConsultationButton from "@/components/consultation/ConsultationButton"
 import { validateEmail, validatePhone, validateName } from "@/lib/validation"
+import { toCzechVocative } from "@/lib/czech-vocative"
 
 const empty: WizardAnswers = {
   season: "leto",
@@ -595,7 +596,7 @@ function Step7({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
   return (
     <>
       {stepHead("Poslední krok", <>Kam máme <em className="text-[#3E2723]">poslat návrh?</em></>,
-        "Stačí jen e-mail. Do 24 hodin obdržíte tři místa s odůvodněním.")}
+        "Stačí jen e-mail. Do 24 hodin obdržíte pět míst s odůvodněním.")}
 
       <input
         type="text" tabIndex={-1} autoComplete="off"
@@ -698,7 +699,7 @@ function Step7({ a, update }: { a: WizardAnswers; update: <K extends keyof Wizar
 
 /* ───────── SUCCESS SCREEN (jednoduché, bez výsledků na webu) ───────── */
 function SuccessScreen({ answers }: { answers: WizardAnswers }) {
-  const firstName = answers.name?.trim().split(" ")[0] || ""
+  const firstName = toCzechVocative(answers.name ?? "")
   return (
     <div className="max-w-3xl mx-auto px-6 pt-32 pb-16">
       <motion.div
@@ -816,7 +817,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
           <CheckCircle size={32} className="text-[#C9A96E]" />
         </motion.div>
         <h1 className="font-serif font-light text-4xl md:text-5xl mb-4">
-          Děkujeme{answers.name ? `, ${answers.name.split(" ")[0]}` : ""}!
+          Děkujeme{answers.name ? `, ${toCzechVocative(answers.name)}` : ""}!
         </h1>
         <p className="text-charcoal/70 max-w-2xl mx-auto leading-relaxed">
           Pro <strong>{seasonLabel} {answers.weddingYear || ""}</strong>, <strong>{answers.guests} hostů</strong>{" "}
@@ -934,7 +935,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
 }
 
 function NoMatchScreen({ name }: { name: string }) {
-  const firstName = name.split(" ")[0]
+  const firstName = toCzechVocative(name)
   return (
     <div className="max-w-3xl mx-auto px-6 pt-32 pb-16">
       <motion.div

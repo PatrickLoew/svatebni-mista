@@ -97,7 +97,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   ctaTitle: "Najděte své svatební místo na míru",
   ctaSubtitle: "Jediná služba v ČR, která vám podle vašich kritérií vyhodnotí nejlepší svatební místo. Vyberte si cestu — obě jsou zdarma a bez závazku.",
   card1Title: "Svatební místo na míru",
-  card1Description: "6 otázek, 5 minut. Naše analýza projde stovky míst a do 24 hodin dostanete osobní výběr 3 míst přímo na e-mail.",
+  card1Description: "6 otázek, 5 minut. Naše analýza projde stovky míst a do 24 hodin dostanete osobní výběr 5 míst přímo na e-mail.",
   card2Title: "Individuální konzultace",
   card2Description: "30 minut s naším specialistou na svatební místa. Online, telefonicky nebo osobně. Hlubší analýza, konkrétní doporučení.",
 
@@ -108,7 +108,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   facebookUrl: "",
 
   faq1Q: "Co znamená Svatební místo na míru?",
-  faq1A: "Sami provozujeme svatební místa, takže přesně víme, jak fungují, na co se ptát a co je v praxi důležité. Místo abyste hodiny prohledávali katalogy, vyplníte krátkou analýzu a my vám doporučíme tři místa, která sednou přesně k vaší vizi a rozpočtu.",
+  faq1A: "Sami provozujeme svatební místa, takže přesně víme, jak fungují, na co se ptát a co je v praxi důležité. Místo abyste hodiny prohledávali katalogy, vyplníte krátkou analýzu a my vám doporučíme pět míst, která sednou přesně k vaší vizi a rozpočtu.",
   faq2Q: "Plánujete nebo koordinujete svatby?",
   faq2A: "Ne — to není naše služba. My pomáháme najít to správné svatební místo. Samotné plánování (catering, dekorace, koordinace v den D) si pak buď řeší majitel daného místa, nebo si můžete najmout svatebního koordinátora.",
   faq3Q: "Jak brzy bychom měli začít hledat místo?",
@@ -118,7 +118,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   faq5Q: "Pracujete po celé České republice?",
   faq5A: "Ano. Naše databáze obsahuje místa ve všech 14 krajích, plus partnerská místa na Slovensku. Pro každý kraj máme prověřené partnery, se kterými dlouhodobě spolupracujeme.",
   faq6Q: "Jaký je první krok?",
-  faq6A: "Vyplňte naši krátkou analýzu — 6 otázek, 5 minut. Do 24 hodin vám e-mailem pošleme tři místa, která se nejvíc hodí k vaší vizi. Dále si můžete domluvit individuální konzultaci pro hlubší probrání.",
+  faq6A: "Vyplňte naši krátkou analýzu — 6 otázek, 5 minut. Do 24 hodin vám e-mailem pošleme pět míst, která se nejvíc hodí k vaší vizi. Dále si můžete domluvit individuální konzultaci pro hlubší probrání.",
 
   footerDescription: "Prémiový svatební planning, catering a vyhledávání míst. Od první kávy až po poslední přípitek — postaráme se o všechno, co musí klapnout, abyste si svůj den jen užívali.",
 }

@@ -63,11 +63,11 @@ export default function ConsultationCTA() {
             </h3>
             <p className="text-white/65 leading-relaxed mb-6 text-sm">
               6 otázek, 5 minut. Naše analýza projde stovky míst
-              a do 24 hodin dostanete osobní výběr 3 míst přímo na e-mail.
+              a do 24 hodin dostanete osobní výběr 5 míst přímo na e-mail.
             </p>
 
             <ul className="space-y-2 mb-8 text-sm">
-              {["Osobní výběr 3 míst přímo pro vás", "Detail rozpočtu a parametry", "Bez nutnosti hovoru"].map((b) => (
+              {["Osobní výběr 5 míst přímo pro vás", "Detail rozpočtu a parametry", "Bez nutnosti hovoru"].map((b) => (
                 <li key={b} className="flex items-center gap-2 text-white/85">
                   <CheckCircle size={14} className="text-[#C9A96E] flex-shrink-0" />
                   {b}

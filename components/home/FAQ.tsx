@@ -7,7 +7,7 @@ import { Plus } from "lucide-react"
 const faqs = [
   {
     q: "Co znamená Svatební místo na míru?",
-    a: "Sami provozujeme svatební místa, takže přesně víme, jak fungují, na co se ptát a co je v praxi důležité. Místo abyste hodiny prohledávali katalogy, vyplníte krátkou analýzu a my vám doporučíme tři místa, která sednou přesně k vaší vizi a rozpočtu.",
+    a: "Sami provozujeme svatební místa, takže přesně víme, jak fungují, na co se ptát a co je v praxi důležité. Místo abyste hodiny prohledávali katalogy, vyplníte krátkou analýzu a my vám doporučíme pět míst, která sednou přesně k vaší vizi a rozpočtu.",
   },
   {
     q: "Plánujete nebo koordinujete svatby?",
@@ -27,7 +27,7 @@ const faqs = [
   },
   {
     q: "Jaký je první krok?",
-    a: "Vyplňte naši krátkou analýzu — 6 otázek, 5 minut. Do 24 hodin vám e-mailem pošleme tři místa, která se nejvíc hodí k vaší vizi. Dále si můžete domluvit individuální konzultaci pro hlubší probrání.",
+    a: "Vyplňte naši krátkou analýzu — 6 otázek, 5 minut. Do 24 hodin vám e-mailem pošleme pět míst, která se nejvíc hodí k vaší vizi. Dále si můžete domluvit individuální konzultaci pro hlubší probrání.",
   },
 ]
 

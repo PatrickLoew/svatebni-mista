@@ -67,6 +67,13 @@ Reflektuje kraj, hosty, typ, způsob svatby, catering, party.
 Speciální požadavky: "Velkým plusem je pro Vás také ___"
 Tón: vřelý, profesionální, vykání ("Vy/Váš"). Bez AI klišé.
 
+### Český vokativ (5. pád) — POVINNĚ:
+Pokud kdekoliv oslovuješ klienta jménem, používej VOKATIV (5. pád):
+- Petr → Petře, Pavel → Pavle, Karel → Karle, Václav → Václave, Tomáš → Tomáši
+- Lukáš → Lukáši, Marek → Marku, Adam → Adame, Jakub → Jakube, Filip → Filipe, Jan → Jane
+- Honza → Honzo, Jirka → Jirko, Jiří → Jiří, Dominik → Dominiku
+- Monika → Moniko, Jana → Jano, Anna → Anno, Petra → Petro, Eva → Evo, Lucie → Lucie
+
 ### Popis každého místa (1-2 věty):
 Varíruj tyto fráze:
 - "Krásné místo s jedinečnou atmosférou…"

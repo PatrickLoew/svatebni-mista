@@ -22,7 +22,7 @@ export default function WizardPage() {
         </h1>
         <p className="text-charcoal/70 max-w-xl mx-auto leading-relaxed">
           Vyhodnotíme pro vás <strong>nejlepší svatební místo dle vašich kritérií</strong>.
-          Odpovězte na 6 otázek a do 24 hodin obdržíte e-mailem <strong>3 osobní doporučení</strong> včetně
+          Odpovězte na 6 otázek a do 24 hodin obdržíte e-mailem <strong>5 osobních doporučení</strong> včetně
           rozpočtu a přímých kontaktů.
         </p>
       </div>

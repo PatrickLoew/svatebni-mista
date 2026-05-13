@@ -26,7 +26,7 @@ export default function MidCTA() {
         </h2>
         <p className="text-charcoal/70 max-w-2xl mx-auto leading-relaxed text-lg font-light mb-10">
           Šest otázek vám zabere 5 minut. Naše analýza projde stovky míst
-          a podle <strong>vašich kritérií</strong> vyhodnotí <strong>3 nejlepší svatební místa</strong>.
+          a podle <strong>vašich kritérií</strong> vyhodnotí <strong>5 nejlepších svatebních míst</strong>.
           Návrh do 24 hodin, zcela zdarma.
         </p>
 

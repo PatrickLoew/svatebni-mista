@@ -32,10 +32,23 @@ export default function VenueCard({ venue, index = 0 }: { venue: Venue; index?: 
               <div className="w-full h-full skeleton" />
             )}
             {venue.isFeatured && (
-              <span className="absolute top-3 left-3 bg-gradient-to-r from-[#A88240] via-[#C9A96E] to-[#E8C98A] text-white text-[11px] font-bold tracking-wider px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.4 5.8 22l2.4-8.1L2 9.4h7.6z"/></svg>
-                DOPORUČUJEME
-              </span>
+              <div className="absolute top-3 left-3 z-10">
+                {/* Glow podklad */}
+                <span className="absolute inset-0 bg-gradient-to-r from-[#A88240] via-[#E8C98A] to-[#A88240] rounded-full blur-md opacity-70 animate-pulse" />
+                {/* Hlavní badge */}
+                <span className="relative inline-flex items-center gap-1.5 bg-gradient-to-r from-[#A88240] via-[#E8C98A] to-[#C9A96E] text-white text-[12px] font-bold tracking-wider px-3.5 py-1.5 rounded-full shadow-xl ring-2 ring-white/40">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="drop-shadow-[0_0_4px_rgba(255,255,255,0.8)]"
+                  >
+                    <path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 22 12 17.4 5.8 22l2.4-8.1L2 9.4h7.6z" />
+                  </svg>
+                  DOPORUČUJEME
+                </span>
+              </div>
             )}
             <span className="absolute top-3 right-3 bg-black/60 text-white text-xs font-medium px-3 py-1 rounded-full">
               {venue.type}
