@@ -10,17 +10,36 @@ import { MapPin, Users, Banknote, CheckCircle, ChevronLeft, Utensils, Music, Bed
 import type { Venue } from "@/lib/types"
 import { describeCatering, describeNightParty, policyBadgeClasses } from "@/lib/venue-policies"
 
+// Mapuje DB snake_case na náš camelCase typ Venue.
+// Bez tohoto by accommodationCapacity, cateringPolicy, nightPartyPolicy byly
+// undefined a UI by zobrazilo defaultní "Dle dohody" / "Ubytování v okolí".
+function mapDbToVenue(data: Record<string, unknown>): Venue {
+  return {
+    ...data,
+    priceFrom: data.price_from,
+    isFeatured: data.is_featured,
+    createdAt: data.created_at,
+    accommodationCapacity: data.accommodation_capacity,
+    cateringPolicy: data.catering_policy,
+    nightPartyPolicy: data.night_party_policy,
+    avgWeddingCost: data.avg_wedding_cost,
+    nearestCity: data.nearest_city,
+    websiteUrl: data.website_url,
+    contactEmail: data.contact_email,
+  } as Venue
+}
+
 async function getVenue(slug: string): Promise<Venue | null> {
   const { data } = await supabase.from("venues").select("*").eq("slug", slug).single()
   if (!data) return null
-  return { ...data, priceFrom: data.price_from, isFeatured: data.is_featured, createdAt: data.created_at }
+  return mapDbToVenue(data)
 }
 
 async function getRelated(region: string, excludeId: string): Promise<Venue[]> {
   const { data } = await supabase
     .from("venues").select("*").eq("region", region).neq("id", excludeId).limit(3)
   if (!data) return []
-  return data.map((v) => ({ ...v, priceFrom: v.price_from, isFeatured: v.is_featured, createdAt: v.created_at }))
+  return data.map(mapDbToVenue)
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

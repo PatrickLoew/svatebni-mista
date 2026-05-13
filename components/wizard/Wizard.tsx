@@ -74,11 +74,11 @@ export default function Wizard() {
     setIsFinalizing(false)
     setError("")
     // Minimální doba pro storytelling — klient stihne přečíst zprávy
-    // (čtyři zprávy × ~1.8s = 7s minimum)
     const minStoryTime = new Promise<void>((r) => setTimeout(r, 7000))
     // Doba animace spojení prstýnků (po dokončení API)
     const finalAnimationMs = 2500
 
+    let matches: Match[] = []
     try {
       const apiCall = fetch("/api/match", {
         method: "POST",
@@ -92,21 +92,21 @@ export default function Wizard() {
         }
       })
       const [json] = await Promise.all([apiCall, minStoryTime])
-
-      // API + minimální čas hotov → spustit finální animaci spojení
-      setIsFinalizing(true)
-      await new Promise<void>((r) => setTimeout(r, finalAnimationMs))
-
-      setDone({ matches: json?.matches ?? [] })
+      matches = json?.matches ?? []
     } catch {
       await minStoryTime
-      setIsFinalizing(true)
-      await new Promise<void>((r) => setTimeout(r, finalAnimationMs))
-      setDone({ matches: [] })
-    } finally {
-      setLoading(false)
-      setIsFinalizing(false)
+      matches = []
     }
+
+    // API + min čas hotov → spustíme finální animaci spojení (2.5s)
+    setIsFinalizing(true)
+    await new Promise<void>((r) => setTimeout(r, finalAnimationMs))
+
+    // Atomicky přepneme z loadingu na výsledek (žádné problikávání)
+    // — setDone nejdřív, pak setLoading(false) ve stejném React batch
+    setDone({ matches })
+    setLoading(false)
+    // isFinalizing necháváme true až do unmountu (animace dohrává)
   }
 
   if (loading) return <WizardLoading name={a.name} isFinalizing={isFinalizing} />
