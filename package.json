@@ -14,7 +14,8 @@
     "fix-stablovice": "tsx scripts/fix-region-stablovice.ts",
     "refresh-venues": "tsx scripts/refresh-venues.ts",
     "verify-all-venues": "tsx scripts/verify-all-venues.ts",
-    "verify-all-fields": "tsx scripts/verify-all-fields.ts"
+    "verify-all-fields": "tsx scripts/verify-all-fields.ts",
+    "update-vip-from-csv": "tsx scripts/update-vip-from-csv.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",

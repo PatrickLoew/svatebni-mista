@@ -247,35 +247,61 @@ function mapCatering(s: string): string {
   if (!s) return "negotiable"
   const t = s.toLowerCase().trim()
 
-  // 1) Přímé kódy z normalizovaného sloupce (preferované)
+  // 1) Přímé kódy z normalizovaného sloupce
   if (t === "own_free" || t.includes("own_free")) return "own_free"
   if (t === "own_drinks_free" || t.includes("own_drinks")) return "own_drinks_free"
   if (t === "only_venue" || t.includes("only_venue")) return "only_venue"
   if (t === "negotiable") return "negotiable"
 
-  // 2) Vlastní jídlo I pití (kompletní vlastní catering bez poplatků)
+  // 2) Přesné formulace z Mončina sheetu (sloupec N — normalizace)
+  if (t.includes("vlastní jídlo/pití") || t.includes("vlastni jidlo/piti")) return "own_free"
+  if (t.includes("povinný interní catering") || t.includes("povinny interni catering")) return "only_venue"
+  if (t === "dle domluvy") return "negotiable"
+
+  // 3) Přesné formulace ze sloupce M (volný text klientovi)
+  if (
+    t.includes("musí mít catering") ||
+    t.includes("musi mit catering") ||
+    t.includes("catering a pití od nás") ||
+    t.includes("catering od nás") ||
+    t.includes("catering od nas")
+  ) return "only_venue"
+
+  if (
+    t.includes("možnost vlastního pití a jídla") ||
+    t.includes("moznost vlastniho piti a jidla") ||
+    t.includes("vlastního pití a jídla bez poplatků") ||
+    t.includes("vlastniho piti a jidla bez poplatku")
+  ) return "own_free"
+
+  // 4) Pouze vlastní pití (jídlo z místa)
+  if (
+    t.includes("možnost vlastního pití") && !t.includes("jídla") ||
+    t.includes("pouze vlastní pití") ||
+    t.includes("jen vlastní pití") ||
+    t.includes("vlastní alkohol") ||
+    t.includes("vlastni alkohol")
+  ) return "own_drinks_free"
+
+  // 5) Obecné fráze — vlastní jídlo I pití (kompletní)
   if (
     (t.includes("vlastní") && t.includes("jídlo") && t.includes("pití")) ||
     (t.includes("vlastni") && t.includes("jidlo") && t.includes("piti")) ||
     t.includes("vlastní jídlo i pití") ||
     t.includes("vlastní jídlo a pití") ||
     t.includes("vše vlastní") ||
-    t.includes("vse vlastni") ||
     (t.includes("vlastní") && t.includes("bez poplatk")) ||
     (t.includes("vlastní") && t.includes("zdarma"))
   ) return "own_free"
 
-  // 3) Pouze vlastní pití (jídlo z místa)
+  // 6) Obecné fráze pro vlastní pití
   if (
     t.includes("vlastní pití") ||
     t.includes("vlastni piti") ||
-    t.includes("vlastní alkohol") ||
-    t.includes("vlastni alkohol") ||
-    (t.includes("pití") && t.includes("bez poplatk")) ||
-    t.includes("only own drinks")
+    (t.includes("pití") && t.includes("bez poplatk"))
   ) return "own_drinks_free"
 
-  // 4) Pouze catering od místa / zákaz vlastního
+  // 7) Obecné fráze pro zákaz vlastního cateringu
   if (
     t.includes("pouze od místa") ||
     t.includes("pouze od mista") ||
