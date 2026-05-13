@@ -53,27 +53,66 @@ export async function POST(req: Request) {
       venues = SAMPLE_VENUES
     }
 
-    // Matching — algoritmus
+    // 🤖 CLAUDE AI vybírá 5 nejlepších míst z celé DB (jako specialista)
+    let claudeResult: Awaited<ReturnType<typeof evaluateWithClaude>> = null
     let matches: Match[] = []
     try {
-      matches = findBestMatches(venues, answers, 5)
+      claudeResult = await evaluateWithClaude(answers, venues)
     } catch (e) {
-      console.error("Match error:", e)
+      console.error("Claude evaluation error:", e)
     }
 
-    // 🤖 CLAUDE AI: personalizované popisy
-    let claudeResult: Awaited<ReturnType<typeof evaluateWithClaude>> = null
-    if (matches.length > 0) {
-      try {
-        claudeResult = await evaluateWithClaude(answers, matches.map((m) => m.venue))
-        if (claudeResult) {
-          matches = matches.map((m) => {
-            const cm = claudeResult!.matches.find((x) => x.slug === m.venue.slug)
-            return cm ? { ...m, personalDescription: cm.personalDescription } : m
+    if (claudeResult && claudeResult.selectedMatches.length > 0) {
+      // Claude vybral místa — sestavíme Match objekty
+      const venueBySlug = new Map(venues.map((v) => [v.slug, v]))
+      matches = claudeResult.selectedMatches
+        .map((cm) => {
+          const venue = venueBySlug.get(cm.slug)
+          if (!venue) return null
+          return {
+            venue,
+            score: 0, // Skóre už neřešíme — Claude rozhodl
+            reasons: [],
+            warnings: [],
+            personalDescription: cm.personalDescription,
+            bucket: cm.isAlternative ? "alternative" : "primary",
+          } as Match
+        })
+        .filter((m): m is Match => m !== null)
+
+      console.log(
+        `[match] Claude vybral ${matches.length} míst (primary: ${
+          matches.filter((m) => m.bucket !== "alternative").length
+        }, alternativy: ${matches.filter((m) => m.bucket === "alternative").length})`,
+      )
+
+      // Doplnění do 5: pokud Claude vrátil < 5, doplníme VIP z preferovaného kraje
+      if (matches.length < 5) {
+        const usedSlugs = new Set(matches.map((m) => m.venue.slug))
+        const vipFromRegion = venues
+          .filter((v) => v.isFeatured && !usedSlugs.has(v.slug))
+          .filter((v) => answers.regions.length === 0 || answers.regions.includes(v.region))
+          .slice(0, 5 - matches.length)
+
+        for (const v of vipFromRegion) {
+          matches.push({
+            venue: v,
+            score: 0,
+            reasons: [],
+            warnings: [],
+            personalDescription: "Doporučujeme jako alternativu z naší VIP sekce — místo s ověřenou kvalitou ve Vašem kraji.",
+            bucket: "alternative",
           })
         }
+        console.log(`[match] Doplněno ${vipFromRegion.length} VIP alternativ z kraje`)
+      }
+    } else {
+      // FALLBACK — Claude selhal, použij algoritmus
+      console.log("[match] Claude selhal, používám algoritmus jako fallback")
+      try {
+        matches = findBestMatches(venues, answers, 5)
       } catch (e) {
-        console.error("Claude error:", e)
+        console.error("Match algorithm error:", e)
       }
     }
 
@@ -283,9 +322,9 @@ function clientEmail(
   const alternativeBlocks = alternativeMatches.length > 0
     ? `
     <div style="margin-top:32px;padding-top:24px;border-top:2px dashed #E8DDD0">
-      <p style="margin:0 0 4px;color:#A88240;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600">✦ Alternativy ✦</p>
+      <p style="margin:0 0 4px;color:#A88240;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600">✦ Doporučujeme jako alternativu ✦</p>
       <p style="margin:0 0 20px;color:#666;font-size:13px;line-height:1.6;font-style:italic">
-        Tato místa nesplňují všechna Vaše kritéria, ale stojí za zvážení jako další možnost.
+        Tato místa nesplňují všechna Vaše kritéria na 100 %, ale stojí za zvážení — jsou z naší ověřené VIP sekce.
       </p>
       ${alternativeMatches.map((m, i) => renderVenue(m, i === alternativeMatches.length - 1)).join("")}
     </div>`

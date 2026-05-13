@@ -862,12 +862,12 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                 <div className="flex items-center justify-center gap-3 mb-3 mt-4">
                   <span className="h-px w-10 bg-[#C9A96E]/40" />
                   <span className="text-[#A88240] text-[11px] font-semibold tracking-[.3em] uppercase">
-                    ✦ Alternativy ✦
+                    ✦ Doporučujeme jako alternativu ✦
                   </span>
                   <span className="h-px w-10 bg-[#C9A96E]/40" />
                 </div>
                 <p className="text-center text-charcoal/60 text-sm italic mb-8 max-w-xl mx-auto">
-                  Tato místa nesplňují všechna vaše kritéria, ale stojí za zvážení jako další možnost.
+                  Tato místa nesplňují všechna vaše kritéria na 100 %, ale jsou z naší ověřené VIP sekce a stojí za zvážení.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
                   {alternative.map((m, i) => (
@@ -876,7 +876,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.12 }}
-                      className="relative opacity-90"
+                      className="relative"
                     >
                       <VenueCard venue={m.venue} index={i} />
                       {m.personalDescription && (
