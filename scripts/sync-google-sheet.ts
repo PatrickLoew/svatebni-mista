@@ -95,17 +95,75 @@ function normalizeType(t: string): string {
 }
 
 function mapCatering(s: string): string {
-  const t = s.toLowerCase()
-  if (t.includes("vlastní jídlo")) return "own_free"
+  if (!s) return "negotiable"
+  const t = s.toLowerCase().trim()
+
+  // 1) Přímé hodnoty z normalizovaného sloupce (preferované — Monča může psát rovnou kódy)
+  if (t === "own_free" || t.includes("own_free")) return "own_free"
+  if (t === "own_drinks_free" || t.includes("own_drinks")) return "own_drinks_free"
+  if (t === "only_venue" || t.includes("only_venue")) return "only_venue"
+  if (t === "negotiable") return "negotiable"
+
+  // 2) České formulace — vlastní jídlo i pití povolené (zdarma)
+  if (
+    (t.includes("vlastní") && t.includes("jídlo")) ||
+    t.includes("vlastní jídlo i pití") ||
+    (t.includes("vlastní") && t.includes("bez poplatk"))
+  ) return "own_free"
+
+  // 3) Pouze vlastní pití (jídlo musí být z místa)
   if (t.includes("vlastní pití")) return "own_drinks_free"
-  if (t.includes("povinný") || t.includes("musí")) return "only_venue"
+
+  // 4) Pouze catering od místa / zákaz vlastního
+  if (
+    t.includes("pouze od místa") ||
+    t.includes("povinný") ||
+    t.includes("musí") ||
+    t.includes("zákaz vlastn") ||
+    t.includes("nelze vlastní") ||
+    t.includes("nepovolen") ||
+    t.includes("jen catering")
+  ) return "only_venue"
+
   return "negotiable"
 }
+
 function mapParty(s: string): string {
-  const t = s.toLowerCase()
-  if (t.includes("bez nočního") || t.includes("neruší") || t.includes("žádný noční")) return "no_curfew"
-  if (t.includes("po 22") || t.includes("přesun") || t.includes("párty místnost") || t.includes("party místnost")) return "indoor_after_22"
-  if (t.includes("max do 22") || t.includes("do 22")) return "quiet_hours"
+  if (!s) return "negotiable"
+  const t = s.toLowerCase().trim()
+
+  // 1) Přímé kódy
+  if (t === "no_curfew" || t.includes("no_curfew")) return "no_curfew"
+  if (t === "indoor_after_22" || t.includes("indoor_after_22")) return "indoor_after_22"
+  if (t === "quiet_hours" || t.includes("quiet_hours")) return "quiet_hours"
+  if (t === "negotiable") return "negotiable"
+
+  // 2) České formulace — bez nočního klidu (party může až do rána venku)
+  if (
+    t.includes("bez nočního") ||
+    t.includes("neruší") ||
+    t.includes("žádný noční") ||
+    t.includes("bez omezení") ||
+    t.includes("do rána")
+  ) return "no_curfew"
+
+  // 3) Přesun dovnitř po 22:00
+  if (
+    t.includes("po 22") ||
+    t.includes("přesun") ||
+    t.includes("párty místnost") ||
+    t.includes("party místnost") ||
+    t.includes("uvnitř po")
+  ) return "indoor_after_22"
+
+  // 4) Pouze do 22 / noční klid
+  if (
+    t.includes("max do 22") ||
+    t.includes("do 22") ||
+    t.includes("noční klid") ||
+    t.includes("hluku")
+  ) return "quiet_hours"
+
   return "negotiable"
 }
 function mapNearestCity(t: string): string | null {

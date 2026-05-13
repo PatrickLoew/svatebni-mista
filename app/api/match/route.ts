@@ -92,10 +92,33 @@ export async function POST(req: Request) {
         if (answers.rentalBudget > 0 && v.priceFrom > answers.rentalBudget * 1.20) {
           return { ok: false, reason: `pronájem ${v.priceFrom.toLocaleString("cs-CZ")} Kč přesahuje rozpočet ${answers.rentalBudget.toLocaleString("cs-CZ")} Kč o víc než 20 %` }
         }
-        // Lokalita: pokud klient zadal kraj, musí sedět nebo alespoň sousední kraj
+        // Lokalita: pokud klient zadal kraj, musí sedět
         if (answers.regions.length > 0 && !answers.regions.includes(v.region)) {
-          // Toleruj jen pokud chyba klienta jasná není (např. zadal jen jeden kraj)
           return { ok: false, reason: `není v preferovaném kraji (${v.region} ≠ ${answers.regions.join("/")})` }
+        }
+        // CATERING: klient chce vlastní catering → místo NESMÍ být "only_venue"
+        if (answers.catering === "vlastni-vse") {
+          // chce vlastní jídlo I pití bez poplatků → místo musí mít own_free
+          if (v.cateringPolicy === "only_venue") {
+            return { ok: false, reason: `místo zakazuje vlastní catering (pouze od místa), ale klient chce vlastní jídlo i pití` }
+          }
+          if (v.cateringPolicy === "own_drinks_free") {
+            return { ok: false, reason: `místo povoluje pouze vlastní pití (jídlo musí být od místa), ale klient chce i vlastní jídlo` }
+          }
+        }
+        if (answers.catering === "vlastni-piti") {
+          // chce vlastní pití → místo musí mít own_free nebo own_drinks_free
+          if (v.cateringPolicy === "only_venue") {
+            return { ok: false, reason: `místo zakazuje vlastní pití, ale klient ho chce` }
+          }
+        }
+        // PARTY: klient chce velkou party bez nočního klidu → místo NESMÍ mít quiet_hours
+        if (answers.party === "velka-bez-klidu" && v.nightPartyPolicy === "quiet_hours") {
+          return { ok: false, reason: `místo má noční klid, ale klient chce velkou party bez omezení` }
+        }
+        // UBYTOVÁNÍ: klient chce přímo na místě → musí mít alespoň nějaká lůžka
+        if (answers.accommodation === "primo" && (v.accommodationCapacity ?? 0) === 0) {
+          return { ok: false, reason: `místo nemá ubytování přímo na místě, ale klient ho vyžaduje` }
         }
         return { ok: true }
       }

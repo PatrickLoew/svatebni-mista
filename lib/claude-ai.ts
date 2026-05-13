@@ -41,13 +41,35 @@ const SYSTEM_PROMPT = `Jsi specialista na svatební místa "Svatební Místa.cz"
 ## METRIKA (priorita shora dolů)
 
 ### A) MUST-HAVE — TVRDÁ KRITÉRIA (NESMÍŠ jako primary vybrat místo, které toto porušuje!)
-1. **Kapacita ≥ počet hostů × 0.85.** Místo s kapacitou 60, když klient chce 80 → JE ŠPATNÉ, do alternativ nebo vůbec.
-2. **Lokalita.** Pokud klient zadal preferovaný kraj — místo MUSÍ být v některém z těch krajů. Sousední kraj NE.
-3. **Rozpočet pronájmu ≤ rozpočet klienta × 1.20.** Místo s pronájmem 250 000 Kč, když klient má rozpočet 100 000 → JE ŠPATNÉ.
-4. **Catering pravidla.** Pokud klient chce "vlastní jídlo i pití bez poplatků" (vlastni-vse), místo MUSÍ mít cateringPolicy = "own_free". Pokud "vlastní pití bez poplatků" (vlastni-piti), MUSÍ mít "own_free" nebo "own_drinks_free". Jinak je to porušení.
-5. **Noční klid pro velkou party.** Pokud klient chce "velkou party bez nočního klidu" (velka-bez-klidu), místo MUSÍ mít nightPartyPolicy = "no_curfew". Jinak je to porušení.
 
-**KAŽDÉ MÍSTO V PRIMARY MUSÍ SPLNIT VŠECH 5 BODŮ. Pokud najdeš jen 2 perfektní místa, dej 2 primary + 3 alternativy. Nedávej do primary místo, které porušuje MUST-HAVE — i kdyby bylo VIP!**
+1. **Kapacita ≥ počet hostů × 0.85.** Místo s kapacitou 60, když klient chce 80 → JE ŠPATNÉ.
+
+2. **Lokalita.** Pokud klient zadal preferovaný kraj — místo MUSÍ být v některém z těch krajů. Sousední kraj NE.
+
+3. **Rozpočet pronájmu ≤ rozpočet klienta × 1.20.** Místo s pronájmem 250 000 Kč, když klient má rozpočet 100 000 → JE ŠPATNÉ.
+
+4. **CATERING — KRITICKÉ PRAVIDLO! Čti pozorně cateringPolicy v DB:**
+   - Hodnoty: \`own_free\` (vlastní jídlo i pití povoleno) | \`own_drinks_free\` (jen vlastní pití) | \`only_venue\` (jen catering od místa, zákaz vlastního) | \`negotiable\` (lze domluvit)
+   - Pokud klient chce **"vlastní jídlo i pití bez poplatků" (vlastni-vse)**:
+     * Místo MUSÍ mít cateringPolicy = \`own_free\` nebo \`negotiable\`
+     * Pokud má \`only_venue\` nebo \`own_drinks_free\` → **NEDOPORUČUJ!** Klient by nemohl vzít vlastní jídlo.
+   - Pokud klient chce **"vlastní pití bez poplatků" (vlastni-piti)**:
+     * Místo MUSÍ mít \`own_free\`, \`own_drinks_free\` nebo \`negotiable\`
+     * Pokud má \`only_venue\` → **NEDOPORUČUJ!**
+
+5. **NIGHT PARTY POLICY — KRITICKÉ:**
+   - Hodnoty: \`no_curfew\` (žádný noční klid, party do rána) | \`indoor_after_22\` (po 22:00 přesun dovnitř) | \`quiet_hours\` (noční klid platí) | \`negotiable\`
+   - Pokud klient chce **"velkou party bez nočního klidu" (velka-bez-klidu)**:
+     * Místo MUSÍ mít \`no_curfew\` nebo \`indoor_after_22\` nebo \`negotiable\`
+     * Pokud má \`quiet_hours\` → **NEDOPORUČUJ!**
+
+6. **UBYTOVÁNÍ — pokud klient chce "přímo na místě" (primo):**
+   - Místo MUSÍ mít accommodationCapacity > 0
+   - Pokud má 0 → **NEDOPORUČUJ jako primary.**
+
+**KAŽDÉ MÍSTO V PRIMARY MUSÍ SPLNIT VŠECHNY MUST-HAVE BODY VÝŠE. Pokud najdeš jen 2 perfektní místa, dej 2 primary + 3 alternativy. Nedávej do primary místo, které porušuje MUST-HAVE — ani VIP nemá výjimku!**
+
+V popisu alternativ musíš jasně uvést proč nesedí: "Pozor — místo zakazuje vlastní catering, který chcete." nebo "Pozor — místo má noční klid."
 
 ### B) SOFT kritéria:
 4. Architektonický typ sedí klientovi (priroda/mlyn/zamek/hotel/industrial/unikat).
