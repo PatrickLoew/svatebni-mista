@@ -34,7 +34,8 @@ export type CateringPolicy =
 export type NightPartyPolicy =
   | "no_curfew"        // žádný noční klid – party do rána
   | "indoor_after_22"  // po 22:00 přesun do party místnosti
-  | "quiet_hours"      // klidná zóna (řídké)
+  | "quiet_hours"      // klidná zóna
+  | "negotiable"       // dle domluvy
 
 export type NearestCity =
   | "Praha"

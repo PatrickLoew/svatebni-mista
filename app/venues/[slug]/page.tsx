@@ -6,8 +6,9 @@ import { supabase } from "@/lib/supabase"
 import InquiryForm from "@/components/venues/InquiryForm"
 import VenueCard from "@/components/venues/VenueCard"
 import { formatPrice } from "@/lib/utils"
-import { MapPin, Users, Banknote, CheckCircle, ChevronLeft } from "lucide-react"
+import { MapPin, Users, Banknote, CheckCircle, ChevronLeft, Utensils, Music, BedDouble, Handshake } from "lucide-react"
 import type { Venue } from "@/lib/types"
+import { describeCatering, describeNightParty, policyBadgeClasses } from "@/lib/venue-policies"
 
 async function getVenue(slug: string): Promise<Venue | null> {
   const { data } = await supabase.from("venues").select("*").eq("slug", slug).single()
@@ -108,6 +109,55 @@ export default async function VenueDetailPage({ params }: { params: Promise<{ sl
             <h2 className="font-display text-xl font-semibold mb-3">O místě</h2>
             <p className="text-charcoal/70 leading-relaxed">{venue.description}</p>
           </div>
+
+          {/* Catering & Party policies */}
+          {(() => {
+            const cat = describeCatering(venue.cateringPolicy)
+            const party = describeNightParty(venue.nightPartyPolicy)
+            const accom = venue.accommodationCapacity ?? 0
+            return (
+              <div className="mb-8">
+                <h2 className="font-display text-xl font-semibold mb-4">Catering, party & ubytování</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* Catering */}
+                  <div className={`rounded-xl border-2 p-4 ${policyBadgeClasses(cat.variant)}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {cat.variant === "negotiable" ? <Handshake size={18} /> : <Utensils size={18} />}
+                      <span className="text-xs font-semibold uppercase tracking-wider opacity-70">Catering & pití</span>
+                    </div>
+                    <p className="font-semibold mb-1.5">{cat.label}</p>
+                    <p className="text-xs leading-relaxed opacity-80">{cat.detail}</p>
+                  </div>
+
+                  {/* Party */}
+                  <div className={`rounded-xl border-2 p-4 ${policyBadgeClasses(party.variant)}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {party.variant === "negotiable" ? <Handshake size={18} /> : <Music size={18} />}
+                      <span className="text-xs font-semibold uppercase tracking-wider opacity-70">Večerní party</span>
+                    </div>
+                    <p className="font-semibold mb-1.5">{party.label}</p>
+                    <p className="text-xs leading-relaxed opacity-80">{party.detail}</p>
+                  </div>
+
+                  {/* Ubytování */}
+                  <div className={`rounded-xl border-2 p-4 ${accom > 0 ? policyBadgeClasses("positive") : policyBadgeClasses("neutral")}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <BedDouble size={18} />
+                      <span className="text-xs font-semibold uppercase tracking-wider opacity-70">Ubytování</span>
+                    </div>
+                    <p className="font-semibold mb-1.5">
+                      {accom > 0 ? `${accom} lůžek přímo na místě` : "Ubytování v okolí"}
+                    </p>
+                    <p className="text-xs leading-relaxed opacity-80">
+                      {accom > 0
+                        ? `Místo nabízí ubytování přímo v areálu pro ${accom} hostů.`
+                        : "Místo samo nenabízí ubytování — k dispozici jsou ale možnosti v blízkém okolí."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Services */}
           {venue.services.length > 0 && (
