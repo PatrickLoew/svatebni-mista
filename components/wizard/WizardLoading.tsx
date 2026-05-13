@@ -2,22 +2,28 @@
 
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
+import { toCzechVocative } from "@/lib/czech-vocative"
 
-const messages = [
-  "Procházíme váš profil",
-  "Vyhodnocujeme přes 200 míst",
-  "Porovnáváme rozpočet a kapacitu",
-  "Vybíráme tři nejlepší shody",
-  "Připravujeme váš osobní návrh",
-]
+export default function WizardLoading({ name }: { name?: string }) {
+  const firstName = toCzechVocative(name ?? "")
 
-export default function WizardLoading() {
+  // Personalizované zprávy — když máme jméno, oslovujeme přímo
+  const messages = [
+    firstName ? `Procházíme Váš profil, ${firstName}` : "Procházíme Váš profil",
+    "Vyhodnocujeme přes 200 míst v celé ČR",
+    "Porovnáváme rozpočet, kapacitu i Vaše preference",
+    firstName
+      ? `Vybíráme 5 nejlepších míst přesně pro Vás, ${firstName}`
+      : "Vybíráme 5 nejlepších míst přesně pro Vás",
+    "Připravujeme Váš osobní návrh",
+  ]
+
   const [msg, setMsg] = useState(0)
 
   useEffect(() => {
-    const id = setInterval(() => setMsg((m) => (m + 1) % messages.length), 1100)
+    const id = setInterval(() => setMsg((m) => (m + 1) % messages.length), 1300)
     return () => clearInterval(id)
-  }, [])
+  }, [messages.length])
 
   return (
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-[#FEFDFB] via-[#F9F2E6] to-[#F0E8DC] flex flex-col items-center justify-center px-6">
@@ -28,19 +34,20 @@ export default function WizardLoading() {
         <RingsAnimation />
       </div>
 
-      <div className="mt-12 text-center min-h-[80px]">
+      <div className="mt-12 text-center min-h-[100px] max-w-xl">
         <motion.p
           key={msg}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.4 }}
-          className="font-serif text-2xl md:text-3xl font-light text-[#3E2723] mb-3"
+          className="font-serif text-2xl md:text-3xl font-light text-[#3E2723] mb-4"
         >
           {messages[msg]}
         </motion.p>
-        <p className="text-charcoal/50 text-sm font-light tracking-wide italic">
-          Tvoříme něco výjimečného právě pro vás
+        <p className="text-charcoal/60 text-sm md:text-base font-light tracking-wide italic leading-relaxed max-w-md mx-auto">
+          Jediná služba v ČR, která Vám podle Vašich kritérií vybere svatební místo
+          šité přímo na míru — žádné šablony, žádné kompromisy.
         </p>
       </div>
 

@@ -354,7 +354,7 @@ function termLabel(a: WizardAnswers): string {
 function buildMessage(a: WizardAnswers, matches: Match[]): string {
   const matchLines = matches.map((m, i) => {
     const bucketLabel = m.bucket === "alternative" ? "[ALT]" : "[TOP]"
-    const vip = m.venue.isFeatured ? " ⭐VIP" : ""
+    const vip = m.venue.isFeatured ? " [VIP]" : ""
     return `${i + 1}. ${bucketLabel}${vip} ${m.venue.title} (${m.venue.region}, ${m.venue.capacity} hostů, od ${m.venue.priceFrom.toLocaleString("cs-CZ")} Kč)
    → ${m.personalDescription ?? "—"}`
   }).join("\n")
@@ -443,7 +443,7 @@ function buildCrossSells(a: WizardAnswers): string {
   if (a.needPhotographer === "ano") {
     blocks.push(`
       <div style="margin-top:32px;padding:24px;background:#F9F2E6;border-radius:12px">
-        <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:18px;color:#3E2723">📸 Fotograf</p>
+        <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:18px;color:#3E2723">Fotograf</p>
         <p style="margin:0 0 8px;color:#444;font-size:14px;line-height:1.6">Protože hledáte fotografa, rádi doporučíme:</p>
         <ul style="margin:0;padding-left:20px;color:#444;font-size:13px;line-height:1.8">
           <li><strong>Domculette Photo</strong> — přirozený a emotivní styl focení</li>
@@ -455,14 +455,14 @@ function buildCrossSells(a: WizardAnswers): string {
   if (a.needDjModerator === "ano") {
     blocks.push(`
       <div style="margin-top:24px;padding:24px;background:#F9F2E6;border-radius:12px">
-        <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:18px;color:#3E2723">🎵 DJ a moderátor</p>
+        <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:18px;color:#3E2723">DJ a moderátor</p>
         <p style="margin:0;color:#444;font-size:14px;line-height:1.6">Velmi rádi doporučíme například <strong>Yes.Musicz</strong> nebo <strong>DJ Prague</strong> — oba opravdu top za rozumné ceny.</p>
       </div>`)
   }
   if (a.needCoordinator === "ano") {
     blocks.push(`
       <div style="margin-top:24px;padding:24px;background:#F9F2E6;border-radius:12px">
-        <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:18px;color:#3E2723">📋 Koordinátorka</p>
+        <p style="margin:0 0 12px;font-family:Georgia,serif;font-size:18px;color:#3E2723">Koordinátorka</p>
         <p style="margin:0;color:#444;font-size:14px;line-height:1.6">Můžeme Vám doporučit prověřené koordinátorky, se kterými dlouhodobě spolupracujeme. Ozveme se s konkrétními tipy do 24 hodin.</p>
       </div>`)
   }
@@ -487,7 +487,7 @@ function clientEmail(
     return `
     <div style="margin-bottom:24px;padding-bottom:24px;${!isLast ? "border-bottom:1px solid #E8DDD0;" : ""}">
       <h3 style="margin:0 0 6px;font-family:Georgia,serif;font-weight:400;font-size:20px;color:#3E2723">
-        🌿 ${m.venue.title}
+        ${m.venue.title}
         ${isVip ? `<span style="background:linear-gradient(90deg,#A88240,#E8C98A);color:#fff;font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:10px;margin-left:6px;font-family:Helvetica;">★ DOPORUČUJEME</span>` : ""}
       </h3>
       <p style="margin:0 0 8px;color:#888;font-size:12px">${m.venue.location} · do ${m.venue.capacity} hostů · od ${fmt(m.venue.priceFrom)} Kč</p>
@@ -506,7 +506,7 @@ function clientEmail(
   const alternativeBlocks = alternativeMatches.length > 0
     ? `
     <div style="margin-top:32px;padding-top:24px;border-top:2px dashed #E8DDD0">
-      <p style="margin:0 0 4px;color:#A88240;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600">✦ Doporučujeme jako alternativu ✦</p>
+      <p style="margin:0 0 4px;color:#A88240;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600">Doporučujeme jako alternativu</p>
       <p style="margin:0 0 20px;color:#666;font-size:13px;line-height:1.6;font-style:italic">
         Tato místa nesplňují všechna Vaše kritéria na 100 %, ale stojí za zvážení — jsou z naší ověřené VIP sekce.
       </p>
@@ -520,8 +520,8 @@ function clientEmail(
   <div style="font-family:Helvetica,Arial,sans-serif;background:#F9F6F0;padding:40px 20px">
     <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden">
       <div style="background:#3E2723;padding:50px 40px;text-align:center;color:#fff">
-        <p style="margin:0 0 12px;color:#E8C98A;font-size:11px;letter-spacing:3px;text-transform:uppercase">✦ Váš osobní návrh ✦</p>
-        <h1 style="margin:0;font-family:Georgia,serif;font-weight:300;font-size:34px;line-height:1.2">Dobrý den, ${firstName} 😊</h1>
+        <p style="margin:0 0 12px;color:#E8C98A;font-size:11px;letter-spacing:3px;text-transform:uppercase">Váš osobní návrh</p>
+        <h1 style="margin:0;font-family:Georgia,serif;font-weight:300;font-size:34px;line-height:1.2">Dobrý den, ${firstName}</h1>
       </div>
       <div style="padding:40px">
         <p style="margin:0 0 16px;color:#444;line-height:1.7;font-size:15px">Děkujeme Vám za vyplnění svatební analýzy.</p>
@@ -533,14 +533,14 @@ function clientEmail(
         ${crossSells}
 
         <div style="margin-top:32px;padding:24px;background:linear-gradient(135deg,#3E2723,#1F1310);color:#fff;border-radius:12px;text-align:center">
-          <p style="margin:0 0 8px;font-family:Georgia,serif;font-size:18px;color:#E8C98A">💰 Bonus pro Vás</p>
+          <p style="margin:0 0 8px;font-family:Georgia,serif;font-size:18px;color:#E8C98A">Bonus pro Vás</p>
           <p style="margin:0;color:rgba(255,255,255,.85);font-size:14px;line-height:1.6">
             ${cashbackText}
           </p>
         </div>
 
         <p style="margin:32px 0 8px;color:#444;line-height:1.7;font-size:15px">Budeme se těšit na Vaši zprávu.</p>
-        <p style="margin:0;color:#444;line-height:1.7;font-size:15px;font-style:italic">${signature} 🤍</p>
+        <p style="margin:0;color:#444;line-height:1.7;font-size:15px;font-style:italic">${signature}</p>
 
         <p style="margin:32px 0 0;padding-top:24px;border-top:1px solid #E8DDD0;color:#999;font-size:12px;text-align:center;line-height:1.6">
           Otázky? Napište na <a href="mailto:svatebnimista@svatebnimista.cz" style="color:#C9A96E">svatebnimista@svatebnimista.cz</a><br>

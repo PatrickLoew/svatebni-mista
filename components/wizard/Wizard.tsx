@@ -96,7 +96,7 @@ export default function Wizard() {
     }
   }
 
-  if (loading) return <WizardLoading />
+  if (loading) return <WizardLoading name={a.name} />
   if (done) {
     // Když máme výsledky, zobraz je (pro testování + transparentnost klientovi)
     if (done.matches.length > 0) {
@@ -843,7 +843,7 @@ function SuccessScreen({ answers }: { answers: WizardAnswers }) {
         </div>
 
         <p className="text-charcoal/50 text-sm mt-10 italic font-light">
-          Mějte se krásně 🤍
+          Mějte se krásně
         </p>
       </motion.div>
     </div>
@@ -918,7 +918,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                 <div className="flex items-center justify-center gap-3 mb-3 mt-4">
                   <span className="h-px w-10 bg-[#C9A96E]/40" />
                   <span className="text-[#A88240] text-[11px] font-semibold tracking-[.3em] uppercase">
-                    ✦ Doporučujeme jako alternativu ✦
+                    Doporučujeme jako alternativu
                   </span>
                   <span className="h-px w-10 bg-[#C9A96E]/40" />
                 </div>
