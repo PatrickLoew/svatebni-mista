@@ -17,7 +17,8 @@
     "verify-all-fields": "tsx scripts/verify-all-fields.ts",
     "update-vip-from-csv": "tsx scripts/update-vip-from-csv.ts",
     "update-from-sheet": "tsx scripts/update-from-sheet.ts",
-    "enrich-vip-from-web": "tsx scripts/enrich-vip-from-web.ts"
+    "enrich-vip-from-web": "tsx scripts/enrich-vip-from-web.ts",
+    "health-check": "tsx scripts/health-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.1",
