@@ -825,28 +825,73 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
         </p>
       </motion.div>
 
-      <h2 className="font-serif text-2xl text-center mb-8">
-        <Sparkles className="inline-block mb-1 text-[#C9A96E] mr-2" size={20} />
-        Náš návrh pro vás
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        {matches.map((m, i) => (
-          <motion.div
-            key={m.venue.id}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.15 }}
-            className="relative"
-          >
-            <VenueCard venue={m.venue} index={i} />
-            {m.personalDescription && (
-              <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
-                {m.personalDescription}
-              </p>
+      {(() => {
+        const primary = matches.filter((m) => m.bucket !== "alternative")
+        const alternative = matches.filter((m) => m.bucket === "alternative")
+        return (
+          <>
+            {primary.length > 0 && (
+              <>
+                <h2 className="font-serif text-2xl text-center mb-8">
+                  <Sparkles className="inline-block mb-1 text-[#C9A96E] mr-2" size={20} />
+                  Náš návrh pro vás
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                  {primary.map((m, i) => (
+                    <motion.div
+                      key={m.venue.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.12 }}
+                      className="relative"
+                    >
+                      <VenueCard venue={m.venue} index={i} />
+                      {m.personalDescription && (
+                        <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
+                          {m.personalDescription}
+                        </p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </>
             )}
-          </motion.div>
-        ))}
-      </div>
+
+            {alternative.length > 0 && (
+              <>
+                <div className="flex items-center justify-center gap-3 mb-3 mt-4">
+                  <span className="h-px w-10 bg-[#C9A96E]/40" />
+                  <span className="text-[#A88240] text-[11px] font-semibold tracking-[.3em] uppercase">
+                    ✦ Alternativy ✦
+                  </span>
+                  <span className="h-px w-10 bg-[#C9A96E]/40" />
+                </div>
+                <p className="text-center text-charcoal/60 text-sm italic mb-8 max-w-xl mx-auto">
+                  Tato místa nesplňují všechna vaše kritéria, ale stojí za zvážení jako další možnost.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                  {alternative.map((m, i) => (
+                    <motion.div
+                      key={m.venue.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.12 }}
+                      className="relative opacity-90"
+                    >
+                      <VenueCard venue={m.venue} index={i} />
+                      {m.personalDescription && (
+                        <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
+                          {m.personalDescription}
+                        </p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )
+      })()}
 
       {/* Cashback banner */}
       <div className="bg-gradient-to-r from-[#C9A96E]/15 via-[#E8C98A]/15 to-[#C9A96E]/15 border-2 border-[#C9A96E]/30 rounded-3xl p-7 sm:p-9 text-center mb-6">

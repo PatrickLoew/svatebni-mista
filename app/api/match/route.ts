@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     // Matching — algoritmus
     let matches: Match[] = []
     try {
-      matches = findBestMatches(venues, answers, 3)
+      matches = findBestMatches(venues, answers, 5)
     } catch (e) {
       console.error("Match error:", e)
     }
@@ -258,11 +258,11 @@ function clientEmail(
   const signature = claude?.signature || "Mějte se krásně"
   const crossSells = buildCrossSells(a)
 
-  const venueBlocks = matches.map((m, i) => {
+  const renderVenue = (m: Match, isLast: boolean) => {
     const isVip = m.venue.isFeatured
     const personalDesc = m.personalDescription ?? ""
     return `
-    <div style="margin-bottom:24px;padding-bottom:24px;${i < matches.length - 1 ? "border-bottom:1px solid #E8DDD0;" : ""}">
+    <div style="margin-bottom:24px;padding-bottom:24px;${!isLast ? "border-bottom:1px solid #E8DDD0;" : ""}">
       <h3 style="margin:0 0 6px;font-family:Georgia,serif;font-weight:400;font-size:20px;color:#3E2723">
         🌿 ${m.venue.title}
         ${isVip ? `<span style="background:linear-gradient(90deg,#A88240,#E8C98A);color:#fff;font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:10px;margin-left:6px;font-family:Helvetica;">★ DOPORUČUJEME</span>` : ""}
@@ -271,7 +271,27 @@ function clientEmail(
       <p style="margin:0;color:#444;line-height:1.6;font-size:14px">${personalDesc}</p>
       ${m.venue.websiteUrl ? `<p style="margin:8px 0 0"><a href="${m.venue.websiteUrl}" style="color:#C9A96E;font-size:12px;text-decoration:none">Web místa →</a></p>` : ""}
     </div>`
-  }).join("")
+  }
+
+  const primaryMatches = matches.filter((m) => m.bucket !== "alternative")
+  const alternativeMatches = matches.filter((m) => m.bucket === "alternative")
+
+  const primaryBlocks = primaryMatches
+    .map((m, i) => renderVenue(m, i === primaryMatches.length - 1))
+    .join("")
+
+  const alternativeBlocks = alternativeMatches.length > 0
+    ? `
+    <div style="margin-top:32px;padding-top:24px;border-top:2px dashed #E8DDD0">
+      <p style="margin:0 0 4px;color:#A88240;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:600">✦ Alternativy ✦</p>
+      <p style="margin:0 0 20px;color:#666;font-size:13px;line-height:1.6;font-style:italic">
+        Tato místa nesplňují všechna Vaše kritéria, ale stojí za zvážení jako další možnost.
+      </p>
+      ${alternativeMatches.map((m, i) => renderVenue(m, i === alternativeMatches.length - 1)).join("")}
+    </div>`
+    : ""
+
+  const venueBlocks = primaryBlocks + alternativeBlocks
 
   return `
   <div style="font-family:Helvetica,Arial,sans-serif;background:#F9F6F0;padding:40px 20px">
