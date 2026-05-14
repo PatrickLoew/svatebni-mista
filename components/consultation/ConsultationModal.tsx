@@ -39,30 +39,35 @@ export default function ConsultationModal({
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
 
-  // Scroll lock + ESC key handler.
-  // Zachováváme původní hodnotu overflow (pro případ že jiná komponenta
-  // ji nastavila) a vždy resetujeme při unmountu i při open=false.
+  // Scroll lock pro body — jen závisí na `open`, ne na `onClose`
+  // (jinak by se restartoval při každém re-renderu rodiče a hodnota
+  // "previousOverflow" by zůstala uložená jako "hidden" → bug:
+  // po zavření modalu by body zůstal zamčený).
   useEffect(() => {
-    if (!open) {
-      // Resetování stavu pro příští otevření
-      setShowForm(false)
-      setSuccess(false)
-      return
-    }
-
-    const previousOverflow = document.body.style.overflow
+    if (!open) return
     document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [open])
 
+  // ESC key handler — samostatný effect závislý na onClose
+  useEffect(() => {
+    if (!open) return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose()
     }
     window.addEventListener("keydown", handleKey)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener("keydown", handleKey)
-    }
+    return () => window.removeEventListener("keydown", handleKey)
   }, [open, onClose])
+
+  // Reset stavu při zavření (pro příští otevření)
+  useEffect(() => {
+    if (!open) {
+      setShowForm(false)
+      setSuccess(false)
+    }
+  }, [open])
 
   // WhatsApp link s předvyplněnou zprávou
   const phoneClean = whatsapp.replace(/\s|\+/g, "")
@@ -106,22 +111,22 @@ export default function ConsultationModal({
   const labelCl = "block text-sm font-semibold text-[#2C2C2C] mb-2"
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence>
       {open && (
         <motion.div
           key="consultation-modal-backdrop"
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1, pointerEvents: "auto" }}
-          exit={{ opacity: 0, pointerEvents: "none", transition: { duration: 0.18 } }}
-          transition={{ duration: 0.25 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
           onClick={onClose}
           className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center overflow-y-auto"
         >
           <motion.div
             initial={{ scale: 0.96, y: 20 }}
             animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.96, y: 20, transition: { duration: 0.18 } }}
-            transition={{ type: "spring", duration: 0.4, bounce: 0.18 }}
+            exit={{ scale: 0.96, y: 20 }}
+            transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
             onClick={(e) => e.stopPropagation()}
             className="relative bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl sm:my-8 max-h-[95vh] overflow-y-auto"
           >
