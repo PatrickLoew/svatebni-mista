@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { X, CheckCircle, Loader2, Phone, Mail, Send } from "lucide-react"
 import { validateEmail, validatePhone, validateName } from "@/lib/validation"
 
@@ -110,26 +110,23 @@ export default function ConsultationModal({
   const inputCl = "w-full bg-white border-2 border-[#E8DDD0] rounded-xl px-4 py-3 text-base text-[#2C2C2C] placeholder-[#999] focus:outline-none focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 transition"
   const labelCl = "block text-sm font-semibold text-[#2C2C2C] mb-2"
 
+  // Conditional render — žádný Framer Motion na backdrop, aby nikdy
+  // neblokoval kliky na linky (WhatsApp/tel/email).
+  // Animaci dělá CSS transition.
+  if (!open) return null
+
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          key="consultation-modal-backdrop"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          onClick={onClose}
-          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center overflow-y-auto"
-        >
-          <motion.div
-            initial={{ scale: 0.96, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.96, y: 20 }}
-            transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
-            onClick={(e) => e.stopPropagation()}
-            className="relative bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl sm:my-8 max-h-[95vh] overflow-y-auto"
-          >
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center overflow-y-auto animate-fadeIn"
+    >
+      <motion.div
+        initial={{ scale: 0.96, y: 20, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl sm:my-8 max-h-[95vh] overflow-y-auto"
+      >
             {/* Close */}
             <button
               onClick={onClose}
@@ -329,10 +326,8 @@ export default function ConsultationModal({
                 </div>
               </div>
             )}
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      </motion.div>
+    </div>
   )
 }
 
