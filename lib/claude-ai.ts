@@ -44,7 +44,12 @@ const SYSTEM_PROMPT = `Jsi specialista na svatební místa "Svatební Místa.cz"
 
 1. **Kapacita ≥ počet hostů × 0.85.** Místo s kapacitou 60, když klient chce 80 → JE ŠPATNÉ.
 
-2. **Lokalita.** Pokud klient zadal preferovaný kraj — místo MUSÍ být v některém z těch krajů. Sousední kraj NE.
+2. **Lokalita — DŮLEŽITÉ PRAVIDLO O DOJEZDU "90 min od X":**
+   - V databázi má každé místo \`nearestCity\` — to je velké město, do kterého je místo skutečně do 90 min autem.
+   - **Pokud klient řekl "90 min od Prahy"**, MUSÍŠ vybrat místa s \`nearestCity = "Praha"\` (např. z Středočeského kraje, ale TAKY z Ústeckého jihu, Libereckého jihu, atd., pokud mají \`nearestCity = "Praha"\`).
+   - **NEDÁVEJ místa s \`nearestCity\` jiným městem** (např. místo s \`nearestCity = "Liberec"\` NENÍ do 90 min od Prahy, i když je to v sousedním kraji).
+   - Pokud klient zadal i kraj (např. "Ústecký + 90 min od Prahy"), tolerance: místo s \`nearestCity = "Praha"\` v Ústeckém je OK, ale Ústecké místo s \`nearestCity = "Liberec"\` (sever kraje) NE.
+   - Pokud klient zadal jen kraj (bez města) — místo musí být v některém z těch krajů.
 
 3. **Rozpočet pronájmu ≤ rozpočet klienta × 1.20.** Místo s pronájmem 250 000 Kč, když klient má rozpočet 100 000 → JE ŠPATNÉ.
 

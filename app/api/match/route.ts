@@ -89,17 +89,26 @@ export async function POST(req: Request) {
         if (answers.rentalBudget > 0 && v.priceFrom > answers.rentalBudget * 1.20) {
           return { ok: false, reason: `pronájem ${v.priceFrom.toLocaleString("cs-CZ")} Kč přesahuje rozpočet ${answers.rentalBudget.toLocaleString("cs-CZ")} Kč o víc než 20 %` }
         }
-        // Lokalita: pokud klient zadal kraje → musí být v některém Z NICH nebo do 90 min od preferovaného města
+        // LOKALITA — primární filtr je `nearest_city` (každé místo je tagované,
+        // do kterého velkého města je do 90 min). Sousední kraj NESEDÍ
+        // automaticky — záleží na tom, zda má místo stejné nearest_city.
         if (answers.regions.length > 0) {
+          // Klient zadal kraj — musí být v něm, ALE může být i v jiném kraji
+          // pokud má místo nearest_city == klientovo město (např. místo v Ústeckém
+          // kraji s nearest_city="Praha" = jih kraje, blízko Prahy)
           const inPreferredRegion = answers.regions.includes(v.region)
-          const closeToCity = isRegionWithin90Min(v.region, answers.nearestCity)
-          if (!inPreferredRegion && !closeToCity) {
-            return { ok: false, reason: `není v preferovaném kraji ani v dojezdové vzdálenosti od ${answers.nearestCity}` }
+          const sameCity = !!answers.nearestCity
+            && answers.nearestCity !== "jedno"
+            && v.nearestCity === answers.nearestCity
+          if (!inPreferredRegion && !sameCity) {
+            return { ok: false, reason: `není v preferovaném kraji a nemá nearest_city = ${answers.nearestCity}` }
           }
         } else if (answers.nearestCity && answers.nearestCity !== "jedno") {
-          // Jen město → ověř že kraj je v dosahu
-          if (!isRegionWithin90Min(v.region, answers.nearestCity)) {
-            return { ok: false, reason: `${v.region} kraj je víc než 90 min od ${answers.nearestCity}` }
+          // Klient zadal jen město — místo MUSÍ mít stejné nearest_city.
+          // To je striktní pravidlo — místa v Libereckém s nearest_city=Liberec
+          // se nezahrnou pro klienta z Prahy, i když je Liberecký "v dosahu".
+          if (v.nearestCity !== answers.nearestCity) {
+            return { ok: false, reason: `není do 90 min od ${answers.nearestCity} (nearest_city = ${v.nearestCity ?? "—"})` }
           }
         }
         // CATERING: klient chce vlastní catering → místo NESMÍ být "only_venue"
@@ -206,21 +215,38 @@ export async function POST(req: Request) {
       )
 
       // ===== FORCE VIP RULE =====
-      // Pokud klient zadal kraj a v něm/dosažitelných krajích existuje VIP místo,
-      // MUSÍ být v doporučení. Nezávisí na AI — je to deterministické pravidlo.
-      const acceptableRegions = getAcceptableRegions(answers.regions, answers.nearestCity)
+      // Pokud klient zadal lokalitu a v ní existuje VIP místo, MUSÍ být v doporučení.
+      // Filtrujeme primárně podle `nearest_city` klienta (jaká VIP jsou skutečně
+      // do 90 min od jeho centra), sekundárně podle kraje.
       const usedSlugsForVip = new Set(matches.map((m) => m.venue.slug))
       const allRelevantVips = venues
         .filter((v) => v.isFeatured && !usedSlugsForVip.has(v.slug))
-        .filter((v) => acceptableRegions.length === 0 || acceptableRegions.includes(v.region))
+        .filter((v) => {
+          // Pokud klient zadal město → VIP musí mít stejné nearest_city
+          if (answers.nearestCity && answers.nearestCity !== "jedno") {
+            if (v.nearestCity === answers.nearestCity) return true
+            // Nebo musí být v preferovaném kraji
+            if (answers.regions.length > 0 && answers.regions.includes(v.region)) return true
+            return false
+          }
+          // Pokud klient zadal jen kraj → VIP musí být v něm
+          if (answers.regions.length > 0) {
+            return answers.regions.includes(v.region)
+          }
+          // Klient nezadal nic — všechna VIP jsou kandidáti
+          return true
+        })
 
       // Validované VIP z preferovaných krajů (splňují MUST-HAVE)
       const validatedVips = allRelevantVips.filter((v) => validateVenue(v).ok)
       // Nevalidované VIP z preferovaných krajů (jako alternativa s varováním)
       const partialVips = allRelevantVips.filter((v) => !validateVenue(v).ok)
 
+      const locationDesc = answers.nearestCity && answers.nearestCity !== "jedno"
+        ? `90 min od ${answers.nearestCity}` + (answers.regions.length > 0 ? ` + kraj ${answers.regions.join("/")}` : "")
+        : answers.regions.length > 0 ? `kraj ${answers.regions.join("/")}` : "celá ČR"
       console.log(
-        `[match] FORCE VIP RULE — k dispozici ${allRelevantVips.length} VIP v krajích ${acceptableRegions.join("/")}: validovaných ${validatedVips.length}, částečných ${partialVips.length}`,
+        `[match] FORCE VIP RULE — k dispozici ${allRelevantVips.length} VIP pro ${locationDesc}: validovaných ${validatedVips.length}, částečných ${partialVips.length}`,
       )
 
       // Pokud Claude některé VIP přehlédl, vložíme je natvrdo
