@@ -52,7 +52,14 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("Upload error:", error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      // Detailnější chybové hlášení pro běžné případy
+      let hint = ""
+      if (error.message.includes("Bucket not found")) {
+        hint = " Vytvoř bucket 'venue-images' v Supabase Storage."
+      } else if (error.message.includes("policy") || error.message.includes("RLS")) {
+        hint = " RLS policy: použij Service Role Key (SUPABASE_SERVICE_ROLE_KEY musí být na Vercelu)."
+      }
+      return NextResponse.json({ error: error.message + hint }, { status: 500 })
     }
 
     // Public URL

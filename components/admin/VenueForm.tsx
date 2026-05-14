@@ -68,9 +68,16 @@ export default function VenueForm({ initial, id }: Props) {
         const fd = new FormData()
         fd.append("file", file)
         const res = await fetch("/api/upload-image", { method: "POST", body: fd })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error ?? "Upload selhal")
-        setForm((f) => ({ ...f, images: [...f.images, data.url] }))
+        const text = await res.text()
+        let data: { url?: string; error?: string }
+        try {
+          data = JSON.parse(text)
+        } catch {
+          throw new Error(`Upload selhal (${res.status}): ${text.substring(0, 100)}`)
+        }
+        if (!res.ok) throw new Error(data.error ?? `Upload selhal (${res.status})`)
+        if (!data.url) throw new Error("Server nevrátil URL nahrané fotky")
+        setForm((f) => ({ ...f, images: [...f.images, data.url!] }))
       }
     } catch (e) {
       setUploadError(e instanceof Error ? e.message : "Upload selhal")
