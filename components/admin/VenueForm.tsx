@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Plus, X } from "lucide-react"
+import { Loader2, Plus, X, Upload, Image as ImageIcon } from "lucide-react"
 import { REGIONS, VENUE_TYPES, NEAREST_CITIES } from "@/lib/utils"
 import type { Venue } from "@/lib/types"
 
@@ -52,6 +52,33 @@ export default function VenueForm({ initial, id }: Props) {
 
   const removeTag = (field: "services" | "images" | "features", idx: number) =>
     setForm((f) => ({ ...f, [field]: (f[field] as string[]).filter((_, i) => i !== idx) }))
+
+  // Upload obrázku z disku do Supabase Storage
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState("")
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setUploading(true)
+    setUploadError("")
+    try {
+      for (const file of Array.from(files)) {
+        const fd = new FormData()
+        fd.append("file", file)
+        const res = await fetch("/api/upload-image", { method: "POST", body: fd })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error ?? "Upload selhal")
+        setForm((f) => ({ ...f, images: [...f.images, data.url] }))
+      }
+    } catch (e) {
+      setUploadError(e instanceof Error ? e.message : "Upload selhal")
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
+  }
 
   // Auto-slug from title
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,9 +278,66 @@ export default function VenueForm({ initial, id }: Props) {
         <h3 className={sectionTitleClass}>Fotky a služby</h3>
 
         <div>
-          <label className={labelClass}>Fotky (URL adresy obrázků)</label>
-          <p className="text-xs text-charcoal/50 mb-2">Doporučujeme min. 3 fotky. Stiskněte Enter po vložení URL.</p>
-          <TagInput field="images" placeholder="https://images.unsplash.com/..." />
+          <label className={labelClass}>Fotky místa</label>
+          <p className="text-xs text-charcoal/50 mb-2">Nahrajte z disku (JPG/PNG/WebP, max 10 MB) nebo vložte URL.</p>
+
+          {/* Upload tlačítko */}
+          <div className="flex flex-wrap gap-3 mb-3">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="inline-flex items-center gap-2 bg-[#C9A96E] text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-[#A88240] transition-colors disabled:opacity-60"
+            >
+              {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+              {uploading ? "Nahrávám…" : "Nahrát fotku z disku"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+          </div>
+          {uploadError && <p className="text-red-600 text-xs mb-3">{uploadError}</p>}
+
+          {/* Preview grid */}
+          {form.images.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-3">
+              {form.images.map((url, i) => (
+                <div key={`${url}-${i}`} className="relative group aspect-[4/3] bg-[#F9F2E6] border border-[#E8DDD0] rounded-lg overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt={`foto ${i + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removeTag("images", i)}
+                    className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                    aria-label="Smazat fotku"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Fallback: zadat URL ručně */}
+          <details className="text-xs">
+            <summary className="cursor-pointer text-charcoal/60 hover:text-[#C9A96E]">
+              Nebo přidat URL ručně (např. z Unsplash)
+            </summary>
+            <div className="mt-3">
+              <TagInput field="images" placeholder="https://images.unsplash.com/..." />
+            </div>
+          </details>
+
+          {form.images.length === 0 && (
+            <p className="text-xs text-charcoal/50 mt-2 flex items-center gap-1.5">
+              <ImageIcon size={13} /> Zatím žádné fotky — doporučujeme alespoň 3.
+            </p>
+          )}
         </div>
 
         <div>
