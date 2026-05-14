@@ -671,7 +671,7 @@ function clientEmail(
       <div style="padding:40px">
         <p style="margin:0 0 16px;color:#444;line-height:1.7;font-size:15px">Děkujeme Vám za vyplnění svatební analýzy.</p>
         <p style="margin:0 0 28px;color:#444;line-height:1.7;font-size:15px">${personaSummary}</p>
-        <p style="margin:0 0 24px;color:#444;line-height:1.7;font-size:15px">Na základě toho jsme pro Vás vybrali tato místa 👇</p>
+        <p style="margin:0 0 24px;color:#444;line-height:1.7;font-size:15px">Na základě toho jsme pro Vás vybrali tato místa:</p>
 
         ${venueBlocks}
 
@@ -684,12 +684,44 @@ function clientEmail(
           </p>
         </div>
 
+        <!-- VELKÁ CTA SEKCE: kontakt + osobní pomoc -->
+        <div style="margin-top:36px;padding:32px 24px;background:#F9F2E6;border:2px solid #C9A96E;border-radius:16px;text-align:center">
+          <p style="margin:0 0 4px;color:#A88240;font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase">Rádi Vám pomůžeme</p>
+          <h3 style="margin:0 0 12px;font-family:Georgia,serif;font-weight:300;font-size:24px;color:#3E2723">
+            Pojďme si o tom popovídat
+          </h3>
+          <p style="margin:0 0 22px;color:#444;line-height:1.6;font-size:14px;max-width:420px;margin-left:auto;margin-right:auto">
+            Náš tým Vám rád zavolá nebo odepíše s konkrétními termíny,
+            rozpočtem a vše Vám podrobně vysvětlí.
+          </p>
+
+          <!-- Stack tlačítek (table layout pro email kompatibilitu) -->
+          <table cellpadding="0" cellspacing="0" style="margin:0 auto">
+            <tr>
+              <td style="padding:0 6px">
+                <a href="tel:+420123456789" style="display:inline-block;background:#3E2723;color:#fff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:999px">
+                  📞  Zavolat nám
+                </a>
+              </td>
+              <td style="padding:0 6px">
+                <a href="mailto:jana@svatebnimista.cz?subject=Konzultace%20po%20analýze" style="display:inline-block;background:#fff;color:#3E2723;border:2px solid #3E2723;font-size:14px;font-weight:600;text-decoration:none;padding:10px 22px;border-radius:999px">
+                  Napsat e-mail
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin:20px 0 0;color:#777;font-size:12px;line-height:1.5">
+            Po–Pá 9:00–18:00 · Odpovídáme do 24 hodin
+          </p>
+        </div>
+
         <p style="margin:32px 0 8px;color:#444;line-height:1.7;font-size:15px">Budeme se těšit na Vaši zprávu.</p>
         <p style="margin:0;color:#444;line-height:1.7;font-size:15px;font-style:italic">${signature}</p>
 
         <p style="margin:32px 0 0;padding-top:24px;border-top:1px solid #E8DDD0;color:#999;font-size:12px;text-align:center;line-height:1.6">
-          Otázky? Napište na <a href="mailto:svatebnimista@svatebnimista.cz" style="color:#C9A96E">svatebnimista@svatebnimista.cz</a><br>
-          nebo zavolejte na <a href="tel:+420123456789" style="color:#C9A96E">+420 123 456 789</a>
+          Telefon: <a href="tel:+420123456789" style="color:#C9A96E;text-decoration:none">+420 123 456 789</a> &nbsp;·&nbsp;
+          E-mail: <a href="mailto:jana@svatebnimista.cz" style="color:#C9A96E;text-decoration:none">jana@svatebnimista.cz</a>
         </p>
       </div>
       <div style="background:#1F1310;padding:24px;text-align:center;color:rgba(255,255,255,.4);font-size:11px">© Svatební Místa.cz — Jediná služba v ČR pro výběr místa na míru</div>
