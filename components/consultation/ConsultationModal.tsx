@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
 import { X, CheckCircle, Loader2, Phone, Mail, Send } from "lucide-react"
 import { validateEmail, validatePhone, validateName } from "@/lib/validation"
 
@@ -110,22 +109,25 @@ export default function ConsultationModal({
   const inputCl = "w-full bg-white border-2 border-[#E8DDD0] rounded-xl px-4 py-3 text-base text-[#2C2C2C] placeholder-[#999] focus:outline-none focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 transition"
   const labelCl = "block text-sm font-semibold text-[#2C2C2C] mb-2"
 
-  // Conditional render — žádný Framer Motion na backdrop, aby nikdy
-  // neblokoval kliky na linky (WhatsApp/tel/email).
-  // Animaci dělá CSS transition.
+  // Conditional render — VŮBEC žádný Framer Motion na modalu.
+  // Framer Motion `scale` transformace mohou v Safari/Chrome způsobit,
+  // že child `<a>` linky se neaktivují kvůli rendering kontextu.
+  // Místo toho použijeme čisté CSS animace.
   if (!open) return null
+
+  // Backdrop click pattern: zavřít JEN když klik byl přímo na backdrop,
+  // ne na obsah modalu (žádné stopPropagation potřeba).
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) onClose()
+  }
 
   return (
     <div
-      onClick={onClose}
+      onClick={handleBackdropClick}
       className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center overflow-y-auto animate-fadeIn"
     >
-      <motion.div
-        initial={{ scale: 0.96, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        transition={{ type: "spring", duration: 0.35, bounce: 0.15 }}
-        onClick={(e) => e.stopPropagation()}
-        className="relative bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl sm:my-8 max-h-[95vh] overflow-y-auto"
+      <div
+        className="relative bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl sm:my-8 max-h-[95vh] overflow-y-auto animate-modalIn"
       >
             {/* Close */}
             <button
@@ -139,13 +141,9 @@ export default function ConsultationModal({
             {/* SUCCESS */}
             {success ? (
               <div className="p-8 sm:p-12 text-center">
-                <motion.div
-                  initial={{ scale: 0 }} animate={{ scale: 1 }}
-                  transition={{ type: "spring", delay: 0.1 }}
-                  className="inline-flex w-16 h-16 rounded-full bg-[#C9A96E]/15 items-center justify-center mb-5"
-                >
+                <div className="inline-flex w-16 h-16 rounded-full bg-[#C9A96E]/15 items-center justify-center mb-5 animate-popIn">
                   <CheckCircle size={32} className="text-[#C9A96E]" />
-                </motion.div>
+                </div>
                 <h3 className="font-serif text-2xl sm:text-3xl font-light text-[#3E2723] mb-3">Děkujeme!</h3>
                 <p className="text-[#2C2C2C] leading-relaxed mb-7 max-w-sm mx-auto">
                   Ozveme se vám během <strong>24 hodin</strong>.
@@ -326,7 +324,7 @@ export default function ConsultationModal({
                 </div>
               </div>
             )}
-      </motion.div>
+      </div>
     </div>
   )
 }
