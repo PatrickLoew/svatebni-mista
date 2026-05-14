@@ -19,12 +19,12 @@ export default async function HomePage() {
   return (
     <>
       <Hero settings={settings} />
+      <Testimonials />
       <FeaturedVenues />
       <MidCTA settings={settings} />
       <Process settings={settings} />
       <Catering />
       <Gallery />
-      <Testimonials />
       <ConsultationCTA settings={settings} />
       <div id="faq" />
       <FAQ settings={settings} />
