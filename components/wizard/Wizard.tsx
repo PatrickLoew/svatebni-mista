@@ -914,7 +914,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                       transition={{ delay: i * 0.12 }}
                       className="relative"
                     >
-                      <VenueCard venue={m.venue} index={i} hideType showVipWebButton />
+                      <VenueCard venue={m.venue} index={i} hideType />
                       {m.personalDescription && (
                         <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
                           {m.personalDescription}
@@ -947,7 +947,7 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                       transition={{ delay: i * 0.12 }}
                       className="relative"
                     >
-                      <VenueCard venue={m.venue} index={i} hideType showVipWebButton />
+                      <VenueCard venue={m.venue} index={i} hideType />
                       {m.personalDescription && (
                         <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
                           {m.personalDescription}

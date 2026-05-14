@@ -558,17 +558,6 @@ function clientEmail(
   const renderVenue = (m: Match, isLast: boolean) => {
     const isVip = m.venue.isFeatured
     const personalDesc = m.personalDescription ?? ""
-    // VIP bonus: u VIP míst zobrazíme tlačítko na web místa.
-    // Non-VIP web odkaz nedostávají — klient je kontaktuje přes naši službu.
-    const vipWebButton = isVip && m.venue.websiteUrl
-      ? `<p style="margin:14px 0 0">
-          <a href="${m.venue.websiteUrl}" target="_blank" rel="noopener noreferrer"
-             style="display:inline-block;background:linear-gradient(90deg,#A88240,#C9A96E);color:#fff;
-                    font-size:13px;font-weight:600;text-decoration:none;padding:9px 18px;border-radius:999px">
-            Navštívit web místa →
-          </a>
-        </p>`
-      : ""
     return `
     <div style="margin-bottom:24px;padding-bottom:24px;${!isLast ? "border-bottom:1px solid #E8DDD0;" : ""}">
       <h3 style="margin:0 0 6px;font-family:Georgia,serif;font-weight:400;font-size:20px;color:#3E2723">
@@ -577,7 +566,6 @@ function clientEmail(
       </h3>
       <p style="margin:0 0 8px;color:#888;font-size:12px">${m.venue.location} · do ${m.venue.capacity} hostů · od ${fmt(m.venue.priceFrom)} Kč</p>
       <p style="margin:0;color:#444;line-height:1.6;font-size:14px">${personalDesc}</p>
-      ${vipWebButton}
     </div>`
   }
 

@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase"
 import InquiryForm from "@/components/venues/InquiryForm"
 import VenueCard from "@/components/venues/VenueCard"
 import { formatPrice } from "@/lib/utils"
-import { MapPin, Users, Banknote, CheckCircle, ChevronLeft, Utensils, Music, BedDouble, Handshake } from "lucide-react"
+import { MapPin, Users, Banknote, CheckCircle, ChevronLeft, Utensils, Music, BedDouble, Handshake, ExternalLink } from "lucide-react"
 import type { Venue } from "@/lib/types"
 import { describeCatering, describeNightParty, policyBadgeClasses } from "@/lib/venue-policies"
 import { mapDbToVenue } from "@/lib/venue-mapping"
@@ -109,6 +109,19 @@ export default async function VenueDetailPage({ params }: { params: Promise<{ sl
           <div className="mb-8">
             <h2 className="font-display text-xl font-semibold mb-3">O místě</h2>
             <p className="text-charcoal/70 leading-relaxed">{venue.description}</p>
+
+            {/* VIP bonus: link na web místa — viditelný v detailu, ne v kartě výsledku */}
+            {venue.isFeatured && venue.websiteUrl && (
+              <a
+                href={venue.websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex items-center gap-2 bg-gradient-to-r from-[#A88240] to-[#C9A96E] hover:from-[#8B6914] hover:to-[#A88240] text-white text-sm font-semibold px-5 py-3 rounded-full transition-colors shadow-md hover:shadow-lg"
+              >
+                <ExternalLink size={15} />
+                Navštívit oficiální web místa
+              </a>
+            )}
           </div>
 
           {/* Catering & Party policies */}
