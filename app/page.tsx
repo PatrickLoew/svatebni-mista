@@ -24,7 +24,7 @@ export default async function HomePage() {
       <MidCTA settings={settings} />
       <Process settings={settings} />
       <Catering />
-      <Gallery />
+      <Gallery settings={settings} />
       <ConsultationCTA settings={settings} />
       <div id="faq" />
       <FAQ settings={settings} />

@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Loader2, Save, CheckCircle, ChevronDown } from "lucide-react"
+import { useEffect, useState, useRef } from "react"
+import { Loader2, Save, CheckCircle, ChevronDown, Upload, X } from "lucide-react"
 import type { SiteSettings } from "@/lib/settings"
 import { DEFAULT_SETTINGS } from "@/lib/settings"
 
@@ -61,6 +61,11 @@ export default function AdminSettingsPage() {
 
         {/* HERO */}
         <Section title="Hero — úvodní obrazovka">
+          <ImageUploadField
+            label="Velká fotka na pozadí"
+            value={s.heroBackgroundUrl}
+            onChange={(url) => setS((p) => ({ ...p, heroBackgroundUrl: url }))}
+          />
           <Field label="Badge (zlatý popisek nahoře)" value={s.heroEyebrow} onChange={set("heroEyebrow")} />
           <Row>
             <Field label="Nadpis — řádek 1" value={s.heroTitleLine1} onChange={set("heroTitleLine1")} />
@@ -72,6 +77,17 @@ export default function AdminSettingsPage() {
             <Field label="Hlavní tlačítko (text)" value={s.heroPrimaryCta} onChange={set("heroPrimaryCta")} />
             <Field label="Vedlejší tlačítko (text)" value={s.heroSecondaryCta} onChange={set("heroSecondaryCta")} />
           </Row>
+        </Section>
+
+        {/* GALERIE FOTEK NA HLAVNÍ STRÁNCE */}
+        <Section title="Galerie na hlavní stránce (6 fotek)">
+          <p className="text-xs text-charcoal/60 mb-2">Nahrajte 6 fotek pro galerii „Naše svatby". Fotky se okamžitě objeví na webu po uložení.</p>
+          <ImageUploadField label="Fotka 1" value={s.gallery1Url} onChange={(url) => setS((p) => ({ ...p, gallery1Url: url }))} />
+          <ImageUploadField label="Fotka 2" value={s.gallery2Url} onChange={(url) => setS((p) => ({ ...p, gallery2Url: url }))} />
+          <ImageUploadField label="Fotka 3" value={s.gallery3Url} onChange={(url) => setS((p) => ({ ...p, gallery3Url: url }))} />
+          <ImageUploadField label="Fotka 4" value={s.gallery4Url} onChange={(url) => setS((p) => ({ ...p, gallery4Url: url }))} />
+          <ImageUploadField label="Fotka 5" value={s.gallery5Url} onChange={(url) => setS((p) => ({ ...p, gallery5Url: url }))} />
+          <ImageUploadField label="Fotka 6" value={s.gallery6Url} onChange={(url) => setS((p) => ({ ...p, gallery6Url: url }))} />
         </Section>
 
         {/* Statistiky */}
@@ -227,6 +243,95 @@ function Textarea({ label, value, onChange, rows = 2 }: { label: string; value: 
         className="w-full bg-white border-2 border-[#E8DDD0] rounded-xl px-4 py-3 text-sm text-[#2C2C2C] focus:outline-none focus:border-[#C9A96E] focus:ring-2 focus:ring-[#C9A96E]/20 transition resize-none"
         value={value} onChange={onChange}
       />
+    </div>
+  )
+}
+
+/**
+ * Image upload field — nahraj z disku NEBO vlož URL ručně.
+ * Po uploadu se URL automaticky uloží do `value` přes onChange.
+ */
+function ImageUploadField({ label, value, onChange }: {
+  label: string
+  value: string
+  onChange: (url: string) => void
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState("")
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError("")
+    try {
+      const fd = new FormData()
+      fd.append("file", file)
+      const res = await fetch("/api/upload-image", { method: "POST", body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Upload selhal")
+      onChange(data.url)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Upload selhal")
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ""
+    }
+  }
+
+  return (
+    <div>
+      <label className="block text-xs font-semibold text-[#2C2C2C]/60 uppercase tracking-wider mb-1.5">{label}</label>
+
+      <div className="flex gap-3 items-start">
+        {/* Preview */}
+        {value && (
+          <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-[#F9F2E6] border border-[#E8DDD0] flex-shrink-0 group">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={value} alt={label} className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+              aria-label="Smazat fotku"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        )}
+
+        <div className="flex-1 space-y-2">
+          {/* Upload tlačítko */}
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="inline-flex items-center gap-2 bg-[#C9A96E] hover:bg-[#A88240] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-60"
+          >
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+            {uploading ? "Nahrávám…" : "Nahrát z disku"}
+          </button>
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleUpload}
+            className="hidden"
+          />
+
+          {/* Nebo URL */}
+          <input
+            type="url"
+            className="w-full bg-white border-2 border-[#E8DDD0] rounded-lg px-3 py-2 text-xs text-[#2C2C2C] focus:outline-none focus:border-[#C9A96E] transition"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="nebo vlož URL: https://..."
+          />
+
+          {error && <p className="text-xs text-red-600">{error}</p>}
+        </div>
+      </div>
     </div>
   )
 }

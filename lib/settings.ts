@@ -61,6 +61,15 @@ export interface SiteSettings {
 
   // FOOTER
   footerDescription: string
+
+  // HOMEPAGE FOTKY (URL adresy obrázků — možno nahradit přes admin upload)
+  heroBackgroundUrl: string  // velká fotka na úvodní obrazovce
+  gallery1Url: string
+  gallery2Url: string
+  gallery3Url: string
+  gallery4Url: string
+  gallery5Url: string
+  gallery6Url: string
 }
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -121,6 +130,14 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   faq6A: "Vyplňte naši krátkou analýzu — 6 otázek, 5 minut. Do 24 hodin vám e-mailem pošleme pět míst, která se nejvíc hodí k vaší vizi. Dále si můžete domluvit individuální konzultaci pro hlubší probrání.",
 
   footerDescription: "Prémiový svatební planning, catering a vyhledávání míst. Od první kávy až po poslední přípitek — postaráme se o všechno, co musí klapnout, abyste si svůj den jen užívali.",
+
+  heroBackgroundUrl: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=2400&q=85",
+  gallery1Url: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=85",
+  gallery2Url: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=85",
+  gallery3Url: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=1200&q=85",
+  gallery4Url: "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=1200&q=85",
+  gallery5Url: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=1200&q=85",
+  gallery6Url: "https://images.unsplash.com/photo-1529636798458-92182e662485?w=1200&q=85",
 }
 
 const dbToObject = (row: Record<string, unknown>): SiteSettings => {
@@ -173,6 +190,13 @@ const dbToObject = (row: Record<string, unknown>): SiteSettings => {
     faq5Q: get("faq5_q", "faq5Q"), faq5A: get("faq5_a", "faq5A"),
     faq6Q: get("faq6_q", "faq6Q"), faq6A: get("faq6_a", "faq6A"),
     footerDescription: get("footer_description", "footerDescription"),
+    heroBackgroundUrl: get("hero_background_url", "heroBackgroundUrl"),
+    gallery1Url: get("gallery1_url", "gallery1Url"),
+    gallery2Url: get("gallery2_url", "gallery2Url"),
+    gallery3Url: get("gallery3_url", "gallery3Url"),
+    gallery4Url: get("gallery4_url", "gallery4Url"),
+    gallery5Url: get("gallery5_url", "gallery5Url"),
+    gallery6Url: get("gallery6_url", "gallery6Url"),
   }
 }
 
@@ -200,6 +224,13 @@ const objectToDb = (s: Partial<SiteSettings>): Record<string, unknown> => ({
   faq5_q: s.faq5Q, faq5_a: s.faq5A,
   faq6_q: s.faq6Q, faq6_a: s.faq6A,
   footer_description: s.footerDescription,
+  hero_background_url: s.heroBackgroundUrl,
+  gallery1_url: s.gallery1Url,
+  gallery2_url: s.gallery2Url,
+  gallery3_url: s.gallery3Url,
+  gallery4_url: s.gallery4Url,
+  gallery5_url: s.gallery5Url,
+  gallery6_url: s.gallery6Url,
   updated_at: new Date().toISOString(),
 })
 

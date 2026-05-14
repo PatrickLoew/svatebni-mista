@@ -20,8 +20,7 @@ export default function Hero({ settings }: { settings: SiteSettings }) {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=2400&q=85')",
+            backgroundImage: `url('${settings.heroBackgroundUrl}')`,
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/80" />

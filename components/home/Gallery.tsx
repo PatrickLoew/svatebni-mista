@@ -1,23 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { X } from "lucide-react"
+import type { SiteSettings } from "@/lib/settings"
 
-const photos = [
-  { src: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=85", caption: "Zámecký obřad, Hluboká" },
-  { src: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=85", caption: "Letní svatba v zahradě" },
-  { src: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=1200&q=85", caption: "Slavnostní tabule" },
-  { src: "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=1200&q=85", caption: "Detail květinové výzdoby" },
-  { src: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=1200&q=85", caption: "Romantická chvíle" },
-  { src: "https://images.unsplash.com/photo-1529636798458-92182e662485?w=1200&q=85", caption: "Vinný sklep, Mikulov" },
-  { src: "https://images.unsplash.com/photo-1525772764200-be829a350797?w=1200&q=85", caption: "Svatební dort" },
-  { src: "https://images.unsplash.com/photo-1532712938310-34cb3982ef74?w=1200&q=85", caption: "Večerní hostina" },
+const FALLBACK_PHOTOS = [
+  { src: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=85", caption: "Galerie 1" },
+  { src: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=1200&q=85", caption: "Galerie 2" },
+  { src: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=1200&q=85", caption: "Galerie 3" },
+  { src: "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=1200&q=85", caption: "Galerie 4" },
+  { src: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=1200&q=85", caption: "Galerie 5" },
+  { src: "https://images.unsplash.com/photo-1529636798458-92182e662485?w=1200&q=85", caption: "Galerie 6" },
 ]
 
-export default function Gallery() {
+export default function Gallery({ settings }: { settings?: SiteSettings }) {
   const [open, setOpen] = useState<number | null>(null)
+  const [photos, setPhotos] = useState(FALLBACK_PHOTOS)
+
+  // Pokud máme settings, použij fotky z admina; jinak načti z /api/settings
+  useEffect(() => {
+    if (settings) {
+      setPhotos([
+        { src: settings.gallery1Url || FALLBACK_PHOTOS[0].src, caption: "Galerie 1" },
+        { src: settings.gallery2Url || FALLBACK_PHOTOS[1].src, caption: "Galerie 2" },
+        { src: settings.gallery3Url || FALLBACK_PHOTOS[2].src, caption: "Galerie 3" },
+        { src: settings.gallery4Url || FALLBACK_PHOTOS[3].src, caption: "Galerie 4" },
+        { src: settings.gallery5Url || FALLBACK_PHOTOS[4].src, caption: "Galerie 5" },
+        { src: settings.gallery6Url || FALLBACK_PHOTOS[5].src, caption: "Galerie 6" },
+      ])
+    }
+  }, [settings])
 
   return (
     <section className="py-32 px-6 bg-white">
