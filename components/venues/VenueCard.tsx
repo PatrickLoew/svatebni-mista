@@ -3,7 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { MapPin, Users, Banknote } from "lucide-react"
+import { MapPin, Users, Banknote, ExternalLink } from "lucide-react"
 import type { Venue } from "@/lib/types"
 import { formatPrice } from "@/lib/utils"
 
@@ -11,11 +11,15 @@ export default function VenueCard({
   venue,
   index = 0,
   hideType = false,
+  showVipWebButton = false,
 }: {
   venue: Venue
   index?: number
   hideType?: boolean
+  /** Pokud true a místo je VIP s websiteUrl, zobrazí extra tlačítko "Web místa" (externí odkaz). */
+  showVipWebButton?: boolean
 }) {
+  const hasVipWebLink = showVipWebButton && venue.isFeatured && venue.websiteUrl
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -96,6 +100,19 @@ export default function VenueCard({
           </div>
         </div>
       </Link>
+
+      {/* VIP bonus: externí odkaz na web místa (jen pro VIP s websiteUrl) */}
+      {hasVipWebLink && (
+        <a
+          href={venue.websiteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-[#A88240] to-[#C9A96E] hover:from-[#8B6914] hover:to-[#A88240] text-white text-sm font-semibold py-2.5 rounded-xl transition-colors shadow-sm hover:shadow-md"
+        >
+          <ExternalLink size={14} />
+          Navštívit web místa
+        </a>
+      )}
     </motion.div>
   )
 }
