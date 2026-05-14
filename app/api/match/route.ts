@@ -60,6 +60,8 @@ export async function POST(req: Request) {
       console.error("Claude evaluation error:", e)
     }
 
+    console.log(`[match] Claude vrátil ${claudeResult?.selectedMatches.length ?? 0} výsledků, DB má ${venues.length} míst`)
+
     if (claudeResult && claudeResult.selectedMatches.length > 0) {
       // Claude vybral místa — sestavíme Match objekty
       const venueBySlug = new Map(venues.map((v) => [v.slug, v]))
@@ -361,6 +363,76 @@ export async function POST(req: Request) {
       } catch (e) {
         console.error("Match algorithm error:", e)
       }
+    }
+
+    // ===== ABSOLUTNÍ FALLBACK =====
+    // Pokud po všech filtrech, validacích a doplněních pořád nemáme 5 míst,
+    // doplníme NEJLEPŠÍMI z celé DB podle skóre (bez ohledu na kraj/lokalitu).
+    // Klient vždy musí dostat 5 doporučení — pokud nic nesedí přesně,
+    // alespoň alternativy z širšího okolí.
+    if (matches.length < 5 && venues.length >= 5) {
+      console.log(`[match] ABSOLUTNÍ FALLBACK — máme jen ${matches.length}/5, doplňuji z celé DB`)
+      const used = new Set(matches.map((m) => m.venue.slug))
+
+      // 1. Doplň nejlepšími VIP z celé DB (bez ohledu na kraj)
+      const anyVips = venues
+        .filter((v) => v.isFeatured && !used.has(v.slug))
+        .slice(0, 5 - matches.length)
+      for (const v of anyVips) {
+        matches.push({
+          venue: v,
+          score: 0,
+          reasons: [],
+          warnings: [],
+          personalDescription: `Doporučujeme jako alternativu z naší VIP sekce (mimo Vaši primární lokalitu). Stojí za zvážení, pokud byste rozšířili hledání.`,
+          bucket: "alternative",
+        })
+        used.add(v.slug)
+      }
+
+      // 2. Pokud stále chybí, doplň jakákoliv místa s dostatečnou kapacitou
+      if (matches.length < 5) {
+        const fitsCapacity = venues
+          .filter((v) => !used.has(v.slug) && v.capacity >= answers.guests * 0.85)
+          .sort((a, b) => {
+            // Preferuj v dosažitelných krajích
+            const acceptableRegions = getAcceptableRegions(answers.regions, answers.nearestCity)
+            const aClose = acceptableRegions.includes(a.region) ? 1 : 0
+            const bClose = acceptableRegions.includes(b.region) ? 1 : 0
+            return bClose - aClose
+          })
+          .slice(0, 5 - matches.length)
+        for (const v of fitsCapacity) {
+          matches.push({
+            venue: v,
+            score: 0,
+            reasons: [],
+            warnings: [],
+            personalDescription: `Toto místo nesedí přesně, ale má dostatečnou kapacitu. Stojí za zvážení, pokud rozšíříte hledání.`,
+            bucket: "alternative",
+          })
+          used.add(v.slug)
+        }
+      }
+
+      // 3. Last resort: doplň cokoliv z DB
+      if (matches.length < 5) {
+        const anyVenue = venues
+          .filter((v) => !used.has(v.slug))
+          .slice(0, 5 - matches.length)
+        for (const v of anyVenue) {
+          matches.push({
+            venue: v,
+            score: 0,
+            reasons: [],
+            warnings: [],
+            personalDescription: `Doporučujeme z naší databáze — i když přesně nesedí na Vaše kritéria, můžete se inspirovat.`,
+            bucket: "alternative",
+          })
+          used.add(v.slug)
+        }
+      }
+      console.log(`[match] Po absolutním fallbacku: ${matches.length} míst`)
     }
 
     // Uložení poptávky do DB
