@@ -7,6 +7,7 @@ import { evaluateWithClaude } from "@/lib/claude-ai"
 import { toCzechVocative } from "@/lib/czech-vocative"
 import { isRegionWithin90Min, getAcceptableRegions } from "@/lib/geography"
 import { mapDbToVenue } from "@/lib/venue-mapping"
+import { extractClientKeywords, matchVenueAgainstKeywords, rankVenuesByKeywords } from "@/lib/keyword-matcher"
 import type { Venue } from "@/lib/types"
 
 const MONTHS = ["", "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
@@ -49,6 +50,14 @@ export async function POST(req: Request) {
     }
     if (venues.length === 0) {
       venues = SAMPLE_VENUES
+    }
+
+    // Seřadíme místa podle klíčových slov ze specialRequests klienta
+    // → AI dostane nejdřív místa, která splňují požadavky (bazén, psi, ...)
+    const clientKeywords = extractClientKeywords(answers.specialRequests)
+    if (clientKeywords.length > 0) {
+      venues = rankVenuesByKeywords(venues, answers.specialRequests)
+      console.log(`[match] Klíčová slova klienta: ${clientKeywords.join(", ")} — místa seřazena podle shod`)
     }
 
     // 🤖 CLAUDE AI vybírá 5 nejlepších míst z celé DB (jako specialista)
@@ -215,6 +224,16 @@ export async function POST(req: Request) {
           matches.filter((m) => m.bucket !== "alternative").length
         }, alternativy: ${matches.filter((m) => m.bucket === "alternative").length}, přesunuto kvůli validaci: ${rejectedFromPrimary.length})`,
       )
+
+      // Log keyword coverage — pomocná diagnostika
+      if (clientKeywords.length > 0) {
+        for (const m of matches) {
+          const { matched } = matchVenueAgainstKeywords(m.venue, clientKeywords)
+          if (matched.length > 0) {
+            console.log(`[match] ✓ ${m.venue.title}: shody klíčů ${matched.join(", ")}`)
+          }
+        }
+      }
 
       // ===== FORCE VIP RULE =====
       // Pokud klient zadal lokalitu a v ní existuje VIP místo, MUSÍ být v doporučení.

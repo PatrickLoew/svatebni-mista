@@ -915,11 +915,6 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                       className="relative"
                     >
                       <VenueCard venue={m.venue} index={i} hideType />
-                      {m.personalDescription && (
-                        <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
-                          {m.personalDescription}
-                        </p>
-                      )}
                     </motion.div>
                   ))}
                 </div>
@@ -948,11 +943,6 @@ function ResultScreen({ matches, answers }: { matches: Match[]; answers: WizardA
                       className="relative"
                     >
                       <VenueCard venue={m.venue} index={i} hideType />
-                      {m.personalDescription && (
-                        <p className="text-sm text-charcoal/70 mt-3 px-2 leading-relaxed">
-                          {m.personalDescription}
-                        </p>
-                      )}
                     </motion.div>
                   ))}
                 </div>

@@ -96,14 +96,43 @@ V popisu alternativ musíš jasně uvést proč nesedí: "Pozor — místo zakaz
 7. Ubytování přímo na místě (accommodationCapacity > 0), pokud klient chce.
 8. VIP status (isFeatured: true) — preferuj 2 VIP z klientova kraje, pokud existují.
 
-### C) SPECIÁLNÍ POŽADAVKY KLIENTA — pečlivě prohledej features + description:
-- Pejsek/psi → features/description s "pet", "pejsek", "psi", "psy"
-- Děti/hřiště → features/description s "děti", "dětsk", "hřiště", "koutek"
-- Wellness/bazén → features/description s "wellness", "bazén", "sauna", "spa"
-- Bezbariérovost → "bezbariér"
-- Obřad u vody → features/description s "rybník", "voda", "jezero", "u vody"
+### C) SPECIÁLNÍ POŽADAVKY KLIENTA — KRITICKÉ! Prohledej features + description každého místa, hledej klíčová slova:
 
-→ Pokud klient explicitně zmíní speciální požadavek, alespoň 3 z 5 doporučených míst by ho měla splňovat. Pokud to v DB není možné, v persona summary uznej, že detail doladíte individuálně.
+**Postup (vždy):**
+1. Vezmi text "Speciální požadavky" od klienta
+2. Identifikuj v něm klíčová slova (bazén, biotop, psi, děti, wellness, rybníček, hory, klid, samota, ...)
+3. Pro každé z 200+ míst v DB projdi jeho \`features\` POLE a \`popis\` text
+4. Vyber primárně místa, která **OBSAHUJÍ** odpovídající klíčová slova
+
+**Mapování klíčových slov klient → co hledat v DB features/popisu:**
+
+| Klient řekne | Hledej v features a popisu |
+|---|---|
+| bazén / koupání / koupací | "bazén", "biotop", "koupací jezírko", "bazén / biotop" |
+| biotop | "biotop", "koupací jezírko", "u vody" |
+| rybník / rybníček / jezírko | "rybník", "jezírko", "u vody", "biotop" |
+| pejsek / pes / psi / psy / pet | "pejsek", "pet-friendly", "pet friendly", "psi vítáni" |
+| děti / dětský | "děti", "dětský koutek", "hřiště", "rodinné", "dětsk" |
+| wellness / spa / sauna | "wellness", "sauna", "spa", "vířivka", "masáže" |
+| bezbariér | "bezbariér", "bezbariérovost" |
+| samota / klid / soukromí | "samota", "klid", "soukromí", "soukromý areál" |
+| příroda / les / louka | "příroda", "les", "louka", "v přírodě" |
+| hory / horský / výhled | "hory", "horský", "výhled", "hora" |
+| zahrada | "zahrada", "park", "francouzská zahrada" |
+| stodola | "stodola", "stodol" |
+| pivovar | "pivovar" |
+| vinný sklep / víno | "vinný sklep", "vinařství", "víno" |
+
+**TVRDÉ PRAVIDLO:** Pokud klient explicitně zmíní např. "bazén" v speciálních požadavcích:
+- **Najdi VŠECHNA místa v DB**, která mají v features nebo popisu slovo "bazén" / "biotop" / "koupací"
+- Z nich vyber 3-5 nejlepších do primary
+- V personalDescription každého takového místa **VŽDY zmiň konkrétně**: "Velkou výhodou je bazén v zahradě" / "Místo nabízí koupací biotop" — tím dáš klientovi jistotu, že jeho požadavek byl splněn
+
+Pokud klient zmínil několik požadavků (např. "bazén, děti, psi"), preferuj místa, která splňují **co nejvíce** najednou. Pokud místo má 2 z 3 (např. bazén + děti, ale ne psy), zmiň to v popisu transparentně.
+
+Pokud v DB ŽÁDNÉ místo nemá daný požadavek (např. žádný bazén v Karlovarském kraji), zmiň to v persona summary: "Bazén ani biotop bohužel v daném kraji v naší selekci nemáme — můžeme to doladit individuálně po telefonu."
+
+NEPŘEHLÍŽEJ speciální požadavky. Klient je napsal, protože jsou pro něj důležité.
 
 ## STYL PSANÍ (DODRŽUJ DOSLOVA — toto je Mončin reálný styl)
 
