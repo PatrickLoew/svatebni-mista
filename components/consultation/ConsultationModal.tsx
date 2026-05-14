@@ -116,7 +116,7 @@ export default function ConsultationModal({
   return (
     <div
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 z-[100] bg-black/70 flex items-end sm:items-center justify-center overflow-y-auto animate-fadeIn"
     >
       <div
         className="relative bg-white w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl shadow-2xl sm:my-8 max-h-[95vh] overflow-y-auto animate-modalIn"
@@ -222,52 +222,60 @@ export default function ConsultationModal({
                 </div>
 
                 {/* DVA HLAVNÍ KANÁLY: telefon + email */}
+                {/* Buttony s programatickou navigací — funguje spolehlivě
+                   v Chrome/Edge i Safari (na rozdíl od <a href="tel:">) */}
                 <div className="space-y-3">
                   {/* Telefon */}
-                  <a
-                    href={`tel:${phoneTel}`}
-                    onClick={() => trackEvent("consultation_phone", source)}
-                    className="group flex items-center gap-4 bg-[#C9A96E]/10 hover:bg-[#C9A96E]/15 border-2 border-[#C9A96E]/40 hover:border-[#C9A96E] rounded-2xl p-4 sm:p-5 transition-all"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      trackEvent("consultation_phone", source)
+                      window.location.href = `tel:${phoneTel}`
+                    }}
+                    className="group w-full text-left flex items-center gap-4 bg-[#C9A96E]/10 hover:bg-[#C9A96E]/20 border-2 border-[#C9A96E]/40 hover:border-[#C9A96E] rounded-2xl p-4 sm:p-5 transition-all cursor-pointer"
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#C9A96E] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <span className="w-12 h-12 rounded-full bg-[#C9A96E] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                       <Phone className="text-white w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[10px] font-semibold tracking-[.2em] uppercase text-[#A88240] mb-0.5">
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[10px] font-semibold tracking-[.2em] uppercase text-[#A88240] mb-0.5">
                         Zavolejte
-                      </div>
-                      <div className="font-serif text-lg sm:text-xl text-[#2C2C2C]">
+                      </span>
+                      <span className="block font-serif text-lg sm:text-xl text-[#2C2C2C]">
                         {phone}
-                      </div>
-                      <div className="text-xs text-[#2C2C2C]/60 mt-0.5">
+                      </span>
+                      <span className="block text-xs text-[#2C2C2C]/60 mt-0.5">
                         Po–Pá, 9:00 – 18:00
-                      </div>
-                    </div>
+                      </span>
+                    </span>
                     <span className="text-[#C9A96E] text-xl font-light flex-shrink-0">→</span>
-                  </a>
+                  </button>
 
                   {/* E-mail */}
-                  <a
-                    href={emailMailto}
-                    onClick={() => trackEvent("consultation_email", source)}
-                    className="group flex items-center gap-4 bg-[#3E2723]/5 hover:bg-[#3E2723]/10 border-2 border-[#3E2723]/20 hover:border-[#3E2723]/40 rounded-2xl p-4 sm:p-5 transition-all"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      trackEvent("consultation_email", source)
+                      window.location.href = emailMailto
+                    }}
+                    className="group w-full text-left flex items-center gap-4 bg-[#3E2723]/5 hover:bg-[#3E2723]/10 border-2 border-[#3E2723]/20 hover:border-[#3E2723]/40 rounded-2xl p-4 sm:p-5 transition-all cursor-pointer"
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#3E2723] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                    <span className="w-12 h-12 rounded-full bg-[#3E2723] flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                       <Mail className="text-white w-5 h-5" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[10px] font-semibold tracking-[.2em] uppercase text-[#3E2723] mb-0.5">
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[10px] font-semibold tracking-[.2em] uppercase text-[#3E2723] mb-0.5">
                         Napište e-mail
-                      </div>
-                      <div className="font-medium text-[#2C2C2C] text-sm sm:text-base truncate">
+                      </span>
+                      <span className="block font-medium text-[#2C2C2C] text-sm sm:text-base truncate">
                         {email}
-                      </div>
-                      <div className="text-xs text-[#2C2C2C]/60 mt-0.5">
+                      </span>
+                      <span className="block text-xs text-[#2C2C2C]/60 mt-0.5">
                         Odpovíme do 24 hodin
-                      </div>
-                    </div>
+                      </span>
+                    </span>
                     <span className="text-[#3E2723] text-xl font-light flex-shrink-0">→</span>
-                  </a>
+                  </button>
                 </div>
 
                 {/* Vedlejší volba — formulář */}
