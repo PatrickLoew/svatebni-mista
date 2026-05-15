@@ -489,11 +489,13 @@ export async function POST(req: Request) {
         })
 
         if (process.env.RESEND_TO_EMAIL) {
+          // Předáme info o tom, kdo vyhodnocoval (AI vs fallback algoritmus)
+          const evaluator = claudeResult ? "Claude Sonnet 4.5" : "Záložní algoritmus (skóre)"
           await resend.emails.send({
             from: fromEmail,
             to: process.env.RESEND_TO_EMAIL,
             subject: `Nová poptávka přes wizard: ${answers.name}`,
-            html: companyEmail(answers, matches),
+            html: companyEmail(answers, matches, evaluator),
           })
         }
       } catch (e) {
@@ -749,14 +751,82 @@ function clientEmail(
   `
 }
 
-function companyEmail(a: WizardAnswers, matches: Match[]): string {
+function companyEmail(a: WizardAnswers, matches: Match[], evaluator: string): string {
+  // Extrahujeme klientova klíčová slova (bazén/psi/wellness/...) ze specialRequests
+  const clientKeywords = extractClientKeywords(a.specialRequests ?? "")
+
+  // Pro každé místo spočítáme skutečné shody:
+  //  - keyword shody (kolik klientových klíčových slov místo má)
+  //  - shoda v % se počítá jako "kolik z požadavků klienta tohle místo splňuje"
+  const rows = matches.map((m, idx) => {
+    const { matched } = matchVenueAgainstKeywords(m.venue, clientKeywords)
+
+    // Skóre = % shody klíčových slov × 100 + bonusy:
+    //  - +10 % pokud je VIP
+    //  - +5 % pokud je v preferovaném kraji
+    let percentage = 0
+    if (clientKeywords.length > 0) {
+      percentage = Math.round((matched.length / clientKeywords.length) * 100)
+    } else {
+      // Pokud klient neuvedl speciální požadavky, hodnotíme základem 60 %
+      percentage = 60
+    }
+    if (m.venue.isFeatured) percentage = Math.min(100, percentage + 10)
+    if (a.regions.length > 0 && a.regions.includes(m.venue.region)) {
+      percentage = Math.min(100, percentage + 5)
+    }
+    // Bucket bonus — primary má vyšší %
+    if (m.bucket === "primary") percentage = Math.min(100, percentage + 5)
+    if (m.bucket === "alternative") percentage = Math.max(0, percentage - 10)
+    // Minimum pokud místo bylo doporučeno
+    if (percentage < 30) percentage = 30
+
+    const vipBadge = m.venue.isFeatured
+      ? `<span style="background:#C9A96E;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px">VIP</span>`
+      : ""
+    const bucketBadge = m.bucket === "alternative"
+      ? `<span style="background:#E8DDD0;color:#3E2723;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px">Alternativa</span>`
+      : `<span style="background:#3E2723;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:6px">Hlavní návrh</span>`
+
+    const matchedList = matched.length > 0
+      ? `<div style="color:#16a34a;font-size:12px;margin-top:4px">✓ Shody klientových požadavků: <strong>${matched.join(", ")}</strong></div>`
+      : (clientKeywords.length > 0
+          ? `<div style="color:#a16207;font-size:12px;margin-top:4px">⚠ Žádné konkrétní shody s "${a.specialRequests}"</div>`
+          : "")
+
+    const desc = m.personalDescription
+      ? `<div style="color:#666;font-size:12px;margin-top:4px;font-style:italic">${m.personalDescription.substring(0, 200)}${m.personalDescription.length > 200 ? "…" : ""}</div>`
+      : ""
+
+    return `
+      <li style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #eee">
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong style="font-size:15px">${idx + 1}. ${m.venue.title}</strong>${vipBadge}${bucketBadge}
+        </div>
+        <div style="color:#666;font-size:12px;margin-top:3px">
+          ${m.venue.region} · do ${m.venue.capacity} hostů · od ${fmt(m.venue.priceFrom)} Kč ·
+          <strong style="color:${percentage >= 70 ? '#16a34a' : percentage >= 50 ? '#A88240' : '#dc2626'}">
+            shoda ${percentage} %
+          </strong>
+        </div>
+        ${matchedList}
+        ${desc}
+      </li>
+    `
+  }).join("")
+
+  const keywordSummary = clientKeywords.length > 0
+    ? `<p style="color:#666;font-size:13px;margin:0 0 8px"><strong>Klíčová slova klienta:</strong> ${clientKeywords.join(", ")}</p>`
+    : `<p style="color:#666;font-size:13px;margin:0 0 8px;font-style:italic">Klient neuvedl konkrétní speciální požadavky.</p>`
+
   return `
   <div style="font-family:Helvetica,Arial,sans-serif;background:#F9F6F0;padding:32px;color:#222">
-    <h2 style="margin:0 0 16px">Nová poptávka z wizardu</h2>
-    <table cellpadding="8" style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;border:1px solid #ddd">
+    <h2 style="margin:0 0 16px;color:#3E2723">Nová poptávka z wizardu</h2>
+
+    <table cellpadding="8" style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;border:1px solid #ddd;margin-bottom:24px">
       <tr><td><strong>Jméno:</strong></td><td>${a.name || "—"}</td></tr>
       <tr><td><strong>E-mail:</strong></td><td><a href="mailto:${a.email}">${a.email}</a></td></tr>
-      <tr><td><strong>Telefon:</strong></td><td>${a.phone || "neuveden"}</td></tr>
+      <tr><td><strong>Telefon:</strong></td><td><a href="tel:${a.phone}">${a.phone || "neuveden"}</a></td></tr>
       <tr><td><strong>Termín:</strong></td><td>${termLabel(a)}</td></tr>
       <tr><td><strong>Hostů:</strong></td><td>${a.guests}</td></tr>
       <tr><td><strong>Lokalita 90 min od:</strong></td><td>${a.nearestCity ?? "—"}</td></tr>
@@ -768,7 +838,7 @@ function companyEmail(a: WizardAnswers, matches: Match[]): string {
       <tr><td><strong>Party:</strong></td><td>${a.party}</td></tr>
       <tr><td><strong>Pronájem:</strong></td><td>${a.rentalBudget ? "do " + fmt(a.rentalBudget) + " Kč" : "—"}</td></tr>
       <tr><td><strong>Rozpočet svatby:</strong></td><td>${a.weddingBudget ? "do " + fmt(a.weddingBudget) + " Kč" : "—"}</td></tr>
-      <tr><td><strong>Speciální:</strong></td><td>${a.specialRequests || "—"}</td></tr>
+      <tr><td><strong>Speciální požadavky:</strong></td><td><strong style="color:#A88240">${a.specialRequests || "—"}</strong></td></tr>
       <tr><td><strong>Pomoc s:</strong></td><td>${a.serviceHelp.join(", ")}</td></tr>
       <tr><td><strong>Koordinátor:</strong></td><td>${a.needCoordinator}</td></tr>
       <tr><td><strong>DJ:</strong></td><td>${a.needDjModerator}</td></tr>
@@ -776,10 +846,23 @@ function companyEmail(a: WizardAnswers, matches: Match[]): string {
       <tr><td><strong>Online konzultace:</strong></td><td>${a.wantOnlineConsultation ? "★ ANO" : "ne"}</td></tr>
       <tr><td><strong>Newsletter:</strong></td><td>${a.consentNewsletter ? "ANO" : "NE"}</td></tr>
     </table>
-    <h3 style="margin:24px 0 12px">Doporučená místa</h3>
-    <ol>
-      ${matches.map((m) => `<li><strong>${m.venue.title}</strong> — shoda ${m.score} %<br><small>${m.reasons.join(" · ") || "—"}</small></li>`).join("")}
-    </ol>
+
+    <div style="background:#fff;border-radius:8px;border:1px solid #ddd;padding:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #eee">
+        <h3 style="margin:0;color:#3E2723">Doporučená místa</h3>
+        <span style="font-size:11px;color:#888;background:#F9F2E6;padding:3px 8px;border-radius:4px">
+          Vyhodnocoval: <strong>${evaluator}</strong>
+        </span>
+      </div>
+      ${keywordSummary}
+      <ol style="margin:0;padding-left:20px">
+        ${rows}
+      </ol>
+    </div>
+
+    <p style="color:#888;font-size:11px;margin-top:20px;text-align:center">
+      Shoda = % klientových požadavků, která místo splňuje (kapacita/rozpočet/typ/speciální požadavky) + bonusy za VIP a preferovaný kraj.
+    </p>
   </div>
   `
 }
