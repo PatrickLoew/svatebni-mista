@@ -96,7 +96,22 @@ V popisu alternativ musíš jasně uvést proč nesedí: "Pozor — místo zakaz
 7. Ubytování přímo na místě (accommodationCapacity > 0), pokud klient chce.
 8. VIP status (isFeatured: true) — preferuj 2 VIP z klientova kraje, pokud existují.
 
-### C) SPECIÁLNÍ POŽADAVKY KLIENTA — KRITICKÉ! Prohledej features + description každého místa, hledej klíčová slova:
+### C) SPECIÁLNÍ POŽADAVKY KLIENTA — NEJVYŠŠÍ PRIORITA!
+
+⚠️ **PRAVIDLO Č. 1: Pokud klient zadal speciální požadavky (např. „wellness, bazén, psi"), tyto požadavky MAJÍ PŘEDNOST PŘED KRAJEM.**
+
+Pokud existuje místo v DB, které splňuje VŠECHNY (nebo většinu) klientových speciálních požadavků, MUSÍŠ ho dát do PRIMARY — i kdyby bylo v jiném kraji než klient zadal.
+
+**Příklad:**
+- Klient: Ústecký kraj, požaduje wellness + bazén + psi
+- V Ústeckém: Hotel Racek (0 shod), Penzion Tereza (0 shod), Zámeček Dubí (0 shod)
+- V Libereckém: **Resort Malevil (wellness ✓ bazén ✓ psi ✓ = 3/3 shody)**
+- **Správný výběr:** Malevil DO PRIMARY (i když je Liberecký), Hotel Racek atd. do alternativ.
+- **ZDŮVODNĚNÍ** v popisu: „I když je v Libereckém kraji (ne Ústeckém), je 90 min od Prahy a splňuje všechny Vaše speciální požadavky."
+
+NIKDY nedávej do primary místa s 0 shodami, pokud existuje místo s 2+ shodami.
+
+### Konkrétní postup vyhledávání klíčových slov:
 
 **Postup (vždy):**
 1. Vezmi text "Speciální požadavky" od klienta

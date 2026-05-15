@@ -100,26 +100,26 @@ export async function POST(req: Request) {
         if (answers.rentalBudget > 0 && v.priceFrom > answers.rentalBudget * 1.20) {
           return { ok: false, reason: `pronájem ${v.priceFrom.toLocaleString("cs-CZ")} Kč přesahuje rozpočet ${answers.rentalBudget.toLocaleString("cs-CZ")} Kč o víc než 20 %` }
         }
-        // LOKALITA — primární filtr je `nearest_city` (každé místo je tagované,
-        // do kterého velkého města je do 90 min). Sousední kraj NESEDÍ
-        // automaticky — záleží na tom, zda má místo stejné nearest_city.
-        if (answers.regions.length > 0) {
-          // Klient zadal kraj — musí být v něm, ALE může být i v jiném kraji
-          // pokud má místo nearest_city == klientovo město (např. místo v Ústeckém
-          // kraji s nearest_city="Praha" = jih kraje, blízko Prahy)
-          const inPreferredRegion = answers.regions.includes(v.region)
-          const sameCity = !!answers.nearestCity
-            && answers.nearestCity !== "jedno"
-            && v.nearestCity === answers.nearestCity
-          if (!inPreferredRegion && !sameCity) {
-            return { ok: false, reason: `není v preferovaném kraji a nemá nearest_city = ${answers.nearestCity}` }
-          }
-        } else if (answers.nearestCity && answers.nearestCity !== "jedno") {
-          // Klient zadal jen město — místo MUSÍ mít stejné nearest_city.
-          // To je striktní pravidlo — místa v Libereckém s nearest_city=Liberec
-          // se nezahrnou pro klienta z Prahy, i když je Liberecký "v dosahu".
-          if (v.nearestCity !== answers.nearestCity) {
-            return { ok: false, reason: `není do 90 min od ${answers.nearestCity} (nearest_city = ${v.nearestCity ?? "—"})` }
+        // LOKALITA — primární filtr je `nearest_city`.
+        // VÝJIMKA: pokud místo splňuje VŠECHNY speciální požadavky klienta
+        // (100% shoda keywords), kraj/lokalita se NEKONTROLUJE.
+        // Důvod: klientovi je důležitější wellness/bazén/psi než přesný kraj.
+        const fullKeywordMatch = clientKeywords.length >= 2 &&
+          matchVenueAgainstKeywords(v, clientKeywords).matched.length === clientKeywords.length
+
+        if (!fullKeywordMatch) {
+          if (answers.regions.length > 0) {
+            const inPreferredRegion = answers.regions.includes(v.region)
+            const sameCity = !!answers.nearestCity
+              && answers.nearestCity !== "jedno"
+              && v.nearestCity === answers.nearestCity
+            if (!inPreferredRegion && !sameCity) {
+              return { ok: false, reason: `není v preferovaném kraji a nemá nearest_city = ${answers.nearestCity}` }
+            }
+          } else if (answers.nearestCity && answers.nearestCity !== "jedno") {
+            if (v.nearestCity !== answers.nearestCity) {
+              return { ok: false, reason: `není do 90 min od ${answers.nearestCity} (nearest_city = ${v.nearestCity ?? "—"})` }
+            }
           }
         }
         // CATERING: klient chce vlastní catering → místo NESMÍ být "only_venue"
@@ -231,6 +231,62 @@ export async function POST(req: Request) {
           const { matched } = matchVenueAgainstKeywords(m.venue, clientKeywords)
           if (matched.length > 0) {
             console.log(`[match] ✓ ${m.venue.title}: shody klíčů ${matched.join(", ")}`)
+          }
+        }
+      }
+
+      // ===== FORCE KEYWORD-MATCH RULE =====
+      // Pokud klient zadal speciální požadavky (např. wellness, bazén, psi)
+      // a v DB existuje místo s 80%+ shod, MUSÍ být v primary — nezávisle
+      // na kraji. Speciální požadavky mají prioritu nad lokalitou.
+      if (clientKeywords.length >= 2) {
+        const usedSlugs = new Set(matches.map((m) => m.venue.slug))
+        const highMatchVenues = venues
+          .filter((v) => !usedSlugs.has(v.slug))
+          .map((v) => ({ v, ...matchVenueAgainstKeywords(v, clientKeywords) }))
+          .filter((x) => x.score / clientKeywords.length >= 0.8) // 80%+ shod
+          .sort((a, b) => {
+            // 1) podle počtu shod
+            if (b.score !== a.score) return b.score - a.score
+            // 2) VIP před non-VIP
+            if (a.v.isFeatured !== b.v.isFeatured) return a.v.isFeatured ? -1 : 1
+            return 0
+          })
+
+        // Vlož místo s plnou shodou nahoru, nahraď nejhorší primary
+        // (které nemá vůbec žádné keyword shody)
+        for (const cand of highMatchVenues) {
+          if (matches.filter((m) => m.bucket !== "alternative").length >= 3) {
+            // Najít primary místo bez keyword shod — to nahradíme
+            const weakestPrimaryIdx = matches.findIndex((m, idx) => {
+              if (m.bucket === "alternative") return false
+              const { score } = matchVenueAgainstKeywords(m.venue, clientKeywords)
+              if (score > 0) return false
+              return idx >= 0
+            })
+            if (weakestPrimaryIdx < 0) break // všechna primary už mají shody
+
+            console.log(
+              `[match] FORCE KEYWORD: ${cand.v.title} (${cand.matched.join(",")}) ` +
+              `nahrazuje primary "${matches[weakestPrimaryIdx].venue.title}" (0 shod)`,
+            )
+            // Přesun starého primary do alternative, nové na jeho místo
+            const old = matches[weakestPrimaryIdx]
+            matches[weakestPrimaryIdx] = {
+              venue: cand.v,
+              score: 0,
+              reasons: [],
+              warnings: [],
+              personalDescription: cand.v.isFeatured
+                ? `Vybráno protože splňuje všechny Vaše speciální požadavky (${cand.matched.join(", ")}). VIP místo z naší selekce.`
+                : `Vybráno protože splňuje všechny Vaše speciální požadavky (${cand.matched.join(", ")}).`,
+              bucket: "primary",
+            }
+            matches.push({
+              ...old,
+              bucket: "alternative",
+              personalDescription: `${old.personalDescription} (Přesunuto do alternativ — bylo nahrazeno místem se shodou Vašich speciálních požadavků.)`,
+            })
           }
         }
       }
