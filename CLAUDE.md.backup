@@ -262,13 +262,12 @@ GOOGLE_SHEET_URL=https://docs.google.com/...
 - Začátečník v programování — vysvětluj **krok za krokem**
 - Preferuje **konkrétní instrukce co kde klikat**
 
-<!-- 5 interních expertů viz globální ~/.claude/CLAUDE.md (Viktor / Martin / Radek / Sarah / Pavel) -->
-<!-- Detailní popis (Zodpovídá za / Ptá se / Pravidlo) je tam, zde jen reference. -->
-<!-- Pro vývoj viz také globální sekci "Pravidla pro vývoj (závazné, všechny projekty)". -->
-<!-- Pravidla pro Claude Code dle ~/.claude/CLAUDE.md aplikujte pro tento projekt. -->
-<!-- Universal: atomické commity, žádné TODO, custom exceptions, české komentáře. -->
-<!-- Per-project (Next.js): TypeScript strict, žádné JS, vitest pro tests. -->
-<!-- (Pokud bude potřeba doplnit Next.js-specific standardy, přidat sem.) -->
+### 5 interních expertů (vždy konzultovat):
+- **Viktor (CEO)** — strategie, hodnota pro uživatele
+- **Martin (CTO)** — technická kvalita, škálovatelnost
+- **Radek (krizový)** — co může selhat, edge cases
+- **Sarah (externí)** — čerstvý pohled, zdravý rozum
+- **Pavel (strážce)** — konzistence, nepřepisovat funkční kód
 
 ---
 
