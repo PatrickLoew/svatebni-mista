@@ -18,6 +18,8 @@
     "update-vip-from-csv": "tsx scripts/update-vip-from-csv.ts",
     "update-from-sheet": "tsx scripts/update-from-sheet.ts",
     "enrich-vip-from-web": "tsx scripts/enrich-vip-from-web.ts",
+    "enrich-vip-deep": "tsx scripts/enrich-vip-deep.ts",
+    "audit-vip-features": "tsx scripts/audit-vip-features.ts",
     "health-check": "tsx scripts/health-check.ts"
   },
   "dependencies": {
