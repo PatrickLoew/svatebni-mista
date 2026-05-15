@@ -1,11 +1,12 @@
 /**
- * Globální middleware — chrání admin sekci.
+ * Globální proxy (Next.js 16 přejmenoval middleware → proxy).
+ * Chrání admin sekci před neautorizovaným přístupem.
  *
  * Bez platné cookie `admin_session` přesměruje na /admin/login.
  * Veřejné endpointy (/api/admin/login, /api/admin/logout) jsou výjimky.
  * Cron endpoint /api/sync-sheet má svou Bearer auth.
  *
- * POZOR: middleware běží v Edge Runtime — nemůžeme používat node:crypto.
+ * POZOR: proxy běží v Edge Runtime — nemůžeme používat node:crypto.
  * Použijeme Web Crypto API pro HMAC verifikaci.
  */
 import { NextResponse } from "next/server"
@@ -80,7 +81,7 @@ function isProtected(pathname: string): boolean {
   return PROTECTED_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/") || pathname.startsWith(p))
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname
 
   if (!isProtected(pathname)) {
@@ -112,7 +113,7 @@ export async function middleware(req: NextRequest) {
 }
 
 /**
- * Matcher: middleware se spouští jen na cestách, které potřebují kontrolu.
+ * Matcher: proxy se spouští jen na cestách, které potřebují kontrolu.
  * Public files (_next, favicon, ...) jsou vyloučené automaticky.
  */
 export const config = {

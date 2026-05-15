@@ -1,14 +1,32 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Loader2, Lock } from "lucide-react"
 
 /**
  * Login stránka pro administraci.
  * Zadání hesla → POST /api/admin/login → redirect zpět (?from=) nebo /admin.
+ *
+ * useSearchParams vyžaduje v Next.js 16 Suspense boundary (CSR bailout).
  */
 export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FEFDFB] via-[#F9F2E6] to-[#F0E8DC]">
+      <Loader2 size={28} className="animate-spin text-[#C9A96E]" />
+    </div>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [password, setPassword] = useState("")
