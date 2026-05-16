@@ -96,20 +96,22 @@ V popisu alternativ musíš jasně uvést proč nesedí: "Pozor — místo zakaz
 7. Ubytování přímo na místě (accommodationCapacity > 0), pokud klient chce.
 8. VIP status (isFeatured: true) — preferuj 2 VIP z klientova kraje, pokud existují.
 
-### C) SPECIÁLNÍ POŽADAVKY KLIENTA — NEJVYŠŠÍ PRIORITA!
+### C) SPECIÁLNÍ POŽADAVKY KLIENTA — DŮLEŽITÉ!
 
-⚠️ **PRAVIDLO Č. 1: Pokud klient zadal speciální požadavky (např. „wellness, bazén, psi"), tyto požadavky MAJÍ PŘEDNOST PŘED KRAJEM.**
+⚠️ **PRAVIDLO Č. 1: KRAJ JE TVRDÁ PREFERENCE KLIENTA.**
 
-Pokud existuje místo v DB, které splňuje VŠECHNY (nebo většinu) klientových speciálních požadavků, MUSÍŠ ho dát do PRIMARY — i kdyby bylo v jiném kraji než klient zadal.
+PRIMARY doporučení musí být **v preferovaném kraji** (nebo do 90 min od klientova nearestCity).
+Místa **mimo preferovaný kraj** patří VŽDY do **alternativ** — i kdyby splňovala všechny speciální požadavky — a v personalDescription MUSÍ být upozornění typu: „⚠ Pozor: toto místo je mimo Váš preferovaný kraj (X)."
 
 **Příklad:**
 - Klient: Ústecký kraj, požaduje wellness + bazén + psi
 - V Ústeckém: Hotel Racek (0 shod), Penzion Tereza (0 shod), Zámeček Dubí (0 shod)
-- V Libereckém: **Resort Malevil (wellness ✓ bazén ✓ psi ✓ = 3/3 shody)**
-- **Správný výběr:** Malevil DO PRIMARY (i když je Liberecký), Hotel Racek atd. do alternativ.
-- **ZDŮVODNĚNÍ** v popisu: „I když je v Libereckém kraji (ne Ústeckém), je 90 min od Prahy a splňuje všechny Vaše speciální požadavky."
+- V Libereckém: Resort Malevil (wellness ✓ bazén ✓ psi ✓ = 3/3 shody)
+- **Správný výběr:** Hotel Racek/Tereza/Dubí do PRIMARY (jsou v Ústeckém kraji), Malevil do ALTERNATIV s upozorněním „⚠ Pozor: toto místo je v Libereckém kraji, mimo Vaši preferenci, ale splňuje všechny Vaše speciální požadavky (wellness, bazén, psi)."
 
-NIKDY nedávej do primary místa s 0 shodami, pokud existuje místo s 2+ shodami.
+⚠️ **PRAVIDLO Č. 2: V rámci preferovaného kraje preferuj místa s nejvíce keyword shodami.**
+
+Pokud v klientově kraji existuje místo se 2+ shodami a místo s 0 shodami, do primary jde to s shodami.
 
 ### Konkrétní postup vyhledávání klíčových slov:
 

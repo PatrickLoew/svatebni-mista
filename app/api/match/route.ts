@@ -101,25 +101,19 @@ export async function POST(req: Request) {
           return { ok: false, reason: `pronájem ${v.priceFrom.toLocaleString("cs-CZ")} Kč přesahuje rozpočet ${answers.rentalBudget.toLocaleString("cs-CZ")} Kč o víc než 20 %` }
         }
         // LOKALITA — primární filtr je `nearest_city`.
-        // VÝJIMKA: pokud místo splňuje VŠECHNY speciální požadavky klienta
-        // (100% shoda keywords), kraj/lokalita se NEKONTROLUJE.
-        // Důvod: klientovi je důležitější wellness/bazén/psi než přesný kraj.
-        const fullKeywordMatch = clientKeywords.length >= 2 &&
-          matchVenueAgainstKeywords(v, clientKeywords).matched.length === clientKeywords.length
-
-        if (!fullKeywordMatch) {
-          if (answers.regions.length > 0) {
-            const inPreferredRegion = answers.regions.includes(v.region)
-            const sameCity = !!answers.nearestCity
-              && answers.nearestCity !== "jedno"
-              && v.nearestCity === answers.nearestCity
-            if (!inPreferredRegion && !sameCity) {
-              return { ok: false, reason: `není v preferovaném kraji a nemá nearest_city = ${answers.nearestCity}` }
-            }
-          } else if (answers.nearestCity && answers.nearestCity !== "jedno") {
-            if (v.nearestCity !== answers.nearestCity) {
-              return { ok: false, reason: `není do 90 min od ${answers.nearestCity} (nearest_city = ${v.nearestCity ?? "—"})` }
-            }
+        // Místa mimo preferovaný kraj jdou VŽDY do alternativ (s upozorněním),
+        // i kdyby splňovala speciální požadavky. Kraj je tvrdá preference klienta.
+        if (answers.regions.length > 0) {
+          const inPreferredRegion = answers.regions.includes(v.region)
+          const sameCity = !!answers.nearestCity
+            && answers.nearestCity !== "jedno"
+            && v.nearestCity === answers.nearestCity
+          if (!inPreferredRegion && !sameCity) {
+            return { ok: false, reason: `je mimo Váš preferovaný kraj (${v.region})` }
+          }
+        } else if (answers.nearestCity && answers.nearestCity !== "jedno") {
+          if (v.nearestCity !== answers.nearestCity) {
+            return { ok: false, reason: `není do 90 min od ${answers.nearestCity} (nearest_city = ${v.nearestCity ?? "—"})` }
           }
         }
         // CATERING: klient chce vlastní catering → místo NESMÍ být "only_venue"
@@ -237,10 +231,34 @@ export async function POST(req: Request) {
 
       // ===== FORCE KEYWORD-MATCH RULE =====
       // Pokud klient zadal speciální požadavky (např. wellness, bazén, psi)
-      // a v DB existuje místo s 80%+ shod, MUSÍ být v primary — nezávisle
-      // na kraji. Speciální požadavky mají prioritu nad lokalitou.
+      // a v DB existuje místo s 80%+ shod:
+      //   - místa V PREFEROVANÉM KRAJI → nahradí slabé primary (0 shod)
+      //   - místa MIMO PREFEROVANÝ KRAJ → přidat do ALTERNATIV s upozorněním
+      //     („Pozor: toto místo je mimo Váš preferovaný kraj")
+      // Kraj/lokalita je tvrdá preference klienta a má přednost před keyword
+      // shodou pro primary doporučení.
       if (clientKeywords.length >= 2) {
         const usedSlugs = new Set(matches.map((m) => m.venue.slug))
+
+        // Pomocná funkce — je místo v preferovaném kraji nebo do 90 min od
+        // klientova nearestCity?
+        const isInPreferredArea = (v: Venue): boolean => {
+          if (answers.regions.length > 0) {
+            if (answers.regions.includes(v.region)) return true
+            if (
+              answers.nearestCity &&
+              answers.nearestCity !== "jedno" &&
+              v.nearestCity === answers.nearestCity
+            ) return true
+            return false
+          }
+          if (answers.nearestCity && answers.nearestCity !== "jedno") {
+            return v.nearestCity === answers.nearestCity
+          }
+          // Klient nezadal kraj ani město → považuj za in-area
+          return true
+        }
+
         const highMatchVenues = venues
           .filter((v) => !usedSlugs.has(v.slug))
           .map((v) => ({ v, ...matchVenueAgainstKeywords(v, clientKeywords) }))
@@ -253,24 +271,25 @@ export async function POST(req: Request) {
             return 0
           })
 
-        // Vlož místo s plnou shodou nahoru, nahraď nejhorší primary
-        // (které nemá vůbec žádné keyword shody)
-        for (const cand of highMatchVenues) {
+        // Rozdělíme kandidáty: in-area může nahradit primary, out-of-area
+        // jde POUZE do alternativ s upozorněním.
+        const inAreaCandidates = highMatchVenues.filter((x) => isInPreferredArea(x.v))
+        const outOfAreaCandidates = highMatchVenues.filter((x) => !isInPreferredArea(x.v))
+
+        // 1) IN-AREA: nahradí slabé primary (které nemají žádné keyword shody)
+        for (const cand of inAreaCandidates) {
           if (matches.filter((m) => m.bucket !== "alternative").length >= 3) {
-            // Najít primary místo bez keyword shod — to nahradíme
-            const weakestPrimaryIdx = matches.findIndex((m, idx) => {
+            const weakestPrimaryIdx = matches.findIndex((m) => {
               if (m.bucket === "alternative") return false
               const { score } = matchVenueAgainstKeywords(m.venue, clientKeywords)
-              if (score > 0) return false
-              return idx >= 0
+              return score === 0
             })
             if (weakestPrimaryIdx < 0) break // všechna primary už mají shody
 
             console.log(
-              `[match] FORCE KEYWORD: ${cand.v.title} (${cand.matched.join(",")}) ` +
+              `[match] FORCE KEYWORD (in-area): ${cand.v.title} (${cand.matched.join(",")}) ` +
               `nahrazuje primary "${matches[weakestPrimaryIdx].venue.title}" (0 shod)`,
             )
-            // Přesun starého primary do alternative, nové na jeho místo
             const old = matches[weakestPrimaryIdx]
             matches[weakestPrimaryIdx] = {
               venue: cand.v,
@@ -278,8 +297,8 @@ export async function POST(req: Request) {
               reasons: [],
               warnings: [],
               personalDescription: cand.v.isFeatured
-                ? `Vybráno protože splňuje všechny Vaše speciální požadavky (${cand.matched.join(", ")}). VIP místo z naší selekce.`
-                : `Vybráno protože splňuje všechny Vaše speciální požadavky (${cand.matched.join(", ")}).`,
+                ? `Vybráno protože splňuje Vaše speciální požadavky (${cand.matched.join(", ")}). VIP místo z naší selekce ve Vašem kraji.`
+                : `Vybráno protože splňuje Vaše speciální požadavky (${cand.matched.join(", ")}).`,
               bucket: "primary",
             }
             matches.push({
@@ -288,6 +307,34 @@ export async function POST(req: Request) {
               personalDescription: `${old.personalDescription} (Přesunuto do alternativ — bylo nahrazeno místem se shodou Vašich speciálních požadavků.)`,
             })
           }
+        }
+
+        // 2) OUT-OF-AREA: pouze do alternativ s jasným upozorněním
+        const preferredLabel = answers.regions.length > 0
+          ? answers.regions.join(" / ")
+          : (answers.nearestCity && answers.nearestCity !== "jedno" ? answers.nearestCity : "")
+        for (const cand of outOfAreaCandidates) {
+          if (matches.length >= 7) break // max 7 míst (5 + 2 bonus z keyword-match)
+          // Skip duplicit
+          if (matches.some((m) => m.venue.slug === cand.v.slug)) continue
+
+          const notice = preferredLabel
+            ? `⚠ Pozor: toto místo je mimo Váš preferovaný kraj (${cand.v.region}). `
+            : ""
+          console.log(
+            `[match] FORCE KEYWORD (out-of-area): ${cand.v.title} (${cand.matched.join(",")}) ` +
+            `→ alternativy s upozorněním (${cand.v.region})`,
+          )
+          matches.push({
+            venue: cand.v,
+            score: 0,
+            reasons: [],
+            warnings: [],
+            personalDescription: cand.v.isFeatured
+              ? `${notice}Splňuje Vaše speciální požadavky (${cand.matched.join(", ")}). VIP místo z naší selekce — stojí za zvážení, pokud byste rozšířili hledání.`
+              : `${notice}Splňuje Vaše speciální požadavky (${cand.matched.join(", ")}). Stojí za zvážení, pokud byste rozšířili hledání.`,
+            bucket: "alternative",
+          })
         }
       }
 
